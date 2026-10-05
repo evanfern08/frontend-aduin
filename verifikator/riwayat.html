@@ -7,41 +7,57 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
 
-  <div class="layout-with-sidebar">
-    <!-- SIDEBAR -->
-    <aside class="sidebar-blue">
-      <div class="sidebar-brand">
-        <div class="sidebar-brand-icon">AD</div>
-        <div>
-          <span class="sidebar-brand-title">ADUIN</span>
-          <span class="sidebar-brand-sub">Verifikator</span>
-        </div>
+  <aside class="sidebar-blue">
+
+  <!-- ATAS -->
+  <div class="sidebar-top">
+    <a href="index.html" class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <svg viewBox="0 0 24 24" ...>...</svg>
       </div>
-
-      <nav class="sidebar-nav">
-        <span class="sidebar-nav-label">Menu Utama</span>
-        <a href="index.html" class="sidebar-link"><span>Dashboard</span></a>
-        <a href="riwayat.html" class="sidebar-link active"><span>Daftar Laporan</span></a>
-        <a href="statistik.html" class="sidebar-link"><span>Statistik</span></a>
-        <a href="../pengaturan.html" class="sidebar-link"><span>Pengaturan</span></a>
-
-      </nav>
-
       <div>
-        <div class="sidebar-user">
-          <div class="sidebar-user-avatar">MA</div>
-          <div class="sidebar-user-info">
-            <p class="sidebar-user-name">Mungki Astiningrum, S.T., M.Kom.</p>
-            <p class="sidebar-user-role">Kepala Jurusan</p>
-          </div>
-        </div>
-        <a href="../login.html" class="sidebar-logout">Keluar</a>
+        <h1 class="sidebar-brand-title">ADUIN</h1>
+        <p class="sidebar-brand-subtitle">Facility Reporting</p>
       </div>
-    </aside>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a href="index.html" class="nav-link active">
+        <svg ...></svg><span>Dashboard</span>
+      </a>
+      <a href="riwayat.html" class="nav-link">
+        <svg ...></svg><span>Daftar Laporan</span>
+      </a>
+      <a href="statistik.html" class="nav-link">
+        <svg ...></svg><span>Statistik</span>
+      </a>
+      <a href="../pengaturan.html" class="nav-link">
+        <svg ...></svg><span>Pengaturan</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- BAWAH (MENTOK DASAR) -->
+  <div class="sidebar-bottom">
+    <div class="sidebar-user-card">
+      <div class="user-avatar-sm">MA</div>
+      <div class="sidebar-user-info">
+        <h4 class="sidebar-user-name">Mungki Astiningrum, S.T., M.Kom.</h4>
+        <p class="sidebar-user-role">Kepala Jurusan</p>
+      </div>
+    </div>
+
+    <a href="../login.html" class="btn-logout">
+      <svg ...></svg>
+      <span>Keluar</span>
+    </a>
+  </div>
+
+</aside>
 
     <!-- MAIN -->
     <div class="main-content">
@@ -74,6 +90,6 @@
     </div>
   </div>
 
-  <script src="../js/app.js"></script>
+  <script src="../assets/js/app.js"></script>
 </body>
 </html>
