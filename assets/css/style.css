@@ -104,3 +104,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Tambahkan class ini di file CSS milikmu */
+.scroll-area {
+  max-height: 100vh; /* Batasi tingginya (bisa disesuaikan, misal 500px) */
+  overflow-y: auto;  /* Ini kunci utamanya agar bisa di-scroll */
+  overflow-x: hidden;
+  
+  /* Dukungan khusus untuk Mozilla Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
