@@ -2,156 +2,188 @@
 <html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistik - ADUIN Verifikator</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistik - ADUIN Verifikator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
-<body>
+<body class="dashboard-body">
 
+  <div class="dashboard-wrapper">
+    <!-- SIDEBAR KIRI -->
     <aside class="sidebar-blue">
 
-        <!-- ATAS -->
-        <div class="sidebar-top">
-            <a href="index.html" class="sidebar-brand">
-                <div class="sidebar-brand-icon">
-                    <svg viewBox="0 0 24 24" ...>...</svg>
-                </div>
-                <div>
-                    <h1 class="sidebar-brand-title">ADUIN</h1>
-                    <p class="sidebar-brand-subtitle">Facility Reporting</p>
-                </div>
-            </a>
+      <!-- ATAS -->
+      <div class="sidebar-top">
+        <a href="index.html" class="sidebar-brand">
+          <div class="sidebar-brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="sidebar-brand-title">ADUIN</h1>
+            <p class="sidebar-brand-subtitle">Facility Reporting</p>
+          </div>
+        </a>
 
-            <nav class="sidebar-nav">
-                <a href="index.html" class="nav-link active">
-                    <svg ...></svg><span>Dashboard</span>
-                </a>
-                <a href="riwayat.html" class="nav-link">
-                    <svg ...></svg><span>Daftar Laporan</span>
-                </a>
-                <a href="statistik.html" class="nav-link">
-                    <svg ...></svg><span>Statistik</span>
-                </a>
-                <a href="../pengaturan.html" class="nav-link">
-                    <svg ...></svg><span>Pengaturan</span>
-                </a>
-            </nav>
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="riwayat.html" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Daftar Laporan</span>
+          </a>
+          <a href="statistik.html" class="nav-link active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Statistik</span>
+          </a>
+          <a href="../pengaturan.html" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Pengaturan</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- BAWAH (MENTOK DASAR) -->
+      <div class="sidebar-bottom">
+        <div class="sidebar-user-card">
+          <div class="user-avatar-sm">MA</div>
+          <div class="sidebar-user-info">
+            <h4 class="sidebar-user-name">Mungki Astiningrum, S.T., M.Kom.</h4>
+            <p class="sidebar-user-role">Kepala Jurusan</p>
+          </div>
         </div>
 
-        <!-- BAWAH (MENTOK DASAR) -->
-        <div class="sidebar-bottom">
-            <div class="sidebar-user-card">
-                <div class="user-avatar-sm">MA</div>
-                <div class="sidebar-user-info">
-                    <h4 class="sidebar-user-name">Mungki Astiningrum, S.T., M.Kom.</h4>
-                    <p class="sidebar-user-role">Kepala Jurusan</p>
-                </div>
-            </div>
-
-            <a href="../login.html" class="btn-logout">
-                <svg ...></svg>
-                <span>Keluar</span>
-            </a>
-        </div>
+        <a href="../login.html" class="btn-logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Keluar</span>
+        </a>
+      </div>
 
     </aside>
+
+    <!-- MAIN CONTENT -->
     <div class="main-content">
-        <header class="content-header">
-            <div>
-                <span class="header-breadcrumb">Admin Verifikasi / <strong>Statistik</strong></span>
-                <h1 class="header-title">Statistik & Analisis</h1>
+      <header class="content-header">
+        <div>
+          <span class="header-breadcrumb">Admin Verifikasi / <strong>Statistik</strong></span>
+          <h1 class="header-title">Statistik & Analisis</h1>
+        </div>
+        <span class="status-badge status-badge-success">● Sesi Aktif Kajur</span>
+      </header>
+
+      <main class="content-body">
+        <!-- 4 KARTU METRIK -->
+        <section class="metric-grid">
+          <div class="glass-card metric-card">
+            <span class="metric-label">Total Laporan</span>
+            <strong class="metric-value" id="statTotal">48 Tiket</strong>
+            <span class="metric-note">↑ +14.2% dari bulan lalu</span>
+          </div>
+          <div class="glass-card metric-card">
+            <span class="metric-label">Tingkat Resolusi</span>
+            <strong class="metric-value" id="statResolusi">91.8%</strong>
+            <span class="metric-note">Target Sarpras tercapai</span>
+          </div>
+          <div class="glass-card metric-card">
+            <span class="metric-label">Rata-rata Penanganan</span>
+            <strong class="metric-value" id="statRata">1.4 Hari</strong>
+            <span class="metric-note">Per perbaikan</span>
+          </div>
+          <div class="glass-card metric-card">
+            <span class="metric-label">Respon Verifikasi</span>
+            <strong class="metric-value" id="statRespon">35 Menit</strong>
+            <span class="metric-note">Disposisi cepat Kajur</span>
+          </div>
+        </section>
+
+        <!-- 2 GRAFIK -->
+        <section class="chart-grid">
+          <div class="glass-card chart-card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Tren Laporan 7 Hari Terakhir</h2>
+                <p class="card-subtitle">Frekuensi pengaduan per hari</p>
+              </div>
             </div>
-            <span class="status-badge status-badge-success">● Sesi Aktif Kajur</span>
-        </header>
+            <div class="chart-canvas-wrap">
+              <canvas id="trenChart"></canvas>
+            </div>
+          </div>
 
-        <main class="content-body">
-            <!-- 4 KARTU METRIK -->
-            <section class="metric-grid">
-                <div class="glass-card metric-card">
-                    <span class="metric-label">Total Laporan</span>
-                    <strong class="metric-value" id="statTotal">–</strong>
-                    <span class="metric-note">↑ +14.2% dari bulan lalu</span>
-                </div>
-                <div class="glass-card metric-card">
-                    <span class="metric-label">Tingkat Resolusi</span>
-                    <strong class="metric-value" id="statResolusi">–</strong>
-                    <span class="metric-note">Target Sarpras tercapai</span>
-                </div>
-                <div class="glass-card metric-card">
-                    <span class="metric-label">Rata-rata Penanganan</span>
-                    <strong class="metric-value" id="statRata">–</strong>
-                    <span class="metric-note">Per perbaikan</span>
-                </div>
-                <div class="glass-card metric-card">
-                    <span class="metric-label">Respon Verifikasi</span>
-                    <strong class="metric-value" id="statRespon">–</strong>
-                    <span class="metric-note">Disposisi cepat Kajur</span>
-                </div>
-            </section>
+          <div class="glass-card chart-card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Laporan Berdasarkan Kategori</h2>
+                <p class="card-subtitle">Distribusi jenis fasilitas yang rusak</p>
+              </div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="kategoriChart"></canvas>
+            </div>
+          </div>
+        </section>
 
-            <!-- 2 GRAFIK -->
-            <section class="chart-grid">
-                <div class="glass-card chart-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">Tren Laporan 7 Hari Terakhir</h2>
-                            <p class="card-subtitle">Frekuensi pengaduan per hari</p>
-                        </div>
-                    </div>
-                    <div class="chart-canvas-wrap">
-                        <canvas id="trenChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="glass-card chart-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">Laporan Berdasarkan Kategori</h2>
-                            <p class="card-subtitle">Distribusi jenis fasilitas yang rusak</p>
-                        </div>
-                    </div>
-                    <div class="chart-canvas-wrap">
-                        <canvas id="kategoriChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TABEL RANKING -->
-            <section class="glass-card">
-                <div class="card-header">
-                    <div>
-                        <h2 class="card-title">Laporan Terbanyak per Lokasi</h2>
-                        <p class="card-subtitle">Pemetaan prioritas pemeliharaan ruangan</p>
-                    </div>
-                </div>
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Lokasi</th>
-                                <th>Jumlah Laporan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rankingTableBody">
-                            <!-- Diisi via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
+        <!-- TABEL RANKING -->
+        <section class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Laporan Terbanyak per Lokasi</h2>
+              <p class="card-subtitle">Pemetaan prioritas pemeliharaan ruangan</p>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">No</th>
+                  <th>Lokasi</th>
+                  <th style="text-align: right;">Jumlah Laporan</th>
+                </tr>
+              </thead>
+              <tbody id="rankingTableBody">
+                <!-- Diisi via JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
     </div>
-    </div>
+  </div>
 
-    <!-- Chart.js khusus halaman statistik (boleh, karena ini bukan framework CSS) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="../assets/js/app.js"></script>
+  <!-- Chart.js khusus halaman statistik -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="../assets/js/app.js"></script>
 </body>
 
 </html>

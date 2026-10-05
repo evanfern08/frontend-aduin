@@ -3,26 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pengaturan Akun - ADUIN</title>
-  
-  <!-- Font -->
+  <title>Pengaturan - ADUIN | Campus Facility Reporting</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- CSS Utama -->
-  <link rel="stylesheet" href="/assets/css/style.css">
+
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="dashboard-body">
 
-  <!-- Layout Wrapper (Flexbox untuk Sidebar & Main Content) -->
-  <div class="dashboard-wrapper">
-
-    <!-- 1. SIDEBAR KIRI -->
+   <div class="dashboard-wrapper">
+    <!-- SIDEBAR KIRI -->
     <aside class="sidebar-blue">
-      <div>
-        <!-- Logo ADUIN -->
-        <a href="/" class="sidebar-brand">
+
+      <!-- ATAS -->
+      <div class="sidebar-top">
+        <a href="verifikator/index.html" class="sidebar-brand">
           <div class="sidebar-brand-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"></path>
@@ -30,24 +27,55 @@
           </div>
           <div>
             <h1 class="sidebar-brand-title">ADUIN</h1>
-            <p class="sidebar-brand-subtitle">Campus Facility Reporting</p>
+            <p class="sidebar-brand-subtitle">Facility Reporting</p>
           </div>
         </a>
 
-        <!-- Menu Navigasi (Dinamis via JS) -->
-        <div class="sidebar-nav-title">Menu Utama</div>
-        <nav class="sidebar-nav" id="sidebarNav" aria-label="Menu Navigasi Utama">
-          <!-- Link navigasi disuntik via app.js berdasarkan role -->
+        <nav class="sidebar-nav">
+          <a href="verifikator/index.html" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="verifikator/riwayat.html" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Daftar Laporan</span>
+          </a>
+          <a href="verifikator/statistik.html" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Statistik</span>
+          </a>
+          <a href="pengaturan.html" class="nav-link active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Pengaturan</span>
+          </a>
         </nav>
       </div>
 
-      <!-- Profil + Logout (Dinamis via JS) -->
-      <div class="sidebar-footer">
+      <!-- Profil Singkat & Logout -->
+      <div class="sidebar-bottom">
         <div class="sidebar-user-card">
-          <div class="user-avatar-sm" id="sidebarAvatar">–</div>
+          <div class="user-avatar-sm" id="sidebarAvatar">MA</div>
           <div class="sidebar-user-info">
-            <h4 class="sidebar-user-name" id="sidebarName" title="">–</h4>
-            <p class="sidebar-user-role" id="sidebarRole">–</p>
+            <h4 class="sidebar-user-name" id="sidebarName">Mungki Astiningrum, S.T., M.Kom.</h4>
+            <p class="sidebar-user-role" id="sidebarRole">Kepala Jurusan</p>
           </div>
         </div>
 
@@ -63,87 +91,130 @@
     </aside>
 
     <!-- 2. KONTEN UTAMA KANAN -->
-    <main class="main-content scroll-area">
+    <main class="main-content scroll-area" style="padding: 32px 48px; background-color: #f8fafc;">
       
-      <!-- Header Halaman -->
-      <header class="page-header">
-        <h2 class="page-title">Profil & Pengaturan</h2>
-        <p class="page-subtitle">Kelola informasi akun dan keamanan kata sandimu.</p>
-      </header>
+      <!-- Top Kicker & Title -->
+      <div style="margin-bottom: 24px;">
+        <div style="font-size: 13px; font-weight: 500; color: #94a3b8; margin-bottom: 4px;">Verifikasi Keluhan</div>
+        <h1 style="font-size: 26px; font-weight: 800; color: #091441; margin: 0;">Pengaturan</h1>
+      </div>
 
-      <!-- Grid Layout untuk Profil (Kiri) dan Form (Kanan) -->
+      <!-- Section Title & Subtitle -->
+      <div style="margin-bottom: 28px;">
+        <h2 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0;">Profil & pengaturan</h2>
+        <p style="font-size: 14px; color: #64748b; margin: 0;">Kelola informasi akun dan keamanan kata sandi anda.</p>
+      </div>
+
+      <!-- Two-Column Grid: Kartu Profil (Kiri) dan Form Ubah Sandi (Kanan) -->
       <div class="settings-grid">
         
-        <!-- KOLOM KIRI: Kartu Profil (Dari Kodemu) -->
-        <section class="glass-card profile-card">
-          <div class="profile-card-content text-center">
-            <div class="profile-avatar-large" id="profileAvatar">–</div>
-            <h3 class="profile-name" id="profileName">–</h3>
-            <div class="profile-nip" id="profileId">–</div>
-            <span class="badge-orange mt-2" id="profileRoleBadge">–</span>
-
-            <div class="profile-divider"></div>
-
-            <div class="profile-meta-list text-left">
-              <div class="profile-meta-item">
-                <span class="profile-meta-label">Unit Kerja</span>
-                <span class="profile-meta-value" id="profileUnit">–</span>
-              </div>
-              <div class="profile-meta-item">
-                <span class="profile-meta-label">Institusi</span>
-                <span class="profile-meta-value">Politeknik Negeri Malang</span>
-              </div>
-              <div class="profile-meta-item">
-                <span class="profile-meta-label">Email</span>
-                <span class="profile-meta-value" id="profileEmail">–</span>
-              </div>
-              <div class="profile-meta-item">
-                <span class="profile-meta-label">Status Akun</span>
-                <span class="profile-meta-value" id="profileAccess" style="color: var(--green); font-weight: 700;">Aktif</span>
-              </div>
-            </div>
+        <!-- KOLOM KIRI: Kartu Profil (.glass-card .profile-card-clean) -->
+        <section class="glass-card profile-card-clean">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar-large" id="profileAvatar">MA</div>
+            <label for="avatarUploadInput" class="avatar-camera-btn" title="Ubah foto profil">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              <input type="file" id="avatarUploadInput" accept="image/*" style="display: none;" />
+            </label>
           </div>
+
+          <h3 class="profile-name" id="profileName">
+            Mungki Astiningrum, S.T.,<br>M.Kom.
+          </h3>
+          <div class="profile-nip" id="profileId">NIP 197710302005012001</div>
+          <span class="badge-orange" id="profileRoleBadge">Kepala Jurusan</span>
         </section>
 
-        <!-- KOLOM KANAN: Form Ubah Password -->
-        <section class="glass-card form-card">
-          <div class="form-header mb-6">
-            <h3 class="font-bold text-lg text-navy">Ubah Kata Sandi</h3>
-            <p class="text-xs text-muted mt-1">Gunakan kombinasi huruf dan angka agar akun tetap aman.</p>
+        <!-- KOLOM KANAN: Form Ubah Sandi (.glass-card .form-card-clean) -->
+        <section class="glass-card form-card-clean">
+          <div class="form-header-box">
+            <h3 class="form-title">Ubah kata sandi</h3>
+            <p class="form-guide-text">Gunakan kombinasi huruf dan angka agar akun tetap aman.</p>
           </div>
 
           <!-- Alert Box -->
-          <div id="passwordAlert" class="glass-input alert-box" style="display:none;"></div>
+          <div id="passwordAlert" class="alert-box" style="display:none; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;"></div>
 
-          <form id="formUbahPassword" class="space-y-4">
+          <form id="formUbahPassword" class="form-fields-wrap">
             
             <!-- Password Lama -->
-            <div class="input-group">
-              <label for="oldPassword" class="input-label">Password Lama</label>
-              <div class="input-wrapper relative">
-                <input type="password" id="oldPassword" required class="glass-input w-full" placeholder="••••••••">
+            <div class="form-group-item">
+              <label for="oldPassword" class="form-label">Password lama</label>
+              <div class="input-pill-box">
+                <span class="input-icon-left">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                </span>
+                <input type="password" id="oldPassword" required class="input-clean-field" placeholder="••••••••" autocomplete="current-password">
+                <button type="button" class="btn-toggle-eye toggle-password-btn" data-target="oldPassword" aria-label="Toggle lihat password">
+                  <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg class="eye-off-icon hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
               </div>
             </div>
 
             <!-- Password Baru -->
-            <div class="input-group">
-              <label for="newPassword" class="input-label">Password Baru</label>
-              <div class="input-wrapper relative">
-                <input type="password" id="newPassword" required class="glass-input w-full" placeholder="••••••••">
+            <div class="form-group-item">
+              <label for="newPassword" class="form-label">Password baru</label>
+              <div class="input-pill-box">
+                <span class="input-icon-left">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                </span>
+                <input type="password" id="newPassword" required class="input-clean-field" placeholder="••••••••" autocomplete="new-password">
+                <button type="button" class="btn-toggle-eye toggle-password-btn" data-target="newPassword" aria-label="Toggle lihat password">
+                  <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg class="eye-off-icon hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
               </div>
             </div>
 
-            <!-- Konfirmasi Password -->
-            <div class="input-group">
-              <label for="confirmPassword" class="input-label">Konfirmasi Password Baru</label>
-              <div class="input-wrapper relative">
-                <input type="password" id="confirmPassword" required class="glass-input w-full" placeholder="••••••••">
+            <!-- Konfirmasi Password Baru -->
+            <div class="form-group-item">
+              <label for="confirmPassword" class="form-label">Konfirmasi password baru</label>
+              <div class="input-pill-box">
+                <span class="input-icon-left">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                </span>
+                <input type="password" id="confirmPassword" required class="input-clean-field" placeholder="••••••••" autocomplete="new-password">
+                <button type="button" class="btn-toggle-eye toggle-password-btn" data-target="confirmPassword" aria-label="Toggle lihat password">
+                  <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg class="eye-off-icon hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
               </div>
             </div>
 
-            <!-- Tombol Simpan -->
-            <div class="pt-4">
-              <button type="submit" class="btn-primary w-full">Simpan Perubahan</button>
+            <!-- Tombol Simpan Perubahan -->
+            <div style="padding-top: 6px;">
+              <button type="submit" class="btn-simpan-perubahan" id="btnSimpanPassword">Simpan Perubahan</button>
             </div>
 
           </form>
@@ -154,6 +225,7 @@
 
   </div>
 
-  <script src="/assets/js/app.js"></script>
+  <!-- Script Aplikasi -->
+   <script src="assets/js/app.js"></script>
 </body>
 </html>
