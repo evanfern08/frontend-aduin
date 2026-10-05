@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar Laporan - ADUIN Verifikator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <div class="layout-with-sidebar">
+    <!-- SIDEBAR -->
+    <aside class="sidebar-blue">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">AD</div>
+        <div>
+          <span class="sidebar-brand-title">ADUIN</span>
+          <span class="sidebar-brand-sub">Verifikator</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="sidebar-nav-label">Menu Utama</span>
+        <a href="index.html" class="sidebar-link"><span>Dashboard</span></a>
+        <a href="riwayat.html" class="sidebar-link active"><span>Daftar Laporan</span></a>
+        <a href="statistik.html" class="sidebar-link"><span>Statistik</span></a>
+        <a href="../pengaturan.html" class="sidebar-link"><span>Pengaturan</span></a>
+
+      </nav>
+
+      <div>
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar">MA</div>
+          <div class="sidebar-user-info">
+            <p class="sidebar-user-name">Mungki Astiningrum, S.T., M.Kom.</p>
+            <p class="sidebar-user-role">Kepala Jurusan</p>
+          </div>
+        </div>
+        <a href="../login.html" class="sidebar-logout">Keluar</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="content-header">
+        <div>
+          <span class="header-breadcrumb">Verifikator / <strong>Daftar Laporan</strong></span>
+          <h1 class="header-title">Daftar Laporan</h1>
+        </div>
+        <span class="status-badge status-badge-success">● Sesi Aktif Kajur</span>
+      </header>
+
+      <main class="content-body">
+        <!-- FILTER PILLS -->
+        <div class="glass-card" style="padding: 16px 20px;">
+          <div class="filter-pills" id="filterPills">
+            <button type="button" class="filter-pill active" data-filter="Semua">Semua</button>
+            <button type="button" class="filter-pill" data-filter="Menunggu Verifikasi">Menunggu Verifikasi</button>
+            <button type="button" class="filter-pill" data-filter="Disetujui">Disetujui</button>
+            <button type="button" class="filter-pill" data-filter="Ditolak">Ditolak</button>
+            <button type="button" class="filter-pill" data-filter="Dalam Perbaikan">Dalam Perbaikan</button>
+            <button type="button" class="filter-pill" data-filter="Selesai">Selesai</button>
+          </div>
+        </div>
+
+        <!-- LIST KARTU LAPORAN -->
+        <div id="riwayatList" class="riwayat-list">
+          <!-- Diisi via JS -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>

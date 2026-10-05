@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaturan Akun - ADUIN</title>
+  
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Utama -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dashboard-body">
+
+  <!-- Layout Wrapper (Flexbox untuk Sidebar & Main Content) -->
+  <div class="dashboard-wrapper">
+
+    <!-- 1. SIDEBAR KIRI -->
+    <aside class="sidebar-blue">
+      <div>
+        <!-- Logo ADUIN -->
+        <a href="/" class="sidebar-brand">
+          <div class="sidebar-brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="sidebar-brand-title">ADUIN</h1>
+            <p class="sidebar-brand-subtitle">Campus Facility Reporting</p>
+          </div>
+        </a>
+
+        <!-- Menu Navigasi (Dinamis via JS) -->
+        <div class="sidebar-nav-title">Menu Utama</div>
+        <nav class="sidebar-nav" id="sidebarNav" aria-label="Menu Navigasi Utama">
+          <!-- Link navigasi disuntik via app.js berdasarkan role -->
+        </nav>
+      </div>
+
+      <!-- Profil + Logout (Dinamis via JS) -->
+      <div class="sidebar-footer">
+        <div class="sidebar-user-card">
+          <div class="user-avatar-sm" id="sidebarAvatar">–</div>
+          <div class="sidebar-user-info">
+            <h4 class="sidebar-user-name" id="sidebarName" title="">–</h4>
+            <p class="sidebar-user-role" id="sidebarRole">–</p>
+          </div>
+        </div>
+
+        <a href="login.html" class="btn-logout" id="btnLogout" title="Keluar dari akun">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Keluar</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- 2. KONTEN UTAMA KANAN -->
+    <main class="main-content scroll-area">
+      
+      <!-- Header Halaman -->
+      <header class="page-header">
+        <h2 class="page-title">Profil & Pengaturan</h2>
+        <p class="page-subtitle">Kelola informasi akun dan keamanan kata sandimu.</p>
+      </header>
+
+      <!-- Grid Layout untuk Profil (Kiri) dan Form (Kanan) -->
+      <div class="settings-grid">
+        
+        <!-- KOLOM KIRI: Kartu Profil (Dari Kodemu) -->
+        <section class="glass-card profile-card">
+          <div class="profile-card-content text-center">
+            <div class="profile-avatar-large" id="profileAvatar">–</div>
+            <h3 class="profile-name" id="profileName">–</h3>
+            <div class="profile-nip" id="profileId">–</div>
+            <span class="badge-orange mt-2" id="profileRoleBadge">–</span>
+
+            <div class="profile-divider"></div>
+
+            <div class="profile-meta-list text-left">
+              <div class="profile-meta-item">
+                <span class="profile-meta-label">Unit Kerja</span>
+                <span class="profile-meta-value" id="profileUnit">–</span>
+              </div>
+              <div class="profile-meta-item">
+                <span class="profile-meta-label">Institusi</span>
+                <span class="profile-meta-value">Politeknik Negeri Malang</span>
+              </div>
+              <div class="profile-meta-item">
+                <span class="profile-meta-label">Email</span>
+                <span class="profile-meta-value" id="profileEmail">–</span>
+              </div>
+              <div class="profile-meta-item">
+                <span class="profile-meta-label">Status Akun</span>
+                <span class="profile-meta-value" id="profileAccess" style="color: var(--green); font-weight: 700;">Aktif</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KOLOM KANAN: Form Ubah Password -->
+        <section class="glass-card form-card">
+          <div class="form-header mb-6">
+            <h3 class="font-bold text-lg text-navy">Ubah Kata Sandi</h3>
+            <p class="text-xs text-muted mt-1">Gunakan kombinasi huruf dan angka agar akun tetap aman.</p>
+          </div>
+
+          <!-- Alert Box -->
+          <div id="passwordAlert" class="glass-input alert-box" style="display:none;"></div>
+
+          <form id="formUbahPassword" class="space-y-4">
+            
+            <!-- Password Lama -->
+            <div class="input-group">
+              <label for="oldPassword" class="input-label">Password Lama</label>
+              <div class="input-wrapper relative">
+                <input type="password" id="oldPassword" required class="glass-input w-full" placeholder="••••••••">
+              </div>
+            </div>
+
+            <!-- Password Baru -->
+            <div class="input-group">
+              <label for="newPassword" class="input-label">Password Baru</label>
+              <div class="input-wrapper relative">
+                <input type="password" id="newPassword" required class="glass-input w-full" placeholder="••••••••">
+              </div>
+            </div>
+
+            <!-- Konfirmasi Password -->
+            <div class="input-group">
+              <label for="confirmPassword" class="input-label">Konfirmasi Password Baru</label>
+              <div class="input-wrapper relative">
+                <input type="password" id="confirmPassword" required class="glass-input w-full" placeholder="••••••••">
+              </div>
+            </div>
+
+            <!-- Tombol Simpan -->
+            <div class="pt-4">
+              <button type="submit" class="btn-primary w-full">Simpan Perubahan</button>
+            </div>
+
+          </form>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
