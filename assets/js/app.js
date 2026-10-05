@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "aduin-reports-v1";
   const technicians = ["Budi Prakroso", "Teknisi 2", "Teknisi 3"];
   const people = {
     pelapor: { name: "Rachmah Nur Chotimah", initials: "RN", title: "Mahasiswa", id: "NIM 254107060052" },
@@ -20,43 +19,12 @@
     review: "Verifikasi Laporan", assign: "Penugasan Teknisi",
     tasks: "Daftar Tugas", history: "Riwayat", stats: "Statistik", settings: "Pengaturan"
   };
-  const initialReports = [
-    { id: "AD-1001", title: "Proyektor Rusak", location: "LPR 1_7B", category: "Proyektor", description: "Proyektor tidak menyala saat digunakan untuk perkuliahan.", reporter: "Rachmah Nur Chotimah", createdAt: "12 September 2026", status: "Menunggu Verifikasi", assignedTo: "", completionNote: "", evidence: [] },
-    { id: "AD-1002", title: "AC Tidak Dingin", location: "RT05_5B", category: "AC / Pendingin", description: "AC menyala tetapi tidak mengeluarkan udara dingin.", reporter: "Alfatitah Alifia Putri", createdAt: "15 September 2026", status: "Menunggu Verifikasi", assignedTo: "", completionNote: "", evidence: [] },
-    { id: "AD-1003", title: "Lampu Tidak Menyala", location: "LERP_7T", category: "Kelistrikan", description: "Lampu di sisi belakang ruangan tidak menyala.", reporter: "Evan Fernanda Adiwiyata", createdAt: "16 September 2026", status: "Disetujui", assignedTo: "", completionNote: "", evidence: [] },
-    { id: "AD-1004", title: "Kursi Rusak", location: "R.05.01 - Ruang Kelas Teori 1", category: "Fasilitas Meja/Kursi", description: "Salah satu kaki kursi longgar dan perlu diperbaiki.", reporter: "Rachmah Nur Chotimah", createdAt: "17 September 2026", status: "Ditugaskan", assignedTo: "Budi Prakroso", completionNote: "", evidence: [] },
-    { id: "AD-1005", title: "Pintu Ruang Kelas Macet", location: "R.06.04 - Ruang Dosen 4", category: "Pintu / Jendela", description: "Pintu sulit dibuka dan ditutup.", reporter: "Septya Andhita Pradhana", createdAt: "18 September 2026", status: "Dalam Perbaikan", assignedTo: "Budi Prakroso", completionNote: "", evidence: [] },
-    { id: "AD-1006", title: "Stop Kontak Rusak", location: "LKJ2_7T - Lab Sistem Komputer", category: "Kelistrikan", description: "Stop kontak di dekat meja pengajar tidak berfungsi.", reporter: "Muhammad Bakhtiar Muqribillah", createdAt: "10 September 2026", status: "Selesai", assignedTo: "Budi Prakroso", completionNote: "Stop kontak diganti dan kabel dirapikan.", evidence: ["Sebelum: stop-kontak-rusak.jpg", "Sesudah: stop-kontak-baru.jpg"] },
-    { id: "AD-1007", title: "Papan Tulis Retak", location: "RT06_2A", category: "Fasilitas Ruangan", description: "Permukaan papan tulis retak di bagian kanan.", reporter: "Alfatitah Alifia Putri", createdAt: "8 September 2026", status: "Ditolak", assignedTo: "", completionNote: "", evidence: [] }
-  ];
   const app = document.querySelector("#app");
   const role = app?.dataset.role;
   if (!app || !people[role]) return;
 
   let page = "dash";
-  let reports = readReports();
-
-  function readReports() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) return structuredClone(initialReports);
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.every(item => item && typeof item.id === "string" && typeof item.status === "string")) return parsed;
-      console.error("Data ADUIN di browser memiliki format yang tidak sesuai; data contoh digunakan.");
-    } catch (error) {
-      console.error("Data ADUIN tidak dapat dibaca dari penyimpanan browser.", error);
-    }
-    return structuredClone(initialReports);
-  }
-
-  function persist() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
-    } catch (error) {
-      console.error("Perubahan ADUIN tidak dapat disimpan di browser.", error);
-      toast("Perubahan tidak tersimpan. Periksa ruang penyimpanan browser.");
-    }
-  }
+  let reports = [];
 
   function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -149,13 +117,13 @@
 
   function newReportPage() {
     return `${heading("Buat laporan kerusakan", "Lengkapi detail fasilitas agar tim dapat menindaklanjuti laporanmu.")}
-      <div class="notice">Data ini merupakan prototype dan disimpan di browser yang sedang digunakan.</div>
+      <div class="notice">Backend belum terhubung. Data laporan hanya tersimpan sementara selama halaman ini dibuka dan akan hilang saat halaman dimuat ulang.</div>
       <section class="section-card"><form id="new-report-form" class="form-grid">
         <div class="field"><label for="location">Ruangan</label><input class="input" id="location" name="location" required maxlength="80" placeholder="Contoh: LPR 1_7B"></div>
         <div class="field"><label for="category">Kategori</label><select class="select" id="category" name="category" required><option value="">Pilih kategori</option><option>AC / Pendingin</option><option>Proyektor</option><option>Fasilitas Meja/Kursi</option><option>Kelistrikan</option><option>Pintu / Jendela</option><option>Fasilitas Ruangan</option><option>Lainnya</option></select></div>
         <div class="field full"><label for="title">Nama kerusakan</label><input class="input" id="title" name="title" required maxlength="100" placeholder="Contoh: AC tidak dingin"></div>
         <div class="field full"><label for="description">Deskripsi</label><textarea class="textarea" id="description" name="description" required maxlength="1000" placeholder="Jelaskan kerusakan, lokasi spesifik, dan informasi penting lainnya."></textarea></div>
-        <div class="field full"><label for="photo">Foto kerusakan (opsional)</label><input class="input" id="photo" name="photo" type="file" accept="image/png,image/jpeg"><span class="help-text">Format PNG/JPG, maksimal 10 MB. Prototype ini hanya mencatat nama file, tidak mengunggahnya ke server.</span></div>
+        <div class="field full"><label for="photo">Foto kerusakan (opsional)</label><input class="input" id="photo" name="photo" type="file" accept="image/png,image/jpeg"><span class="help-text">Format PNG/JPG, maksimal 10 MB. Foto belum diunggah karena backend belum terhubung.</span></div>
         <div class="field full"><button class="button" type="submit">Kirim laporan</button></div>
       </form></section>`;
   }
@@ -163,7 +131,7 @@
   function reviewPage() {
     const pending = reports.filter(report => report.status === "Menunggu Verifikasi");
     return `${heading("Verifikasi laporan", "Pastikan informasi laporan cukup jelas sebelum menyetujui atau menolaknya.")}
-      ${pending.length ? `<div class="report-list">${pending.map(report => reportCard(report, `<div class="button-row"><button class="button success" data-action="approve" data-id="${escapeHTML(report.id)}">Setujui laporan</button><button class="button danger" data-action="reject" data-id="${escapeHTML(report.id)}">Tolak laporan</button></div>`)).join("")}</div>` : `<div class="empty-state">Semua laporan sudah diperiksa.</div>`}`;
+      ${pending.length ? `<div class="report-list">${pending.map(report => reportCard(report, `<div class="button-row"><button class="button success" data-action="approve" data-id="${escapeHTML(report.id)}">Setujui laporan</button><button class="button danger" data-action="reject" data-id="${escapeHTML(report.id)}">Tolak laporan</button></div>`)).join("")}</div>` : `<div class="empty-state">Belum ada laporan yang perlu diverifikasi.</div>`}`;
   }
 
   function assignmentPage() {
@@ -285,7 +253,6 @@
       return false;
     }
     Object.assign(report, changes);
-    persist();
     return true;
   }
 
@@ -302,7 +269,7 @@
     if (action === "approve" || action === "reject") {
       const status = action === "approve" ? "Disetujui" : "Ditolak";
       if (updateReport(id, { status })) {
-        toast(`Laporan ${status.toLowerCase()}.`);
+        toast(`Laporan ${status.toLowerCase()} sementara; backend belum terhubung.`);
         render();
       }
       return;
@@ -319,13 +286,13 @@
         return;
       }
       if (updateReport(id, { status: "Ditugaskan", assignedTo: select.value })) {
-        toast("Laporan berhasil ditugaskan.");
+        toast("Penugasan diperbarui sementara; backend belum terhubung.");
         render();
       }
       return;
     }
     if (action === "start" && updateReport(id, { status: "Dalam Perbaikan" })) {
-      toast("Status tugas diperbarui: dalam perbaikan.");
+      toast("Status tugas diperbarui sementara; backend belum terhubung.");
       render();
     }
   });
@@ -356,10 +323,9 @@
         status: "Menunggu Verifikasi", assignedTo: "", completionNote: "",
         evidence: photo instanceof File && photo.size ? [`Foto: ${photo.name}`] : []
       });
-      persist();
       page = "reports";
       render();
-      toast("Laporan berhasil dibuat.");
+      toast("Laporan ditambahkan sementara; backend belum terhubung.");
       return;
     }
     const reportId = form.dataset.completeForm;
@@ -382,7 +348,7 @@
         return;
       }
       if (updateReport(reportId, { status: "Selesai", completionNote: note, evidence })) {
-        toast("Perbaikan dicatat sebagai selesai.");
+        toast("Perbaikan dicatat sementara; backend belum terhubung.");
         render();
       }
     }
