@@ -3,138 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADUIN - Dashboard Pelaporan Fasilitas</title>
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome via CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Google Fonts: Plus Jakarta Sans -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-  </style>
+  <meta name="description" content="Dashboard pelaporan fasilitas ADUIN untuk pelapor.">
+  <title>Dashboard Pelapor - ADUIN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body class="bg-[#F4F6F8] text-slate-900 min-h-screen flex">
+<body class="dashboard-body">
+  <div class="dashboard-wrapper">
+    <aside class="sidebar-blue" aria-label="Navigasi pelapor">
+      <div class="sidebar-top">
+        <a href="index.html" class="sidebar-brand" aria-label="ADUIN, kembali ke dashboard">
+          <span class="sidebar-brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01"></path>
+            </svg>
+          </span>
+          <span>
+            <span class="sidebar-brand-title">ADUIN</span>
+            <span class="sidebar-brand-subtitle">Facility Reporting</span>
+          </span>
+        </a>
 
-  <!-- SIDEBAR NAVIGASI -->
-  <aside class="w-64 bg-[#071635] text-white flex flex-col justify-between shrink-0 min-h-screen">
-    <div>
-      <!-- Logo / Nama Aplikasi -->
-      <div class="px-6 py-8 flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-[#0B224E] flex items-center justify-center text-[#38A3FF] border border-[#16356D]">
-          <i class="fa-solid fa-building-columns text-lg"></i>
+        <nav class="sidebar-nav" aria-label="Menu utama">
+          <a href="index.html" class="nav-link active" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="laporan.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <path d="M14 2v6h6M8 13h8M8 17h8"></path>
+            </svg>
+            <span>Buat Laporan</span>
+          </a>
+          <a href="daftar_laporan.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path>
+            </svg>
+            <span>Daftar Laporan</span>
+          </a>
+          <a href="pengaturan.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="m19.4 15 .1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 0 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1a2 2 0 0 0-1.4-3.4h-.2a2 2 0 0 1 0-4h.2a2 2 0 0 0 1.4-3.4l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a2 2 0 0 0 3.4-1.4v-.2a2 2 0 0 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a2 2 0 0 0 1.4 3.4h.2a2 2 0 0 1 0 4h-.2a2 2 0 0 0-1.4 3.4z"></path>
+            </svg>
+            <span>Pengaturan</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-user-card">
+          <span data-profile-initials class="user-avatar-sm" aria-hidden="true">RN</span>
+          <div class="sidebar-user-info">
+            <p data-profile-name class="sidebar-user-name">Rachmah Nur Chotimah</p>
+            <p class="sidebar-user-role">Mahasiswa</p>
+          </div>
         </div>
+        <a href="../login.html" class="btn-logout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <path d="m16 17 5-5-5-5M21 12H9"></path>
+          </svg>
+          <span>Keluar</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="content-header">
         <div>
-          <h1 class="font-bold text-base tracking-wide leading-tight text-white">ADUIN</h1>
-          <p class="text-xs text-slate-400">Facility Reporting</p>
+          <span class="header-breadcrumb">Pelaporan fasilitas / <strong>Dashboard</strong></span>
+          <h1 class="header-title">Dashboard Pelapor</h1>
+          <p class="header-subtitle">Pantau status laporan fasilitas yang kamu kirim.</p>
         </div>
-      </div>
+        <span class="status-badge status-badge-success">Pelapor aktif</span>
+      </header>
 
-      <!-- Menu Navigasi Utama -->
-      <nav class="px-3 space-y-1.5 mt-2">
-        <!-- Menu Aktif: Dashboard -->
-        <a href="index.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full bg-[#38A3FF] text-white font-medium text-sm shadow-sm transition">
-          <i class="fa-solid fa-table-cells-large w-5 text-center text-base"></i>
-          <span>Dashboard</span>
-        </a>
+      <main class="content-body">
+        <section aria-labelledby="welcome-title">
+          <h2 id="welcome-title" class="card-title">Selamat datang, <span data-profile-first-name>Rachmah</span></h2>
+          <p class="text-muted">Ringkasan laporan fasilitasmu akan selalu diperbarui di sini.</p>
+        </section>
 
-        <a href="laporan.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full text-slate-300 hover:bg-white/10 hover:text-white font-medium text-sm transition">
-          <i class="fa-regular fa-file-lines w-5 text-center text-base"></i>
-          <span>Buat Laporan</span>
-        </a>
+        <section class="metric-grid" aria-label="Ringkasan laporan">
+          <article class="glass-card metric-card">
+            <span class="metric-label">Total laporanku</span>
+            <strong id="total-reports" class="metric-value">0</strong>
+            <span class="metric-note">Seluruh laporan yang tercatat</span>
+          </article>
+          <article class="glass-card metric-card">
+            <span class="metric-label">Menunggu verifikasi</span>
+            <strong id="pending-reports" class="metric-value">0</strong>
+            <span class="metric-note">Menunggu tindak lanjut</span>
+          </article>
+          <article class="glass-card metric-card">
+            <span class="metric-label">Sedang diproses</span>
+            <strong id="processing-reports" class="metric-value">0</strong>
+            <span class="metric-note">Ditangani oleh tim fasilitas</span>
+          </article>
+          <article class="glass-card metric-card">
+            <span class="metric-label">Selesai</span>
+            <strong id="completed-reports" class="metric-value">0</strong>
+            <span class="metric-note">Laporan telah ditindaklanjuti</span>
+          </article>
+        </section>
 
-        <a href="daftar_laporan.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full text-slate-300 hover:bg-white/10 hover:text-white font-medium text-sm transition">
-          <i class="fa-solid fa-clipboard-list w-5 text-center text-base"></i>
-          <span>Daftar Laporan</span>
-        </a>
-
-        <a href="pengaturan.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full text-slate-300 hover:bg-white/10 hover:text-white font-medium text-sm transition">
-          <i class="fa-solid fa-gear w-5 text-center text-base"></i>
-          <span>Pengaturan</span>
-        </a>
-      </nav>
-    </div>
-
-    <!-- Profil Statis & Tombol Keluar -->
-    <div class="p-5 border-t border-slate-700/60">
-      <div class="flex items-center gap-3 mb-4">
-        <div data-profile-initials class="w-10 h-10 rounded-full bg-[#4682A9] flex items-center justify-center text-white font-semibold text-sm shrink-0">
-          RN
-        </div>
-        <div class="overflow-hidden">
-          <p data-profile-name class="font-semibold text-sm text-white truncate">Rachmah Nur Chotimah</p>
-          <p class="text-xs text-slate-400">Mahasiswa</p>
-        </div>
-      </div>
-      <a href="../login.html" class="flex items-center gap-3 px-2 py-2 text-sm text-slate-300 hover:text-white transition">
-        <i class="fa-solid fa-arrow-right-from-bracket text-base"></i>
-        <span>Keluar</span>
-      </a>
-    </div>
-  </aside>
-
-  <!-- KONTEN UTAMA: DASHBOARD -->
-  <main class="flex-1 flex flex-col min-w-0">
-    <!-- Top Header -->
-    <header class="bg-white px-10 py-5 border-b border-slate-200/80">
-      <p class="text-sm text-slate-400 font-medium">Pelaporan fasilitas</p>
-      <h2 class="text-2xl font-bold text-slate-900 mt-0.5">Dashboard</h2>
-    </header>
-
-    <!-- Body Content -->
-    <div class="p-10 max-w-5xl">
-      <!-- Teks Salam -->
-      <div class="mb-8">
-        <h3 class="text-2xl font-bold text-slate-900">Selamat datang, Rachmah</h3>
-        <p class="text-slate-500 text-base mt-1">Pantau status laporan kerusakan fasilitasmu di sini</p>
-      </div>
-
-      <!-- 3 Kartu Statistik -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-9">
-        <!-- Kartu 1: Total Laporan -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-300/80">
-          <div class="w-11 h-11 rounded-xl bg-[#B9E2FF] text-[#1D88E5] flex items-center justify-center mb-4">
-            <i class="fa-regular fa-file-lines text-xl"></i>
+        <section class="glass-card" aria-labelledby="new-report-title">
+          <div class="card-header">
+            <div>
+              <h2 id="new-report-title" class="card-title">Ada fasilitas yang rusak?</h2>
+              <p class="card-subtitle">Laporkan kerusakan agar tim fasilitas dapat segera menindaklanjuti.</p>
+            </div>
+            <a href="laporan.html" class="btn btn-success">
+              <span aria-hidden="true">+</span>
+              <span>Buat Laporan Baru</span>
+            </a>
           </div>
-          <p id="total-reports" class="text-3xl font-bold text-slate-900 tabular-nums">0</p>
-          <p class="text-sm text-slate-500 mt-1">Total Laporanku</p>
-        </div>
+        </section>
 
-        <!-- Kartu 2: Sedang Diproses -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-300/80">
-          <div class="w-11 h-11 rounded-xl bg-[#FFCFA3] text-[#9A5B13] flex items-center justify-center mb-4">
-            <i class="fa-regular fa-clock text-xl"></i>
+        <section class="glass-card" aria-labelledby="recent-reports-title">
+          <div class="card-header">
+            <div>
+              <h2 id="recent-reports-title" class="card-title">Laporan terbaru</h2>
+              <p class="card-subtitle">Data pelapor, lokasi, kategori, dan status laporanmu.</p>
+            </div>
+            <a href="daftar_laporan.html" class="btn btn-ghost">Lihat semua laporan</a>
           </div>
-          <p id="processing-reports" class="text-3xl font-bold text-slate-900 tabular-nums">0</p>
-          <p class="text-sm text-slate-500 mt-1">Sedang Diproses</p>
-        </div>
-
-        <!-- Kartu 3: Selesai -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-300/80">
-          <div class="w-11 h-11 rounded-xl bg-[#B8E6B5] text-[#2E6F2B] flex items-center justify-center mb-4">
-            <i class="fa-regular fa-circle-check text-xl"></i>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Pelapor</th>
+                  <th scope="col">Lokasi</th>
+                  <th scope="col">Kategori</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-reports" aria-live="polite">
+                <tr>
+                  <td colspan="4" class="text-muted">Memuat laporan...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <p id="completed-reports" class="text-3xl font-bold text-slate-900 tabular-nums">0</p>
-          <p class="text-sm text-slate-500 mt-1">Selesai</p>
-        </div>
-      </div>
-
-      <!-- Banner Call-to-Action -->
-      <div class="bg-[#D2EBFF] border border-[#72BEFA] rounded-2xl p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div>
-          <h4 class="text-xl font-bold text-[#144B7A]">Ada fasilitas yang rusak?</h4>
-          <p class="text-[#1F5A8C] text-base mt-1 max-w-lg leading-relaxed">
-            Laporkan sekarang supaya tim perbaikan bisa segera menindaklanjuti.
-          </p>
-        </div>
-        <a href="laporan.html" class="bg-[#2CA4FF] hover:bg-[#1890EB] text-white font-semibold px-6 py-3.5 rounded-2xl transition shrink-0 flex items-center gap-2 text-base">
-          <i class="fa-solid fa-plus text-sm"></i>
-          <span>Buat Laporan Baru</span>
-        </a>
-      </div>
+        </section>
+      </main>
     </div>
-  </main>
-
+  </div>
   <script src="pelapor.js"></script>
 </body>
 </html>

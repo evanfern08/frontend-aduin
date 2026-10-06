@@ -4,6 +4,7 @@
   const REPORTS_KEY = "aduin.pelapor.reports.v1";
   const PROFILE_KEY = "aduin.pelapor.profile.v1";
   const DEFAULT_PROFILE = { name: "Rachmah Nur Chotimah" };
+  let storageReadFailed = false;
   const INITIAL_REPORTS = [
     {
       id: "sample-projector",
@@ -50,7 +51,7 @@
   const page = document.body;
   const appFeedback = document.createElement("p");
   appFeedback.id = "app-feedback";
-  appFeedback.className = "hidden fixed bottom-4 right-4 z-50 max-w-md rounded-xl bg-red-700 px-5 py-3 text-sm font-medium text-white shadow-lg";
+  appFeedback.className = "alert-box status-pill-danger hidden";
   appFeedback.setAttribute("role", "alert");
   appFeedback.setAttribute("aria-live", "assertive");
   page.append(appFeedback);
@@ -65,6 +66,7 @@
       const value = localStorage.getItem(key);
       return value === null ? fallback : JSON.parse(value);
     } catch (error) {
+      storageReadFailed = true;
       showAppError(`Data aplikasi tidak dapat dibaca dari penyimpanan browser: ${error.message}`);
       return fallback;
     }
@@ -83,6 +85,7 @@
   function getReports() {
     const storedReports = readStorage(REPORTS_KEY, null);
     if (storedReports === null) {
+      if (storageReadFailed) return [];
       if (!writeStorage(REPORTS_KEY, INITIAL_REPORTS)) return [];
       return INITIAL_REPORTS;
     }
@@ -111,6 +114,9 @@
     document.querySelectorAll("[data-profile-name]").forEach((element) => {
       element.textContent = profile.name;
     });
+    document.querySelectorAll("[data-profile-first-name]").forEach((element) => {
+      element.textContent = profile.name.trim().split(/\s+/)[0];
+    });
     document.querySelectorAll("[data-profile-initials]").forEach((element) => {
       element.textContent = initialsFor(profile.name);
     });
@@ -124,106 +130,83 @@
     }).format(new Date(date));
   }
 
-  function statusStyle(status) {
-    if (status === "Diproses") return "bg-[#C7EAFF] text-[#1D5B8F]";
-    if (status === "Selesai") return "bg-[#B6E6B3] text-[#4E8C4A]";
-    if (status === "Dikembalikan ke Pelapor") return "bg-[#F7B2AD] text-[#7F1D1D]";
-    return "bg-[#FAD09C] text-[#7C5826]";
-  }
-
-  function iconFor(category) {
-    if (category === "Proyektor") return "fa-video";
-    if (category === "AC / Pendingin") return "fa-snowflake";
-    if (category === "Kelistrikan / Lampu") return "fa-lightbulb";
-    return "fa-chair";
-  }
-
   function progressCard(status) {
     const activeIndex = status === "Menunggu Verifikasi" ? 0 : status === "Selesai" ? 2 : 1;
     const returned = status === "Dikembalikan ke Pelapor";
-    const color = returned ? "#991B1B" : status === "Selesai" ? "#5BB85D" : status === "Menunggu Verifikasi" ? "#F59E0B" : "#2CA4FF";
-    const steps = ["Menunggu verifikasi", returned ? "Dikembalikan ke Pelapor" : "Diproses", "Selesai"];
+    const steps = [
+      { label: "Dikirim", state: "Menunggu verifikasi" },
+      { label: returned ? "Dikembalikan" : "Diproses", state: returned ? "Dikembalikan ke Pelapor" : "Diproses" },
+      { label: "Selesai", state: "Selesai" },
+    ];
     const container = document.createElement("div");
-    container.className = "mt-5 flex items-center";
+    container.className = "timeline-wrap";
+    const caption = document.createElement("p");
+    caption.className = "timeline-label";
+    caption.textContent = "Progres laporan";
+    const timeline = document.createElement("div");
+    timeline.className = "timeline";
 
     steps.forEach((label, index) => {
       const step = document.createElement("div");
-      step.className = "flex flex-col items-center text-center";
+      const reached = status === "Selesai" || index < activeIndex;
+      const current = index === activeIndex && status !== "Selesai";
+      step.className = `timeline-node${status === "Selesai" ? " success" : reached ? " done" : current ? " active" : ""}`;
       const marker = document.createElement("div");
-      const reached = returned ? index < 1 : index <= activeIndex;
-      marker.className = `w-7 h-7 rounded-full flex items-center justify-center ${reached ? "text-white" : "border-2 border-slate-400 bg-white"}`;
-      if (reached) marker.style.backgroundColor = color;
-      if (index === activeIndex && !returned) {
-        marker.className = "w-7 h-7 rounded-full border-4 bg-white flex items-center justify-center";
-        marker.style.borderColor = color;
-        const dot = document.createElement("span");
-        dot.className = "w-2.5 h-2.5 rounded-full";
-        dot.style.backgroundColor = color;
-        marker.append(dot);
-      } else if (reached) {
-        marker.innerHTML = '<i class="fa-solid fa-check text-xs" aria-hidden="true"></i>';
-      }
+      marker.className = "timeline-dot";
+      marker.textContent = reached ? "✓" : String(index + 1);
       const text = document.createElement("span");
-      text.className = `text-[11px] mt-1.5 ${reached || index === activeIndex ? "font-semibold" : "font-medium text-slate-400"}`;
-      text.style.color = reached || index === activeIndex ? color : "";
-      text.textContent = label;
+      text.className = "timeline-caption";
+      text.textContent = label.label;
       step.append(marker, text);
-      container.append(step);
-
-      if (index < steps.length - 1) {
-        const line = document.createElement("div");
-        line.className = "flex-1 h-1 -mt-5 mx-1";
-        line.style.backgroundColor = (returned ? index < 1 : index < activeIndex) ? color : "#cbd5e1";
-        container.append(line);
-      }
+      timeline.append(step);
     });
+    container.append(caption, timeline);
     return container;
   }
 
-  function createReportCard(report) {
+  function reportStatusClass(status) {
+    if (status === "Diproses") return "status-pill-info";
+    if (status === "Selesai") return "status-pill-success";
+    if (status === "Dikembalikan ke Pelapor") return "status-pill-danger";
+    return "status-pill-warning";
+  }
+
+  function createReportCard(report, profileName) {
     const card = document.createElement("article");
-    card.className = "bg-white rounded-2xl p-6 border border-slate-300/80 flex items-start gap-6";
-
-    const icon = document.createElement("div");
-    icon.className = "w-16 h-16 rounded-2xl bg-[#A9D6FF] text-[#1D88E5] flex items-center justify-center shrink-0 mt-1";
-    const iconElement = document.createElement("i");
-    iconElement.className = `fa-solid ${iconFor(report.category)} text-2xl`;
-    iconElement.setAttribute("aria-hidden", "true");
-    icon.append(iconElement);
-
-    const content = document.createElement("div");
-    content.className = "flex-1 min-w-0";
+    card.className = "glass-card riwayat-card";
     const heading = document.createElement("div");
-    heading.className = "flex flex-wrap items-start justify-between gap-2";
+    heading.className = "riwayat-head";
     const details = document.createElement("div");
-    const title = document.createElement("h4");
-    title.className = "text-lg font-bold text-slate-900";
+    const title = document.createElement("h3");
+    title.className = "riwayat-title";
     title.textContent = report.title;
     const location = document.createElement("p");
-    location.className = "text-xs text-slate-500 mt-0.5";
+    location.className = "riwayat-meta";
     location.textContent = `${report.roomLabel} · ${reportDate(report.date)}`;
-    details.append(title, location);
+    const reporter = document.createElement("p");
+    reporter.className = "riwayat-meta";
+    reporter.textContent = `Pelapor: ${profileName} · ${report.category}`;
+    details.append(title, location, reporter);
 
     const badge = document.createElement("span");
-    badge.className = `px-5 py-1 rounded-full text-xs font-bold ${statusStyle(report.status)}`;
+    badge.className = `status-pill ${reportStatusClass(report.status)}`;
     badge.textContent = report.status;
     heading.append(details, badge);
-    content.append(heading);
+    card.append(heading);
 
     if (report.description) {
       const description = document.createElement("p");
-      description.className = "text-sm text-slate-600 mt-3";
+      description.className = "card-subtitle";
       description.textContent = report.description;
-      content.append(description);
+      card.append(description);
     }
     if (report.photoName) {
       const photo = document.createElement("p");
-      photo.className = "text-xs text-slate-500 mt-2";
+      photo.className = "text-muted";
       photo.textContent = `Foto dipilih: ${report.photoName} (belum diunggah ke server)`;
-      content.append(photo);
+      card.append(photo);
     }
-    content.append(progressCard(report.status));
-    card.append(icon, content);
+    card.append(progressCard(report.status));
     card.dataset.status = report.status;
     return card;
   }
@@ -231,21 +214,65 @@
   function renderReports() {
     const reports = getReports();
     const total = document.getElementById("total-reports");
+    const pending = document.getElementById("pending-reports");
     const processing = document.getElementById("processing-reports");
     const completed = document.getElementById("completed-reports");
     if (total) total.textContent = String(reports.length);
+    if (pending) pending.textContent = String(reports.filter((report) => report.status === "Menunggu Verifikasi").length);
     if (processing) processing.textContent = String(reports.filter((report) => report.status === "Diproses").length);
     if (completed) completed.textContent = String(reports.filter((report) => report.status === "Selesai").length);
+
+    const dashboardTable = document.getElementById("dashboard-reports");
+    if (dashboardTable) {
+      const profileName = getProfile().name;
+      const latestReports = [...reports]
+        .sort((first, second) => new Date(second.date) - new Date(first.date))
+        .slice(0, 5);
+      dashboardTable.replaceChildren();
+      latestReports.forEach((report) => {
+        const row = document.createElement("tr");
+        const reporterCell = document.createElement("td");
+        reporterCell.textContent = profileName;
+        const locationCell = document.createElement("td");
+        locationCell.textContent = report.roomLabel;
+        const categoryCell = document.createElement("td");
+        categoryCell.textContent = report.category;
+        const statusCell = document.createElement("td");
+        const status = document.createElement("span");
+        const statusClass = report.status === "Selesai"
+          ? "status-pill-success"
+          : report.status === "Diproses"
+            ? "status-pill-info"
+            : report.status === "Dikembalikan ke Pelapor"
+              ? "status-pill-danger"
+              : "status-pill-warning";
+        status.className = `status-pill ${statusClass}`;
+        status.textContent = report.status;
+        statusCell.append(status);
+        row.append(reporterCell, locationCell, categoryCell, statusCell);
+        dashboardTable.append(row);
+      });
+      if (latestReports.length === 0) {
+        const row = document.createElement("tr");
+        const message = document.createElement("td");
+        message.colSpan = 4;
+        message.className = "text-muted";
+        message.textContent = "Belum ada laporan. Buat laporan pertamamu untuk mulai.";
+        row.append(message);
+        dashboardTable.append(row);
+      }
+    }
 
     const list = document.getElementById("reports-list");
     if (!list) return;
     const selectedFilter = list.dataset.filter || "all";
+    const profileName = getProfile().name;
     list.replaceChildren();
     const visibleReports = reports.filter((report) => selectedFilter === "all" || report.status === selectedFilter);
-    visibleReports.forEach((report) => list.append(createReportCard(report)));
+    visibleReports.forEach((report) => list.append(createReportCard(report, profileName)));
     if (visibleReports.length === 0) {
       const emptyState = document.createElement("p");
-      emptyState.className = "rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500";
+      emptyState.className = "glass-card text-muted";
       emptyState.textContent = "Belum ada laporan untuk status ini.";
       list.append(emptyState);
     }
@@ -254,7 +281,7 @@
   function showFormMessage(element, message, isError) {
     if (!element) return;
     element.textContent = message;
-    element.className = `text-sm text-center ${isError ? "text-red-700" : "text-emerald-700"}`;
+    element.className = `alert-box status-pill ${isError ? "status-pill-danger" : "status-pill-success"}`;
   }
 
   function initReportForm() {
@@ -282,31 +309,31 @@
         selectedPhoto = null;
         photoInput.value = "";
         photoFeedback.textContent = "Pilih foto dalam format PNG atau JPG.";
-        photoFeedback.className = "text-xs text-red-700 mt-2";
+        photoFeedback.className = "status-pill status-pill-danger";
         return;
       }
       if (file.size > maxPhotoSize) {
         selectedPhoto = null;
         photoInput.value = "";
         photoFeedback.textContent = "Ukuran foto melebihi batas 10MB.";
-        photoFeedback.className = "text-xs text-red-700 mt-2";
+        photoFeedback.className = "status-pill status-pill-danger";
         return;
       }
       selectedPhoto = file;
       photoFeedback.textContent = `Foto dipilih: ${file.name}`;
-      photoFeedback.className = "text-xs text-emerald-700 mt-2";
+      photoFeedback.className = "status-pill status-pill-success";
     }
 
     document.getElementById("choose-report-photo").addEventListener("click", () => photoInput.click());
     photoInput.addEventListener("change", () => setPhoto(photoInput.files[0]));
     dropzone.addEventListener("dragover", (event) => {
       event.preventDefault();
-      dropzone.classList.add("border-[#38A3FF]");
+      dropzone.classList.add("status-badge-success");
     });
-    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("border-[#38A3FF]"));
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("status-badge-success"));
     dropzone.addEventListener("drop", (event) => {
       event.preventDefault();
-      dropzone.classList.remove("border-[#38A3FF]");
+      dropzone.classList.remove("status-badge-success");
       setPhoto(event.dataTransfer.files[0]);
     });
 
@@ -345,9 +372,11 @@
     document.querySelectorAll("[data-report-filter]").forEach((button) => {
       button.addEventListener("click", () => {
         document.querySelectorAll("[data-report-filter]").forEach((filterButton) => {
-          filterButton.className = "px-6 py-2 rounded-full bg-white text-slate-800 hover:bg-slate-100 text-sm font-medium border border-slate-400 transition";
+          filterButton.classList.remove("active");
+          filterButton.setAttribute("aria-pressed", "false");
         });
-        button.className = "px-6 py-2 rounded-full bg-[#13294B] text-white text-sm font-medium border border-[#13294B] transition";
+        button.classList.add("active");
+        button.setAttribute("aria-pressed", "true");
         list.dataset.filter = button.dataset.reportFilter;
         renderReports();
       });
@@ -377,6 +406,7 @@
           const reveal = input.type === "password";
           input.type = reveal ? "text" : "password";
           button.setAttribute("aria-label", reveal ? "Sembunyikan kata sandi" : "Tampilkan kata sandi");
+          button.textContent = reveal ? "Sembunyikan" : "Lihat";
         });
       });
       passwordForm.addEventListener("submit", (event) => {
@@ -387,17 +417,18 @@
         const feedback = document.getElementById("password-feedback");
         if (!currentPassword || !newPassword || !confirmation) {
           feedback.textContent = "Semua kolom kata sandi wajib diisi.";
-          feedback.className = "text-sm mt-4 text-red-700";
+          feedback.className = "alert-box status-pill status-pill-danger";
         } else if (newPassword.length < 8) {
           feedback.textContent = "Kata sandi baru minimal 8 karakter.";
-          feedback.className = "text-sm mt-4 text-red-700";
+          feedback.className = "alert-box status-pill status-pill-danger";
         } else if (newPassword !== confirmation) {
           feedback.textContent = "Konfirmasi kata sandi baru tidak sama.";
-          feedback.className = "text-sm mt-4 text-red-700";
+          feedback.className = "alert-box status-pill status-pill-danger";
         } else {
           feedback.textContent = "Data sudah valid, tetapi perubahan kata sandi belum dapat disimpan karena layanan akun/backend belum terhubung.";
-          feedback.className = "text-sm mt-4 text-amber-700";
+          feedback.className = "alert-box status-pill status-pill-warning";
         }
+        feedback.classList.remove("hidden");
       });
     }
 
@@ -406,23 +437,19 @@
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/png,image/jpeg";
-      input.className = "sr-only";
+      input.className = "hidden";
+      const photoFeedback = document.getElementById("profile-photo-feedback");
       input.addEventListener("change", () => {
         const file = input.files[0];
         if (!file) return;
         if (file.size > 10 * 1024 * 1024 || !["image/png", "image/jpeg"].includes(file.type)) {
-          showAppError("Foto profil harus berupa PNG/JPG dengan ukuran maksimal 10MB.");
+          photoFeedback.textContent = "Foto profil harus berupa PNG/JPG dengan ukuran maksimal 10MB.";
+          photoFeedback.className = "status-pill status-pill-danger";
           input.value = "";
           return;
         }
-        const avatar = document.querySelector("[data-profile-initials].w-28");
-        if (avatar) {
-          const imageUrl = URL.createObjectURL(file);
-          avatar.style.backgroundImage = `url("${imageUrl}")`;
-          avatar.style.backgroundSize = "cover";
-          avatar.style.backgroundPosition = "center";
-          avatar.textContent = "";
-        }
+        photoFeedback.textContent = `Foto dipilih: ${file.name}. Foto belum disimpan karena layanan profil belum terhubung.`;
+        photoFeedback.className = "text-muted";
       });
       photoButton.after(input);
       photoButton.addEventListener("click", () => input.click());

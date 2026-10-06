@@ -3,205 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADUIN - Buat Laporan Kerusakan</title>
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome via CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Google Fonts: Plus Jakarta Sans -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-  </style>
+  <meta name="description" content="Kirim laporan kerusakan fasilitas kampus melalui ADUIN.">
+  <title>Buat Laporan - ADUIN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body class="bg-[#F4F6F8] text-slate-900 min-h-screen flex">
-
-  <!-- SIDEBAR NAVIGASI -->
-  <aside class="w-64 bg-[#071635] text-white flex flex-col justify-between shrink-0 min-h-screen">
-    <div>
-      <!-- Logo / Nama Aplikasi -->
-      <div class="px-6 py-8 flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-[#0B224E] flex items-center justify-center text-[#38A3FF] border border-[#16356D]">
-          <i class="fa-solid fa-building-columns text-lg"></i>
+<body class="dashboard-body">
+  <div class="dashboard-wrapper">
+    <aside class="sidebar-blue" aria-label="Navigasi pelapor">
+      <div class="sidebar-top">
+        <a href="index.html" class="sidebar-brand" aria-label="ADUIN, kembali ke dashboard">
+          <span class="sidebar-brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01"></path>
+            </svg>
+          </span>
+          <span><span class="sidebar-brand-title">ADUIN</span><span class="sidebar-brand-subtitle">Facility Reporting</span></span>
+        </a>
+        <nav class="sidebar-nav" aria-label="Menu utama">
+          <a href="index.html" class="nav-link"><span aria-hidden="true">▦</span><span>Dashboard</span></a>
+          <a href="laporan.html" class="nav-link active" aria-current="page"><span aria-hidden="true">＋</span><span>Buat Laporan</span></a>
+          <a href="daftar_laporan.html" class="nav-link"><span aria-hidden="true">☷</span><span>Daftar Laporan</span></a>
+          <a href="pengaturan.html" class="nav-link"><span aria-hidden="true">⚙</span><span>Pengaturan</span></a>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-user-card">
+          <span data-profile-initials class="user-avatar-sm" aria-hidden="true">RN</span>
+          <div class="sidebar-user-info"><p data-profile-name class="sidebar-user-name">Rachmah Nur Chotimah</p><p class="sidebar-user-role">Mahasiswa</p></div>
         </div>
+        <a href="../login.html" class="btn-logout"><span aria-hidden="true">↪</span><span>Keluar</span></a>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="content-header">
         <div>
-          <h1 class="font-bold text-base tracking-wide leading-tight text-white">ADUIN</h1>
-          <p class="text-xs text-slate-400">Facility Reporting</p>
+          <span class="header-breadcrumb">Pelaporan fasilitas / <strong>Buat Laporan</strong></span>
+          <h1 class="header-title">Buat Laporan</h1>
+          <p class="header-subtitle">Sampaikan kerusakan fasilitas agar dapat segera ditindaklanjuti.</p>
         </div>
-      </div>
+      </header>
+      <main class="content-body">
+        <section class="glass-card form-card-clean" aria-labelledby="report-form-title">
+          <div class="form-header-box">
+            <h2 id="report-form-title" class="form-title">Laporan kerusakan baru</h2>
+            <p class="form-guide-text">Lengkapi detail kerusakan fasilitas kampus di bawah ini.</p>
+          </div>
 
-      <!-- Menu Navigasi Utama -->
-      <nav class="px-3 space-y-1.5 mt-2">
-        <a href="index.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full text-slate-300 hover:bg-white/10 hover:text-white font-medium text-sm transition">
-          <i class="fa-solid fa-table-cells-large w-5 text-center text-base"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <!-- Menu Aktif: Buat Laporan -->
-        <a href="laporan.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full bg-[#38A3FF] text-white font-medium text-sm shadow-sm transition">
-          <i class="fa-regular fa-file-lines w-5 text-center text-base"></i>
-          <span>Buat Laporan</span>
-        </a>
-
-        <a href="daftar_laporan.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full text-slate-300 hover:bg-white/10 hover:text-white font-medium text-sm transition">
-          <i class="fa-solid fa-clipboard-list w-5 text-center text-base"></i>
-          <span>Daftar Laporan</span>
-        </a>
-
-        <a href="pengaturan.html" class="flex items-center gap-3.5 px-5 py-3 rounded-full text-slate-300 hover:bg-white/10 hover:text-white font-medium text-sm transition">
-          <i class="fa-solid fa-gear w-5 text-center text-base"></i>
-          <span>Pengaturan</span>
-        </a>
-      </nav>
-    </div>
-
-    <!-- Profil Statis & Tombol Keluar -->
-    <div class="p-5 border-t border-slate-700/60">
-      <div class="flex items-center gap-3 mb-4">
-        <div data-profile-initials class="w-10 h-10 rounded-full bg-[#4682A9] flex items-center justify-center text-white font-semibold text-sm shrink-0">
-          RN
-        </div>
-        <div class="overflow-hidden">
-          <p data-profile-name class="font-semibold text-sm text-white truncate">Rachmah Nur Chotimah</p>
-          <p class="text-xs text-slate-400">Mahasiswa</p>
-        </div>
-      </div>
-      <a href="../login.html" class="flex items-center gap-3 px-2 py-2 text-sm text-slate-300 hover:text-white transition">
-        <i class="fa-solid fa-arrow-right-from-bracket text-base"></i>
-        <span>Keluar</span>
-      </a>
-    </div>
-  </aside>
-
-  <!-- KONTEN UTAMA: BUAT LAPORAN -->
-  <main class="flex-1 flex flex-col min-w-0">
-    <!-- Top Header -->
-    <header class="bg-white px-10 py-5 border-b border-slate-200/80">
-      <p class="text-sm text-slate-400 font-medium">Pelaporan fasilitas</p>
-      <h2 class="text-2xl font-bold text-slate-900 mt-0.5">Buat Laporan</h2>
-    </header>
-
-    <!-- Body Content -->
-    <div class="p-10 max-w-4xl">
-      <div class="bg-white rounded-3xl p-8 border border-slate-200/90">
-        <!-- Sub-judul Form -->
-        <div class="mb-6">
-          <h3 class="text-xl font-bold text-slate-900">Buat Laporan Kerusakan Baru</h3>
-          <p class="text-slate-400 text-sm mt-1">
-            Lengkapi detail kerusakan fasilitas agar tim perbaikan dapat menindaklanjuti dengan cepat.
-          </p>
-        </div>
-
-        <!-- Form Input Statis -->
-        <form id="report-form" class="space-y-5">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Input / Pilihan Ruangan & Fasilitas (dengan ikon lokasi) -->
-            <div>
-              <label class="block text-sm font-medium text-slate-800 mb-2">Ruangan</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
-                  <i class="fa-solid fa-location-dot"></i>
-                </span>
-                <select name="room" required class="w-full pl-10 pr-10 py-3 bg-white border border-slate-300 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-[#38A3FF] appearance-none">
+          <form id="report-form" class="form-fields-wrap">
+            <div class="chart-grid">
+              <div class="form-group-item">
+                <label class="form-label" for="report-room">Ruangan</label>
+                <select id="report-room" name="room" required class="glass-input">
                   <option value="">Pilih ruangan</option>
                   <option value="LPR 1_7B">LPR 1_7B (Lantai 1 - Lab Pemrograman 1)</option>
                   <option value="RT05_5B">RT05_5B (Ruang Teori 05)</option>
                   <option value="LERP_7T">LERP_7T (Lab ERP)</option>
                 </select>
-                <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-600 pointer-events-none">
-                  <i class="fa-solid fa-chevron-down text-xs"></i>
-                </span>
               </div>
-            </div>
-
-            <!-- Dropdown Kategori (dengan ikon kategori) -->
-            <div>
-              <label class="block text-sm font-medium text-slate-800 mb-2">Kategori</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
-                  <i class="fa-solid fa-layer-group"></i>
-                </span>
-                <select name="category" required class="w-full pl-10 pr-10 py-3 bg-white border border-slate-300 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-[#38A3FF] appearance-none">
+              <div class="form-group-item">
+                <label class="form-label" for="report-category">Kategori</label>
+                <select id="report-category" name="category" required class="glass-input">
                   <option value="">Pilih kategori</option>
                   <option value="AC / Pendingin">AC / Pendingin</option>
                   <option value="Proyektor">Proyektor</option>
                   <option value="Fasilitas Meja/Kursi">Fasilitas Meja/Kursi</option>
                   <option value="Kelistrikan / Lampu">Kelistrikan / Lampu</option>
                 </select>
-                <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-600 pointer-events-none">
-                  <i class="fa-solid fa-chevron-down text-xs"></i>
-                </span>
               </div>
             </div>
-          </div>
 
-          <!-- Waktu Laporan (Otomatis) -->
-          <div>
-            <label class="block text-sm font-medium text-slate-800 mb-2">Waktu Laporan</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-700 pointer-events-none">
-                <i class="fa-regular fa-calendar-check text-base"></i>
-              </span>
-              <input
-                type="text"
-                id="report-date"
-                readonly
-                class="w-full pl-11 pr-4 py-3 bg-[#F3F4F6] border border-slate-300 rounded-xl text-sm text-slate-600 cursor-not-allowed"
-              >
+            <div class="form-group-item">
+              <label class="form-label" for="report-date">Waktu laporan</label>
+              <input id="report-date" type="text" readonly class="glass-input">
+              <span class="text-muted">Waktu diisi otomatis saat laporan dibuat.</span>
             </div>
-            <p class="text-xs text-slate-400 mt-1.5 ml-1">Waktu terisi otomatis saat laporan dibuat</p>
-          </div>
 
-          <!-- Textarea Deskripsi Kerusakan (dengan ikon catatan) -->
-          <div>
-            <label class="block text-sm font-medium text-slate-800 mb-2">
-              <i class="fa-regular fa-note-sticky text-slate-500 mr-1.5"></i>Deskripsi Kerusakan
-            </label>
-            <textarea
-              rows="3"
-              name="description"
-              required
-              minlength="5"
-              placeholder="Jelaskan kerusakan yang terjadi, lokasi spesifik, dan tingkat urgensinya"
-              class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#38A3FF]"
-            ></textarea>
-          </div>
+            <div class="form-group-item">
+              <label class="form-label" for="report-description">Deskripsi kerusakan</label>
+              <textarea id="report-description" name="description" rows="4" required minlength="5" class="glass-input" placeholder="Jelaskan kerusakan, lokasi spesifik, dan tingkat urgensinya."></textarea>
+            </div>
 
-          <!-- Area Upload Foto (Drag-and-drop) -->
-          <div>
-            <label class="block text-sm font-medium text-slate-800 mb-2">Foto Kerusakan</label>
-            <div id="photo-dropzone" class="border-2 border-dashed border-slate-300 bg-[#EFEFEF] rounded-2xl p-7 text-center hover:border-[#38A3FF] transition">
-              <div class="w-10 h-10 rounded-full bg-[#D2EBFF] text-[#2CA4FF] flex items-center justify-center mx-auto mb-2.5">
-                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+            <div class="form-group-item">
+              <span class="form-label">Foto kerusakan (opsional)</span>
+              <div id="photo-dropzone" class="glass-card">
+                <p>Seret dan letakkan foto di sini, atau <label for="report-photo">telusuri berkas</label>.</p>
+                <p class="text-muted">Format PNG atau JPG, maksimal 10 MB.</p>
+                <input id="report-photo" type="file" accept="image/png,image/jpeg" class="hidden">
+                <button id="choose-report-photo" type="button" class="btn btn-ghost">Pilih foto</button>
+                <p id="photo-feedback" class="text-muted" aria-live="polite"></p>
               </div>
-              <p class="text-sm text-slate-800 font-medium">
-                Seret &amp; letakkan foto di sini, atau <label for="report-photo" class="text-[#2CA4FF] underline cursor-pointer">telusuri</label>
-              </p>
-              <p class="text-xs text-slate-400 mt-1">Format PNG, JPG hingga 10MB</p>
-              <input id="report-photo" type="file" accept="image/png,image/jpeg" class="sr-only">
-              <button id="choose-report-photo" type="button" class="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-50">
-                <i class="fa-solid fa-camera text-slate-500"></i>
-                <span>Unggah</span>
-              </button>
-              <p id="photo-feedback" class="text-xs text-slate-500 mt-2" aria-live="polite"></p>
             </div>
-          </div>
 
-          <!-- Tombol Aksi Utama -->
-          <div class="pt-3 flex justify-center">
-            <button
-              type="submit"
-              class="w-full max-w-md py-3.5 px-6 rounded-2xl bg-[#A3D3FA] hover:bg-[#38A3FF] text-slate-900 hover:text-white font-bold text-base transition"
-            >
-              Buat Laporan
-            </button>
-          </div>
-          <p id="report-feedback" class="text-sm text-center" role="status" aria-live="polite"></p>
-        </form>
-      </div>
+            <div id="report-feedback" class="alert-box hidden" role="status" aria-live="polite"></div>
+            <div class="action-group">
+              <a href="daftar_laporan.html" class="btn btn-ghost">Batal</a>
+              <button type="submit" class="btn btn-success">Kirim Laporan</button>
+            </div>
+          </form>
+        </section>
+      </main>
     </div>
-  </main>
-
+  </div>
   <script src="pelapor.js"></script>
 </body>
 </html>
