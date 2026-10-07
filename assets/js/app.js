@@ -2,6 +2,32 @@
  * app.js - Client-side script for ADUIN Authentication Pages
  * (single DOMContentLoaded, no duplicates)
  */
+function getStoredUsers() {
+  const users = JSON.parse(localStorage.getItem('aduin_users') || '[]');
+  if (!Array.isArray(users)) {
+    throw new Error('Data akun tidak valid di penyimpanan browser.');
+  }
+  return users;
+}
+
+function saveStoredUsers(users) {
+  localStorage.setItem('aduin_users', JSON.stringify(users));
+}
+
+function getSession() {
+  return JSON.parse(localStorage.getItem('aduin_session') || 'null');
+}
+
+function saveSession(session) {
+  localStorage.setItem('aduin_session', JSON.stringify(session));
+}
+
+function dashboardForRole(role) {
+  if (role === 'Verifikator') return 'verifikator/index.html';
+  if (role === 'Teknisi') return 'teknisi/index.html';
+  return 'pelapor/index.html';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ============================================================
@@ -35,18 +61,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
       const idInput = document.getElementById('loginId');
       const passInput = document.getElementById('loginPassword');
       const errorBox = document.getElementById('alertBox');
 
       if (!idInput.value.trim() || !passInput.value.trim()) {
-        e.preventDefault();
         if (errorBox) {
           errorBox.textContent = 'Semua kolom wajib diisi.';
           errorBox.classList.remove('hidden');
         }
         if (!idInput.value.trim()) idInput.focus();
         else passInput.focus();
+        return;
+      }
+
+      try {
+        const loginValue = idInput.value.trim();
+        const user = getStoredUsers().find((candidate) =>
+          candidate.id === loginValue || candidate.email === loginValue.toLowerCase()
+        );
+        if (!user || user.password !== passInput.value) {
+          if (errorBox) {
+            errorBox.textContent = 'ID/email atau kata sandi tidak sesuai.';
+            errorBox.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const session = {
+          id: user.id,
+          email: user.email,
+          nama: user.nama || user.id,
+          role: user.role || 'Pelapor',
+        };
+        saveSession(session);
+        window.location.href = dashboardForRole(session.role);
+      } catch (error) {
+        if (errorBox) {
+          errorBox.textContent = `Login gagal: ${error.message}`;
+          errorBox.classList.remove('hidden');
+        }
       }
     });
   }
@@ -57,13 +112,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const registerForm = document.getElementById('registerForm');
   if (registerForm) {
     registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
       const idInput = document.getElementById('regId');
       const emailInput = document.getElementById('regEmail');
       const passInput = document.getElementById('regPassword');
+      const roleInput = document.getElementById('regRole');
       const errorBox = document.getElementById('alertBox');
 
       if (!idInput.value.trim() || !emailInput.value.trim() || !passInput.value.trim()) {
-        e.preventDefault();
         if (errorBox) {
           errorBox.textContent = 'Semua kolom wajib diisi.';
           errorBox.classList.remove('hidden');
@@ -71,6 +127,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!idInput.value.trim()) idInput.focus();
         else if (!emailInput.value.trim()) emailInput.focus();
         else passInput.focus();
+        return;
+      }
+      if (passInput.value.length < 8) {
+        if (errorBox) {
+          errorBox.textContent = 'Kata sandi minimal 8 karakter.';
+          errorBox.classList.remove('hidden');
+        }
+        passInput.focus();
+        return;
+      }
+
+      try {
+        const users = getStoredUsers();
+        const id = idInput.value.trim();
+        const email = emailInput.value.trim().toLowerCase();
+        if (users.some((user) => user.id === id || user.email === email)) {
+          if (errorBox) {
+            errorBox.textContent = 'ID atau email tersebut sudah terdaftar.';
+            errorBox.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const user = {
+          id,
+          email,
+          password: passInput.value,
+          role: roleInput.value,
+          nama: id,
+        };
+        users.push(user);
+        saveStoredUsers(users);
+        saveSession({ id, email, nama: user.nama, role: user.role });
+        window.location.href = dashboardForRole(user.role);
+      } catch (error) {
+        if (errorBox) {
+          errorBox.textContent = `Pendaftaran gagal: ${error.message}`;
+          errorBox.classList.remove('hidden');
+        }
       }
     });
   }
@@ -782,12 +877,18 @@ const MENU_ICONS = {
 
 // Inisialisasi halaman pengaturan
 function initPengaturanPage() {
-  const session = getSession();
+  let session;
+  try {
+    session = getSession();
+  } catch (error) {
+    console.error('Sesi akun tidak dapat dibaca:', error);
+    window.location.replace('login.html');
+    return;
+  }
 
   // Guard: harus login
   if (!session || !session.id) {
-    showToast('Silakan login terlebih dahulu.', 'error');
-    setTimeout(() => (window.location.href = 'login.html'), 800);
+    window.location.replace('login.html');
     return;
   }
 
@@ -803,6 +904,8 @@ function initPengaturanPage() {
       </a>
     `).join('');
   }
+  const brand = document.getElementById('sidebarBrand');
+  if (brand) brand.href = cfg.home;
 
   // -------- Render profil sidebar --------
   const setText = (id, val) => {
@@ -822,6 +925,50 @@ function initPengaturanPage() {
   setText('profileUnit', cfg.unit);
   setText('profileEmail', session.email || '–');
   setText('profileAccess', cfg.access);
+
+  const editProfileName = document.getElementById('editProfileName');
+  if (editProfileName) {
+    editProfileName.addEventListener('click', () => {
+      const name = window.prompt('Masukkan nama lengkap:', session.nama || session.id);
+      if (name === null) return;
+      if (!name.trim()) {
+        window.alert('Nama tidak boleh kosong.');
+        return;
+      }
+
+      try {
+        const users = getStoredUsers();
+        const user = users.find((candidate) => candidate.id === session.id);
+        if (!user) {
+          window.alert('Akun tidak ditemukan. Silakan login kembali.');
+          return;
+        }
+        session.nama = name.trim();
+        user.nama = session.nama;
+        saveStoredUsers(users);
+        saveSession(session);
+        setText('profileName', session.nama);
+        setText('sidebarName', session.nama);
+        setText('profileAvatar', session.nama.slice(0, 2).toUpperCase());
+        setText('sidebarAvatar', session.nama.slice(0, 2).toUpperCase());
+      } catch (error) {
+        window.alert(`Nama profil tidak dapat disimpan: ${error.message}`);
+      }
+    });
+  }
+
+  const logout = document.getElementById('btnLogout');
+  if (logout) {
+    logout.addEventListener('click', (event) => {
+      event.preventDefault();
+      try {
+        localStorage.removeItem('aduin_session');
+        window.location.href = 'login.html';
+      } catch (error) {
+        window.alert(`Tidak dapat keluar dari akun: ${error.message}`);
+      }
+    });
+  }
 
   // -------- Handle form ganti password --------
   const form = document.getElementById('formUbahPassword');
@@ -858,24 +1005,26 @@ function initPengaturanPage() {
     }
 
     // Cek password lama terhadap user yang sedang login
-    const users = getStoredUsers();
-    const user = users.find((u) => u.id === session.id);
+    try {
+      const users = getStoredUsers();
+      const user = users.find((u) => u.id === session.id);
 
-    if (!user) {
-      showAlert('Akun tidak ditemukan.', false);
-      return;
+      if (!user) {
+        showAlert('Akun tidak ditemukan. Silakan login kembali.', false);
+        return;
+      }
+      if (user.password !== oldPass) {
+        showAlert('Password lama salah.', false);
+        return;
+      }
+
+      user.password = newPass;
+      saveStoredUsers(users);
+      showAlert('Kata sandi berhasil diperbarui dengan aman!', true);
+      form.reset();
+    } catch (error) {
+      showAlert(`Kata sandi tidak dapat disimpan: ${error.message}`, false);
     }
-    if (user.password !== oldPass) {
-      showAlert('Password lama salah.', false);
-      return;
-    }
-
-    // Update password
-    user.password = newPass;
-    saveStoredUsers(users);
-
-    showAlert('Kata sandi berhasil diperbarui dengan aman!', true);
-    form.reset();
   });
 }
 

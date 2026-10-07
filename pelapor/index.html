@@ -9,12 +9,47 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    /* Style tambahan untuk fitur pengaturan terintegrasi & pemanggil ../pengaturan.html */
+    .view-section {
+      display: none;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .view-section.active {
+      display: flex;
+    }
+    .redirect-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+    .external-frame-wrapper {
+      width: 100%;
+      min-height: 480px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+    .external-frame {
+      width: 100%;
+      height: 500px;
+      border: none;
+    }
+  </style>
 </head>
 <body class="dashboard-body">
   <div class="dashboard-wrapper">
     <aside class="sidebar-blue" aria-label="Navigasi pelapor">
       <div class="sidebar-top">
-        <a href="index.html" class="sidebar-brand" aria-label="ADUIN, kembali ke dashboard">
+        <a href="index.html" onclick="bukaHalaman('dashboard', event)" class="sidebar-brand" aria-label="ADUIN, kembali ke dashboard">
           <span class="sidebar-brand-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01"></path>
@@ -27,7 +62,7 @@
         </a>
 
         <nav class="sidebar-nav" aria-label="Menu utama">
-          <a href="index.html" class="nav-link active" aria-current="page">
+          <a href="index.html" id="nav-dashboard" onclick="bukaHalaman('dashboard', event)" class="nav-link active" aria-current="page">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="3" y="3" width="7" height="7"></rect>
               <rect x="14" y="3" width="7" height="7"></rect>
@@ -49,7 +84,8 @@
             </svg>
             <span>Daftar Laporan</span>
           </a>
-          <a href="pengaturan.html" class="nav-link">
+          <!-- Tombol Pengaturan: Bisa dibuka di dalam dashboard atau langsung memanggil ../pengaturan.html di luar package -->
+          <a href="../pengaturan.html" id="nav-pengaturan" onclick="bukaHalaman('pengaturan', event)" class="nav-link">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3"></circle>
               <path d="m19.4 15 .1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 0 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1a2 2 0 0 0-1.4-3.4h-.2a2 2 0 0 1 0-4h.2a2 2 0 0 0 1.4-3.4l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a2 2 0 0 0 3.4-1.4v-.2a2 2 0 0 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a2 2 0 0 0 1.4 3.4h.2a2 2 0 0 1 0 4h-.2a2 2 0 0 0-1.4 3.4z"></path>
@@ -80,84 +116,169 @@
     <div class="main-content">
       <header class="content-header">
         <div>
-          <span class="header-breadcrumb">Pelaporan fasilitas / <strong>Dashboard</strong></span>
-          <h1 class="header-title">Dashboard Pelapor</h1>
-          <p class="header-subtitle">Pantau status laporan fasilitas yang kamu kirim.</p>
+          <span class="header-breadcrumb">Pelaporan fasilitas / <strong id="header-crumb">Dashboard</strong></span>
+          <h1 id="header-title" class="header-title">Dashboard Pelapor</h1>
+          <p id="header-subtitle" class="header-subtitle">Pantau status laporan fasilitas yang kamu kirim.</p>
         </div>
         <span class="status-badge status-badge-success">Pelapor aktif</span>
       </header>
 
       <main class="content-body">
-        <section aria-labelledby="welcome-title">
-          <h2 id="welcome-title" class="card-title">Selamat datang, <span data-profile-first-name>Rachmah</span></h2>
-          <p class="text-muted">Ringkasan laporan fasilitasmu akan selalu diperbarui di sini.</p>
-        </section>
+        <!-- BAGIAN 1: DASHBOARD PELAPOR -->
+        <div id="section-dashboard" class="view-section active">
+          <section aria-labelledby="welcome-title">
+            <h2 id="welcome-title" class="card-title">Selamat datang, <span data-profile-first-name>Rachmah</span></h2>
+            <p class="text-muted">Ringkasan laporan fasilitasmu akan selalu diperbarui di sini.</p>
+          </section>
 
-        <section class="metric-grid" aria-label="Ringkasan laporan">
-          <article class="glass-card metric-card">
-            <span class="metric-label">Total laporanku</span>
-            <strong id="total-reports" class="metric-value">0</strong>
-            <span class="metric-note">Seluruh laporan yang tercatat</span>
-          </article>
-          <article class="glass-card metric-card">
-            <span class="metric-label">Menunggu verifikasi</span>
-            <strong id="pending-reports" class="metric-value">0</strong>
-            <span class="metric-note">Menunggu tindak lanjut</span>
-          </article>
-          <article class="glass-card metric-card">
-            <span class="metric-label">Sedang diproses</span>
-            <strong id="processing-reports" class="metric-value">0</strong>
-            <span class="metric-note">Ditangani oleh tim fasilitas</span>
-          </article>
-          <article class="glass-card metric-card">
-            <span class="metric-label">Selesai</span>
-            <strong id="completed-reports" class="metric-value">0</strong>
-            <span class="metric-note">Laporan telah ditindaklanjuti</span>
-          </article>
-        </section>
+          <section class="metric-grid" aria-label="Ringkasan laporan">
+            <article class="glass-card metric-card">
+              <span class="metric-label">Total laporanku</span>
+              <strong id="total-reports" class="metric-value">0</strong>
+              <span class="metric-note">Seluruh laporan yang tercatat</span>
+            </article>
+            <article class="glass-card metric-card">
+              <span class="metric-label">Menunggu verifikasi</span>
+              <strong id="pending-reports" class="metric-value">0</strong>
+              <span class="metric-note">Menunggu tindak lanjut</span>
+            </article>
+            <article class="glass-card metric-card">
+              <span class="metric-label">Sedang diproses</span>
+              <strong id="processing-reports" class="metric-value">0</strong>
+              <span class="metric-note">Ditangani oleh tim fasilitas</span>
+            </article>
+            <article class="glass-card metric-card">
+              <span class="metric-label">Selesai</span>
+              <strong id="completed-reports" class="metric-value">0</strong>
+              <span class="metric-note">Laporan telah ditindaklanjuti</span>
+            </article>
+          </section>
 
-        <section class="glass-card" aria-labelledby="new-report-title">
-          <div class="card-header">
-            <div>
-              <h2 id="new-report-title" class="card-title">Ada fasilitas yang rusak?</h2>
-              <p class="card-subtitle">Laporkan kerusakan agar tim fasilitas dapat segera menindaklanjuti.</p>
+          <section class="glass-card" aria-labelledby="new-report-title">
+            <div class="card-header">
+              <div>
+                <h2 id="new-report-title" class="card-title">Ada fasilitas yang rusak?</h2>
+                <p class="card-subtitle">Laporkan kerusakan agar tim fasilitas dapat segera menindaklanjuti.</p>
+              </div>
+              <a href="laporan.html" class="btn btn-success">
+                <span aria-hidden="true">+</span>
+                <span>Buat Laporan Baru</span>
+              </a>
             </div>
-            <a href="laporan.html" class="btn btn-success">
-              <span aria-hidden="true">+</span>
-              <span>Buat Laporan Baru</span>
-            </a>
-          </div>
-        </section>
+          </section>
 
-        <section class="glass-card" aria-labelledby="recent-reports-title">
-          <div class="card-header">
-            <div>
-              <h2 id="recent-reports-title" class="card-title">Laporan terbaru</h2>
-              <p class="card-subtitle">Data pelapor, lokasi, kategori, dan status laporanmu.</p>
+          <section class="glass-card" aria-labelledby="recent-reports-title">
+            <div class="card-header">
+              <div>
+                <h2 id="recent-reports-title" class="card-title">Laporan terbaru</h2>
+                <p class="card-subtitle">Data pelapor, lokasi, kategori, dan status laporanmu.</p>
+              </div>
+              <a href="daftar_laporan.html" class="btn btn-ghost">Lihat semua laporan</a>
             </div>
-            <a href="daftar_laporan.html" class="btn btn-ghost">Lihat semua laporan</a>
-          </div>
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">Pelapor</th>
-                  <th scope="col">Lokasi</th>
-                  <th scope="col">Kategori</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody id="dashboard-reports" aria-live="polite">
-                <tr>
-                  <td colspan="4" class="text-muted">Memuat laporan...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Pelapor</th>
+                    <th scope="col">Lokasi</th>
+                    <th scope="col">Kategori</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-reports" aria-live="polite">
+                  <tr>
+                    <td colspan="4" class="text-muted">Memuat laporan...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- BAGIAN 2: FITUR PENGATURAN (Memanggil ../pengaturan.html di luar package) -->
+        <div id="section-pengaturan" class="view-section">
+          <section class="glass-card redirect-banner" aria-labelledby="pengaturan-title">
+            <div>
+              <h2 id="pengaturan-title" class="card-title">Halaman pengaturan sudah dipusatkan.</h2>
+              <p class="card-subtitle">
+                Menampilkan pengaturan dari luar package (<code>../pengaturan.html</code>). Jika tidak tampil otomatis, klik tombol di samping.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <a href="../pengaturan.html" class="btn btn-success" onclick="panggilPengaturanLuar()">
+                Buka pengaturan (../pengaturan.html)
+              </a>
+            </div>
+          </section>
+
+          <!-- Memuat ../pengaturan.html yang berada di luar folder pelapor secara langsung -->
+          <section class="glass-card">
+            <div class="external-frame-wrapper">
+              <iframe
+                id="frame-pengaturan"
+                src="../pengaturan.html"
+                title="Pengaturan Terpusat ADUIN"
+                class="external-frame"
+              ></iframe>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   </div>
+
   <script src="pelapor.js"></script>
+  <script>
+    // Fungsi untuk menggabungkan navigasi Dashboard & Pengaturan luar package (../pengaturan.html)
+    function bukaHalaman(halaman, event) {
+      if (event) event.preventDefault();
+
+      const secDashboard = document.getElementById('section-dashboard');
+      const secPengaturan = document.getElementById('section-pengaturan');
+      const navDashboard = document.getElementById('nav-dashboard');
+      const navPengaturan = document.getElementById('nav-pengaturan');
+
+      const crumb = document.getElementById('header-crumb');
+      const title = document.getElementById('header-title');
+      const subtitle = document.getElementById('header-subtitle');
+
+      if (halaman === 'pengaturan') {
+        secDashboard.classList.remove('active');
+        secPengaturan.classList.add('active');
+
+        navDashboard.classList.remove('active');
+        navDashboard.removeAttribute('aria-current');
+        navPengaturan.classList.add('active');
+        navPengaturan.setAttribute('aria-current', 'page');
+
+        crumb.textContent = 'Pengaturan';
+        title.textContent = 'Pengaturan Akun';
+        subtitle.textContent = 'Halaman pengaturan terpusat dari ../pengaturan.html.';
+
+        // Segarkan iframe agar selalu memanggil ../pengaturan.html terbaru
+        const frame = document.getElementById('frame-pengaturan');
+        if (frame && !frame.getAttribute('src')) {
+          frame.setAttribute('src', '../pengaturan.html');
+        }
+      } else {
+        secPengaturan.classList.remove('active');
+        secDashboard.classList.add('active');
+
+        navPengaturan.classList.remove('active');
+        navPengaturan.removeAttribute('aria-current');
+        navDashboard.classList.add('active');
+        navDashboard.setAttribute('aria-current', 'page');
+
+        crumb.textContent = 'Dashboard';
+        title.textContent = 'Dashboard Pelapor';
+        subtitle.textContent = 'Pantau status laporan fasilitas yang kamu kirim.';
+      }
+    }
+
+    // Fungsi redirect langsung jika ingin pindah penuh ke ../pengaturan.html di luar package
+    function panggilPengaturanLuar() {
+      window.location.href = '../pengaturan.html';
+    }
+  </script>
 </body>
 </html>
