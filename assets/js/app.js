@@ -728,160 +728,163 @@ function bindPengaturanForm() {
   });
 }
 /* ============================================================
- * HALAMAN SHARED: pengaturan.html (semua role)
- * - Render sidebar dinamis sesuai session
- * - Render kartu profil dinamis
- * - Handle form ganti password
+ * HALAMAN SHARED: pengaturan.html
+ * Skeleton diisi dari data.json berdasarkan user aktif
  * ============================================================ */
 
-// Konfigurasi menu per role
-const ROLE_CONFIG = {
-  Pelapor: {
-    home: 'pelapor/index.html',
-    unit: 'Mahasiswa / Dosen',
-    access: 'Pelapor',
-    menus: [
-      { label: 'Dashboard', href: 'pelapor/index.html' },
-      { label: 'Buat Pengaduan', href: 'pelapor/index.html#new' },
-      { label: 'Riwayat Saya', href: 'pelapor/index.html#my' },
-      { label: 'Pengaturan', href: 'pengaturan.html', active: true },
-    ],
-  },
-  Verifikator: {
-    home: 'verifikator/index.html',
-    unit: 'Jurusan Teknologi Informasi',
-    access: 'Verifikator Utama',
-    menus: [
-      { label: 'Dashboard', href: 'verifikator/index.html' },
-      { label: 'Daftar Laporan', href: 'verifikator/riwayat.html' },
-      { label: 'Statistik', href: 'verifikator/statistik.html' },
-      { label: 'Pengaturan', href: 'pengaturan.html', active: true },
-    ],
-  },
-  Teknisi: {
-    home: 'teknisi/index.html',
-    unit: 'Unit Sarpras JTI',
-    access: 'Teknisi Lapangan',
-    menus: [
-      { label: 'Dashboard', href: 'teknisi/index.html' },
-      { label: 'Tugas Saya', href: 'teknisi/index.html#tasks' },
-      { label: 'Riwayat', href: 'teknisi/index.html#history' },
-      { label: 'Pengaturan', href: 'pengaturan.html', active: true },
-    ],
-  },
-};
+// Path relatif ke data.json dari pengaturan.html (root)
+const DATA_JSON_PATH = 'data.json';
 
-// Icon SVG per menu (biar konsisten)
+// Icon SVG per tipe menu (dari field "icon" di data.json)
 const MENU_ICONS = {
-  Dashboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
-  'Daftar Laporan': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
-  Statistik: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
-  Pengaturan: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  home: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  list: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  chart: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  settings: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
   default: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>',
 };
 
-// Inisialisasi halaman pengaturan
-function initPengaturanPage() {
-  const session = getSession();
-
-  // Guard: harus login
-  if (!session || !session.id) {
-    showToast('Silakan login terlebih dahulu.', 'error');
-    setTimeout(() => (window.location.href = 'login.html'), 800);
-    return;
-  }
-
-  const cfg = ROLE_CONFIG[session.role] || ROLE_CONFIG.Pelapor;
-
-  // -------- Render sidebar menu --------
+async function initPengaturanPage() {
   const nav = document.getElementById('sidebarNav');
-  if (nav) {
-    nav.innerHTML = cfg.menus.map((m) => `
-      <a href="${m.href}" class="nav-link ${m.active ? 'active' : ''}">
-        ${MENU_ICONS[m.label] || MENU_ICONS.default}
-        <span>${m.label}</span>
-      </a>
-    `).join('');
-  }
+  if (!nav) return; // bukan halaman pengaturan
 
-  // -------- Render profil sidebar --------
-  const setText = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
+  try {
+    const res = await fetch(DATA_JSON_PATH);
+    if (!res.ok) throw new Error('Gagal fetch data.json');
+    const data = await res.json();
 
-  setText('sidebarAvatar', session.avatar || session.nama?.slice(0, 2).toUpperCase() || '?');
-  setText('sidebarName', session.nama || '–');
-  setText('sidebarRole', session.role || '–');
+    // Cari user aktif
+    const user = data.users.find((u) => u.id === data.simulated_active_user_id);
+    if (!user) {
+      console.warn('User aktif tidak ditemukan di data.json');
+      return;
+    }
 
-  // -------- Render kartu profil --------
-  setText('profileAvatar', session.avatar || session.nama?.slice(0, 2).toUpperCase() || '?');
-  setText('profileName', session.nama || '–');
-  setText('profileId', (session.role === 'Pelapor' ? 'NIM: ' : 'NIP: ') + (session.id || '–'));
-  setText('profileRoleBadge', session.role || '–');
-  setText('profileUnit', cfg.unit);
-  setText('profileEmail', session.email || '–');
-  setText('profileAccess', cfg.access);
+    // ---------- 1. Render sidebar menu ----------
+    nav.innerHTML = user.sidebar_menu.map((item) => {
+      const isActive = item.title === 'Pengaturan';
+      const icon = MENU_ICONS[item.icon] || MENU_ICONS.default;
+      return `
+        <a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}">
+          ${icon}
+          <span>${item.title}</span>
+        </a>
+      `;
+    }).join('');
 
-  // -------- Handle form ganti password --------
-  const form = document.getElementById('formUbahPassword');
-  if (!form) return;
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const oldPass = document.getElementById('oldPassword')?.value;
-    const newPass = document.getElementById('newPassword')?.value;
-    const confirmPass = document.getElementById('confirmPassword')?.value;
-    const alertBox = document.getElementById('passwordAlert');
-
-    const showAlert = (msg, ok = true) => {
-      if (!alertBox) return;
-      alertBox.textContent = msg;
-      alertBox.style.display = 'block';
-      alertBox.style.background = ok ? '#ecfdf5' : '#fef2f2';
-      alertBox.style.borderColor = ok ? '#bbf7d0' : '#fecaca';
-      alertBox.style.color = ok ? '#065f46' : '#991b1b';
-      setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+    // ---------- 2. Render sidebar user card ----------
+    const setText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val || '–';
     };
 
-    if (!oldPass || !newPass || !confirmPass) {
-      showAlert('Semua kolom wajib diisi.', false);
-      return;
-    }
-    if (newPass.length < 8) {
-      showAlert('Password baru minimal 8 karakter.', false);
-      return;
-    }
-    if (newPass !== confirmPass) {
-      showAlert('Konfirmasi password tidak cocok.', false);
-      return;
+    setText('sidebarAvatar', user.avatar);
+    setText('sidebarName', user.nama);
+    setText('sidebarRole', user.jabatan);
+
+    // ---------- 3. Render kartu profil ----------
+    setText('profileAvatar', user.avatar);
+    setText('profileName', user.nama);
+    setText('profileId', (user.role_utama === 'Pelapor' ? 'NIM: ' : 'NIP: ') + user.id);
+    setText('profileRoleBadge', user.jabatan);
+    setText('profileUnit', user.unit_kerja);
+    setText('profileEmail', user.email);
+
+    // ---------- 4. Breadcrumb kecil ----------
+    setText('breadcrumbRole', user.role_utama);
+
+    // ---------- 5. Handle logout (clear session) ----------
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof clearSession === 'function') clearSession();
+        window.location.href = 'login.html';
+      });
     }
 
-    // Cek password lama terhadap user yang sedang login
-    const users = getStoredUsers();
-    const user = users.find((u) => u.id === session.id);
+    // ---------- 6. Handle form ubah password ----------
+    const form = document.getElementById('formUbahPassword');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const oldPass = document.getElementById('oldPassword')?.value;
+        const newPass = document.getElementById('newPassword')?.value;
+        const confirmPass = document.getElementById('confirmPassword')?.value;
+        const alertBox = document.getElementById('passwordAlert');
 
-    if (!user) {
-      showAlert('Akun tidak ditemukan.', false);
-      return;
+        const showAlert = (msg, ok = true) => {
+          if (!alertBox) return;
+          alertBox.textContent = msg;
+          alertBox.style.display = 'block';
+          alertBox.style.background = ok ? '#ecfdf5' : '#fef2f2';
+          alertBox.style.borderColor = ok ? '#bbf7d0' : '#fecaca';
+          alertBox.style.color = ok ? '#065f46' : '#991b1b';
+          setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+        };
+
+        if (!oldPass || !newPass || !confirmPass) {
+          showAlert('Semua kolom wajib diisi.', false);
+          return;
+        }
+        if (newPass.length < 8) {
+          showAlert('Password baru minimal 8 karakter.', false);
+          return;
+        }
+        if (newPass !== confirmPass) {
+          showAlert('Konfirmasi password tidak cocok.', false);
+          return;
+        }
+
+        // (FE only) cek password lama dari localStorage user
+        try {
+          const users = JSON.parse(localStorage.getItem('aduin_users') || '[]');
+          const u = users.find((x) => x.id === user.id);
+          if (u && u.password !== oldPass) {
+            showAlert('Password lama salah.', false);
+            return;
+          }
+          if (u) {
+            u.password = newPass;
+            localStorage.setItem('aduin_users', JSON.stringify(users));
+          }
+        } catch (err) {
+          console.warn('LocalStorage tidak tersedia:', err);
+        }
+
+        showAlert('Kata sandi berhasil diperbarui dengan aman!', true);
+        form.reset();
+      });
     }
-    if (user.password !== oldPass) {
-      showAlert('Password lama salah.', false);
-      return;
-    }
 
-    // Update password
-    user.password = newPass;
-    saveStoredUsers(users);
+    // ---------- 7. Toggle password mata ----------
+    document.querySelectorAll('.toggle-password-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.getAttribute('data-target'));
+        const eyeIcon = btn.querySelector('.eye-icon');
+        const eyeOffIcon = btn.querySelector('.eye-off-icon');
+        if (!input) return;
+        if (input.type === 'password') {
+          input.type = 'text';
+          if (eyeIcon) eyeIcon.classList.add('hidden');
+          if (eyeOffIcon) eyeOffIcon.classList.remove('hidden');
+        } else {
+          input.type = 'password';
+          if (eyeIcon) eyeIcon.classList.remove('hidden');
+          if (eyeOffIcon) eyeOffIcon.classList.add('hidden');
+        }
+      });
+    });
 
-    showAlert('Kata sandi berhasil diperbarui dengan aman!', true);
-    form.reset();
-  });
+  } catch (err) {
+    console.error('initPengaturanPage error:', err);
+  }
 }
 
-// Auto-boot kalau kita ada di pengaturan.html
+// Auto-boot kalau halaman ini punya #sidebarNav
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('formUbahPassword')) {
+  if (document.getElementById('sidebarNav')) {
     initPengaturanPage();
   }
 });
