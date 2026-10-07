@@ -269,7 +269,7 @@ async function initPengaturanPage() {
         status: 'Aktif',
         sidebar_menu: [
           { title: 'Dashboard', link: 'pelapor/index.html', icon: 'home' },
-          { title: 'Buat Laporan', link: 'pelapor/buat_laporan.html', icon: 'plus' },
+          { title: 'Buat Laporan', link: 'pelapor/buat_laporan.html', icon: { ariaHidden: true } },
           { title: 'Daftar Laporan', link: 'pelapor/riwayat.html', icon: 'list' },
           { title: 'Pengaturan', link: 'pengaturan.html', icon: 'settings' },
         ],
