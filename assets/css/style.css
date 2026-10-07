@@ -187,9 +187,8 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
-  line-height: 1.2;
   color: #cbd5e1;
-  background: transparent;
+  text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -1174,4 +1173,53 @@ select.glass-input { cursor: pointer; }
   .glass-card { padding: 20px; border-radius: var(--radius-lg); }
   .header-title, .page-title { font-size: 17px; }
   .metric-value { font-size: 24px; }
+}
+
+/* ==========================================================================
+   PROFILE META LIST (halaman pengaturan — kartu profil kiri)
+   ========================================================================== */
+.profile-meta-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.profile-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #e2e7ef;
+}
+
+.profile-meta-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.profile-meta-label {
+  color: #737d92;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.profile-meta-value {
+  color: #17213d;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+  max-width: 60%;
+}
+
+/* Divider antara badge & meta list */
+.profile-divider {
+  width: 100%;
+  height: 1px;
+  background: #e2e7ef;
+  margin: 18px 0;
 }

@@ -823,143 +823,181 @@ function bindPengaturanForm() {
   });
 }
 /* ============================================================
- * HALAMAN SHARED: pengaturan.html (semua role)
- * - Render sidebar dinamis sesuai session
- * - Render kartu profil dinamis
- * - Handle form ganti password
+ * HALAMAN SHARED: pengaturan.html
+ * Data profil awal dimuat dari users.json.
  * ============================================================ */
 
-// Konfigurasi menu per role
-const ROLE_CONFIG = {
-  Pelapor: {
-    home: 'pelapor/index.html',
-    unit: 'Mahasiswa / Dosen',
-    access: 'Pelapor',
-    menus: [
-      { label: 'Dashboard', href: 'pelapor/index.html' },
-      { label: 'Buat Pengaduan', href: 'pelapor/index.html#new' },
-      { label: 'Riwayat Saya', href: 'pelapor/index.html#my' },
-      { label: 'Pengaturan', href: 'pengaturan.html', active: true },
-    ],
-  },
-  Verifikator: {
-    home: 'verifikator/index.html',
-    unit: 'Jurusan Teknologi Informasi',
-    access: 'Verifikator Utama',
-    menus: [
-      { label: 'Dashboard', href: 'verifikator/index.html' },
-      { label: 'Daftar Laporan', href: 'verifikator/riwayat.html' },
-      { label: 'Statistik', href: 'verifikator/statistik.html' },
-      { label: 'Pengaturan', href: 'pengaturan.html', active: true },
-    ],
-  },
-  Teknisi: {
-    home: 'teknisi/index.html',
-    unit: 'Unit Sarpras JTI',
-    access: 'Teknisi Lapangan',
-    menus: [
-      { label: 'Dashboard', href: 'teknisi/index.html' },
-      { label: 'Tugas Saya', href: 'teknisi/index.html#tasks' },
-      { label: 'Riwayat', href: 'teknisi/index.html#history' },
-      { label: 'Pengaturan', href: 'pengaturan.html', active: true },
-    ],
-  },
-};
-
-// Icon SVG per menu (biar konsisten)
-const MENU_ICONS = {
-  Dashboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
-  'Daftar Laporan': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
-  Statistik: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
-  Pengaturan: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+// Path relatif ke data.json dari pengaturan.html (root)
+const DATA_JSON_PATH = 'users.json';
+const SETTINGS_MENU_ICONS = {
+  home: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  list: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  chart: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  settings: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 1 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 1-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 1-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
   default: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>',
 };
 
-// Inisialisasi halaman pengaturan
-function initPengaturanPage() {
+const SETTINGS_ROLE_MENUS = {
+  Pelapor: [
+    { title: 'Dashboard', link: 'pelapor/index.html', icon: 'home' },
+    { title: 'Buat Laporan', link: 'pelapor/laporan.html', icon: 'plus' },
+    { title: 'Daftar Laporan', link: 'pelapor/daftar_laporan.html', icon: 'list' },
+    { title: 'Pengaturan', link: 'pengaturan.html', icon: 'settings' },
+  ],
+  Verifikator: [
+    { title: 'Dashboard', link: 'verifikator/index.html', icon: 'home' },
+    { title: 'Daftar Laporan', link: 'verifikator/riwayat.html', icon: 'list' },
+    { title: 'Statistik', link: 'verifikator/statistik.html', icon: 'chart' },
+    { title: 'Pengaturan', link: 'pengaturan.html', icon: 'settings' },
+  ],
+  Teknisi: [
+    { title: 'Dashboard', link: 'teknisi/index.html', icon: 'home' },
+    { title: 'Pengaturan', link: 'pengaturan.html', icon: 'settings' },
+  ],
+};
+
+function setSettingsText(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = value || '–';
+}
+
+function displaySettingsError(message) {
+  const alertBox = document.getElementById('passwordAlert');
+  if (alertBox) {
+    alertBox.textContent = message;
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#fef2f2';
+    alertBox.style.borderColor = '#fecaca';
+    alertBox.style.color = '#991b1b';
+  }
+  console.error(message);
+}
+
+async function initPengaturanPage() {
+  const nav = document.getElementById('sidebarNav');
+  const passwordForm = document.getElementById('formUbahPassword');
   let session;
   try {
     session = getSession();
   } catch (error) {
-    console.error('Sesi akun tidak dapat dibaca:', error);
-    window.location.replace('login.html');
+    displaySettingsError(`Sesi akun tidak dapat dibaca: ${error.message}`);
     return;
   }
 
-  // Guard: harus login
-  if (!session || !session.id) {
-    window.location.replace('login.html');
+  let data;
+  try {
+    const response = await fetch(DATA_JSON_PATH);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    data = await response.json();
+    if (!data || !Array.isArray(data.users)) throw new Error('Format users.json tidak valid.');
+  } catch (error) {
+    displaySettingsError(`Data profil tidak dapat dimuat: ${error.message}`);
     return;
   }
 
-  const cfg = ROLE_CONFIG[session.role] || ROLE_CONFIG.Pelapor;
+  let storedUsers;
+  let storedUser = null;
+  try {
+    storedUsers = getStoredUsers();
+    storedUser = session && storedUsers.find((item) => item.id === session.id);
+  } catch (error) {
+    displaySettingsError(`Data akun tidak dapat dibaca: ${error.message}`);
+    return;
+  }
 
-  // -------- Render sidebar menu --------
-  const nav = document.getElementById('sidebarNav');
+  let profile = data.users.find((item) => item.id === (session && session.id));
+  if (!profile && storedUser) {
+    profile = {
+      id: storedUser.id,
+      nama: storedUser.nama || storedUser.id,
+      role_utama: storedUser.role || 'Pelapor',
+      jabatan: storedUser.role || 'Pelapor',
+      email: storedUser.email || '',
+      unit_kerja: '',
+    };
+  }
+  if (!profile && !session) {
+    profile = data.users.find((item) => item.id === data.simulated_active_user_id);
+  }
+  if (!profile) {
+    displaySettingsError('Profil pengguna tidak ditemukan. Silakan login kembali.');
+    return;
+  }
+
+  if (!storedUser) {
+    storedUser = storedUsers.find((item) => item.id === profile.id) || null;
+  }
+
+  const role = (session && session.id === profile.id && session.role) ||
+    (storedUser && storedUser.role) || profile.role_utama || 'Pelapor';
+  const name = (session && session.id === profile.id && session.nama) ||
+    (storedUser && storedUser.nama) || profile.nama;
+  const email = (session && session.id === profile.id && session.email) ||
+    (storedUser && storedUser.email) || profile.email;
+  const avatar = name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  const roleLabel = profile.jabatan || role;
+  const menuItems = SETTINGS_ROLE_MENUS[role] || profile.sidebar_menu || SETTINGS_ROLE_MENUS.Pelapor;
+
   if (nav) {
-    nav.innerHTML = cfg.menus.map((m) => `
-      <a href="${m.href}" class="nav-link ${m.active ? 'active' : ''}">
-        ${MENU_ICONS[m.label] || MENU_ICONS.default}
-        <span>${m.label}</span>
-      </a>
-    `).join('');
+    nav.innerHTML = menuItems.map((item) => {
+      const isActive = item.title === 'Pengaturan';
+      const icon = SETTINGS_MENU_ICONS[item.icon] || SETTINGS_MENU_ICONS.default;
+      return `<a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}"${isActive ? ' aria-current="page"' : ''}>${icon}<span>${item.title}</span></a>`;
+    }).join('');
   }
+
+  const homeLink = menuItems.find((item) => item.title === 'Dashboard');
   const brand = document.getElementById('sidebarBrand');
-  if (brand) brand.href = cfg.home;
+  if (brand && homeLink) brand.href = homeLink.link;
 
-  // -------- Render profil sidebar --------
-  const setText = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
+  setSettingsText('sidebarAvatar', avatar);
+  setSettingsText('sidebarName', name);
+  setSettingsText('sidebarRole', roleLabel);
+  setSettingsText('profileAvatar', avatar);
+  setSettingsText('profileName', name);
+  setSettingsText('profileId', `${role === 'Pelapor' ? 'NIM' : 'NIP'}: ${profile.id}`);
+  setSettingsText('profileRoleBadge', roleLabel);
+  setSettingsText('profileUnit', profile.unit_kerja || '');
+  setSettingsText('profileEmail', email || '');
+  setSettingsText('breadcrumbRole', role);
 
-  setText('sidebarAvatar', session.avatar || session.nama?.slice(0, 2).toUpperCase() || '?');
-  setText('sidebarName', session.nama || '–');
-  setText('sidebarRole', session.role || '–');
-
-  // -------- Render kartu profil --------
-  setText('profileAvatar', session.avatar || session.nama?.slice(0, 2).toUpperCase() || '?');
-  setText('profileName', session.nama || '–');
-  setText('profileId', (session.role === 'Pelapor' ? 'NIM: ' : 'NIP: ') + (session.id || '–'));
-  setText('profileRoleBadge', session.role || '–');
-  setText('profileUnit', cfg.unit);
-  setText('profileEmail', session.email || '–');
-  setText('profileAccess', cfg.access);
-
-  const editProfileName = document.getElementById('editProfileName');
-  if (editProfileName) {
-    editProfileName.addEventListener('click', () => {
-      const name = window.prompt('Masukkan nama lengkap:', session.nama || session.id);
-      if (name === null) return;
-      if (!name.trim()) {
+  const editProfileButton = document.getElementById('editProfileName');
+  if (editProfileButton) {
+    editProfileButton.addEventListener('click', () => {
+      const updatedName = window.prompt('Masukkan nama lengkap:', name);
+      if (updatedName === null) return;
+      if (!updatedName.trim()) {
         window.alert('Nama tidak boleh kosong.');
+        return;
+      }
+      if (!storedUser || !session || session.id !== profile.id) {
+        window.alert('Nama hanya dapat diubah untuk akun yang sudah login dan terdaftar.');
         return;
       }
 
       try {
         const users = getStoredUsers();
-        const user = users.find((candidate) => candidate.id === session.id);
-        if (!user) {
-          window.alert('Akun tidak ditemukan. Silakan login kembali.');
-          return;
-        }
-        session.nama = name.trim();
-        user.nama = session.nama;
+        const user = users.find((item) => item.id === profile.id);
+        if (!user) throw new Error('Akun tidak ditemukan.');
+        user.nama = updatedName.trim();
+        session.nama = user.nama;
         saveStoredUsers(users);
         saveSession(session);
-        setText('profileName', session.nama);
-        setText('sidebarName', session.nama);
-        setText('profileAvatar', session.nama.slice(0, 2).toUpperCase());
-        setText('sidebarAvatar', session.nama.slice(0, 2).toUpperCase());
+        setSettingsText('profileName', user.nama);
+        setSettingsText('sidebarName', user.nama);
+        const initials = user.nama.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+        setSettingsText('profileAvatar', initials);
+        setSettingsText('sidebarAvatar', initials);
       } catch (error) {
         window.alert(`Nama profil tidak dapat disimpan: ${error.message}`);
       }
     });
   }
 
-  const logout = document.getElementById('btnLogout');
-  if (logout) {
-    logout.addEventListener('click', (event) => {
+  const logoutButton = document.getElementById('btnLogout');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', (event) => {
       event.preventDefault();
       try {
         localStorage.removeItem('aduin_session');
@@ -970,67 +1008,59 @@ function initPengaturanPage() {
     });
   }
 
-  // -------- Handle form ganti password --------
-  const form = document.getElementById('formUbahPassword');
-  if (!form) return;
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const oldPass = document.getElementById('oldPassword')?.value;
-    const newPass = document.getElementById('newPassword')?.value;
-    const confirmPass = document.getElementById('confirmPassword')?.value;
+  if (!passwordForm) return;
+  passwordForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmation = document.getElementById('confirmPassword').value;
     const alertBox = document.getElementById('passwordAlert');
-
-    const showAlert = (msg, ok = true) => {
+    const showAlert = (message, success) => {
       if (!alertBox) return;
-      alertBox.textContent = msg;
+      alertBox.textContent = message;
       alertBox.style.display = 'block';
-      alertBox.style.background = ok ? '#ecfdf5' : '#fef2f2';
-      alertBox.style.borderColor = ok ? '#bbf7d0' : '#fecaca';
-      alertBox.style.color = ok ? '#065f46' : '#991b1b';
-      setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+      alertBox.style.background = success ? '#ecfdf5' : '#fef2f2';
+      alertBox.style.borderColor = success ? '#bbf7d0' : '#fecaca';
+      alertBox.style.color = success ? '#065f46' : '#991b1b';
     };
 
-    if (!oldPass || !newPass || !confirmPass) {
+    if (!oldPassword || !newPassword || !confirmation) {
       showAlert('Semua kolom wajib diisi.', false);
       return;
     }
-    if (newPass.length < 8) {
+    if (newPassword.length < 8) {
       showAlert('Password baru minimal 8 karakter.', false);
       return;
     }
-    if (newPass !== confirmPass) {
+    if (newPassword !== confirmation) {
       showAlert('Konfirmasi password tidak cocok.', false);
       return;
     }
+    if (!storedUser || !session || session.id !== profile.id) {
+      showAlert('Perubahan kata sandi memerlukan akun yang sudah login.', false);
+      return;
+    }
 
-    // Cek password lama terhadap user yang sedang login
     try {
       const users = getStoredUsers();
-      const user = users.find((u) => u.id === session.id);
-
-      if (!user) {
-        showAlert('Akun tidak ditemukan. Silakan login kembali.', false);
-        return;
-      }
-      if (user.password !== oldPass) {
+      const user = users.find((item) => item.id === profile.id);
+      if (!user) throw new Error('Akun tidak ditemukan.');
+      if (user.password !== oldPassword) {
         showAlert('Password lama salah.', false);
         return;
       }
-
-      user.password = newPass;
+      user.password = newPassword;
       saveStoredUsers(users);
-      showAlert('Kata sandi berhasil diperbarui dengan aman!', true);
-      form.reset();
+      showAlert('Kata sandi berhasil diperbarui.', true);
+      passwordForm.reset();
     } catch (error) {
       showAlert(`Kata sandi tidak dapat disimpan: ${error.message}`, false);
     }
   });
 }
-
-// Auto-boot kalau kita ada di pengaturan.html
+// Auto-boot kalau halaman ini punya #sidebarNav
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('formUbahPassword')) {
+  if (document.getElementById('sidebarNav')) {
     initPengaturanPage();
   }
 });
