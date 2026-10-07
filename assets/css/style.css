@@ -97,12 +97,12 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 /* --------------------------------------------------------------------------
-   4. SIDEBAR (SINGLE DEFINITION)
+   4. SIDEBAR
    -------------------------------------------------------------------------- */
 .sidebar-blue {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;   /* atas & bawah terpisah */
+  justify-content: space-between;
   width: 260px;
   min-width: 260px;
   height: 100vh;
@@ -117,14 +117,13 @@ button { font-family: inherit; cursor: pointer; }
   overflow-y: auto;
 }
 
-/* Bagian atas: brand + menu */
+/* --- Atas: brand + menu --- */
 .sidebar-top {
   display: flex;
   flex-direction: column;
   gap: 22px;
 }
 
-/* Brand */
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -172,7 +171,6 @@ button { font-family: inherit; cursor: pointer; }
   color: #94a3b8;
 }
 
-/* Nav */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -211,7 +209,7 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 6px 18px rgba(30, 161, 242, 0.4);
 }
 
-/* Bagian bawah: profil + logout */
+/* --- Bawah: profil + logout --- */
 .sidebar-bottom {
   display: flex;
   flex-direction: column;
@@ -242,6 +240,7 @@ button { font-family: inherit; cursor: pointer; }
   justify-content: center;
   font-size: 12px;
   font-weight: 800;
+  overflow: hidden;
 }
 
 .sidebar-user-info {
@@ -361,7 +360,7 @@ button { font-family: inherit; cursor: pointer; }
    6. GLASS COMPONENTS
    -------------------------------------------------------------------------- */
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.95);
@@ -962,7 +961,17 @@ select.glass-input { cursor: pointer; }
   font-weight: 700;
   border: 4px solid #ffffff;
   box-shadow: 0 4px 14px rgba(234, 88, 12, 0.12);
-  overflow: hidden;  
+  overflow: hidden;
+}
+
+/* Foto yang di-upload ke avatar */
+.profile-avatar-large img,
+.user-avatar-sm img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .avatar-camera-btn {
@@ -1014,6 +1023,40 @@ select.glass-input { cursor: pointer; }
   color: #ea580c;
   background: #ffedd5;
   letter-spacing: 0.2px;
+}
+
+/* Avatar warna per role */
+.profile-avatar-large.role-pelapor,
+.user-avatar-sm.role-pelapor {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.profile-avatar-large.role-verifikator,
+.user-avatar-sm.role-verifikator {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.profile-avatar-large.role-teknisi,
+.user-avatar-sm.role-teknisi {
+  background: #d1fae5;
+  color: #047857;
+}
+
+/* Email (tanpa label) */
+.profile-email {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e7ef;
+  font-size: 13px;
+  color: #737d92;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
 }
 
 /* Form card */
@@ -1084,14 +1127,20 @@ select.glass-input { cursor: pointer; }
   font-size: 14px;
   color: #1e293b;
   font-family: inherit;
-  letter-spacing: 2px;
   padding: 0;
+  letter-spacing: normal;
 }
 
 .input-clean-field::placeholder {
-  letter-spacing: 3px;
+  letter-spacing: normal;
   color: #94a3b8;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Password yang sudah diketik → titik-titik tetap rapi */
+.input-clean-field[type="password"]:not(:placeholder-shown) {
+  letter-spacing: 2px;
 }
 
 .btn-toggle-eye {
@@ -1134,7 +1183,7 @@ select.glass-input { cursor: pointer; }
   transform: translateY(-1px);
 }
 
-/* Alert */
+/* Alert box */
 .alert-box {
   padding: 12px 16px;
   border-radius: var(--radius-md);
@@ -1175,107 +1224,4 @@ select.glass-input { cursor: pointer; }
   .glass-card { padding: 20px; border-radius: var(--radius-lg); }
   .header-title, .page-title { font-size: 17px; }
   .metric-value { font-size: 24px; }
-}
-
-/* --------------------------------------------------------------------------
-   PROFILE META LIST — kartu profil kiri (Pengaturan)
-   -------------------------------------------------------------------------- */
-.profile-meta-list {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 18px;
-  text-align: left;
-  font-size: 13px;
-}
-
-.profile-meta-item {
-  display: grid;
-  grid-template-columns: 130px 1fr;   /* label fixed 130px, value isi sisa */
-  align-items: start;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px dashed #e2e7ef;
-}
-
-.profile-meta-item:last-child {
-  border-bottom: none;
-}
-
-.profile-meta-label {
-  color: #737d92;
-  font-weight: 500;
-  line-height: 1.5;
-}
-
-.profile-meta-value {
-  color: #17213d;
-  font-weight: 600;
-  text-align: right;
-  word-break: break-word;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-/* Divider antara badge & meta list */
-.profile-divider {
-  width: 100%;
-  height: 1px;
-  background: #e2e7ef;
-  margin: 18px 0 6px 0;
-}
-
-/* --------------------------------------------------------------------------
-   AVATAR WARNA PER ROLE
-   -------------------------------------------------------------------------- */
-
-/* Pelapor — biru muda */
-.profile-avatar-large.role-pelapor,
-.user-avatar-sm.role-pelapor {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-/* Verifikator — orange muda */
-.profile-avatar-large.role-verifikator,
-.user-avatar-sm.role-verifikator {
-  background: #ffedd5;
-  color: #ea580c;
-}
-
-/* Teknisi — hijau muda */
-.profile-avatar-large.role-teknisi,
-.user-avatar-sm.role-teknisi {
-  background: #d1fae5;
-  color: #047857;
-}
-
-/* --------------------------------------------------------------------------
-   PROFILE EMAIL (kartu profil kiri)
-   -------------------------------------------------------------------------- */
-.profile-email {
-  width: 100%;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e2e7ef;
-  font-size: 13px;
-  color: #737d92;
-  font-weight: 500;
-  text-align: center;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  line-height: 1.5;
-}
-
-/* --------------------------------------------------------------------------
-   AVATAR DENGAN FOTO (kalau user upload)
-   -------------------------------------------------------------------------- */
-.profile-avatar-large img,
-.user-avatar-sm img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  display: block;
 }
