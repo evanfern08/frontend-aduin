@@ -733,7 +733,7 @@ function bindPengaturanForm() {
  * ============================================================ */
 
 // Path relatif ke data.json dari pengaturan.html (root)
-const DATA_JSON_PATH = 'data.json';
+const DATA_JSON_PATH = 'users.json';
 
 // Icon SVG per tipe menu (dari field "icon" di data.json)
 const MENU_ICONS = {
