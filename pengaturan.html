@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
 
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body class="dashboard-body">
 
   <div class="dashboard-wrapper">
@@ -23,7 +25,7 @@
       <!-- ATAS: brand + menu -->
       <div class="sidebar-top">
 
-        <!-- Brand (statis, sama untuk semua role) -->
+        <!-- Brand -->
         <a href="index.html" class="sidebar-brand">
           <div class="sidebar-brand-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -66,7 +68,6 @@
          ================================================================== -->
     <main class="main-content scroll-area" style="padding: 32px 48px; background-color: #f8fafc;">
 
-      <!-- Top Kicker & Title -->
       <div style="margin-bottom: 24px;">
         <div style="font-size: 13px; font-weight: 500; color: #94a3b8; margin-bottom: 4px;">
           <span id="breadcrumbRole">–</span>
@@ -74,13 +75,11 @@
         <h1 style="font-size: 26px; font-weight: 800; color: #091441; margin: 0;">Pengaturan</h1>
       </div>
 
-      <!-- Section Title & Subtitle -->
       <div style="margin-bottom: 28px;">
         <h2 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0;">Profil & pengaturan</h2>
         <p style="font-size: 14px; color: #64748b; margin: 0;">Kelola informasi akun dan keamanan kata sandi anda.</p>
       </div>
 
-      <!-- Two-Column Grid -->
       <div class="settings-grid">
 
         <!-- KOLOM KIRI: Kartu Profil (DIISI VIA JS) -->
@@ -100,28 +99,17 @@
           <div class="profile-nip" id="profileId">–</div>
           <span class="badge-orange" id="profileRoleBadge">–</span>
 
-          <div class="profile-divider"></div>
-
-          <div class="profile-meta-list">
-            <div class="profile-meta-item">
-              <span class="profile-meta-label">Unit Kerja</span>
-              <span class="profile-meta-value" id="profileUnit">–</span>
-            </div>
-            <div class="profile-meta-item">
-              <span class="profile-meta-label">Email Kedinasan</span>
-              <span class="profile-meta-value" id="profileEmail">–</span>
-            </div>
-          </div>
+          <div class="profile-email" id="profileEmail">–</div>
         </section>
 
-        <!-- KOLOM KANAN: Form Ubah Password (STATIS — universal) -->
+        <!-- KOLOM KANAN: Form Ubah Password -->
         <section class="glass-card form-card-clean">
           <div class="form-header-box">
             <h3 class="form-title">Ubah kata sandi</h3>
             <p class="form-guide-text">Gunakan kombinasi huruf dan angka agar akun tetap aman.</p>
           </div>
 
-          <div id="passwordAlert" class="alert-box" style="display:none; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;"></div>
+          <div id="passwordAlert" class="alert-box" style="display:none;"></div>
 
           <form id="formUbahPassword" class="form-fields-wrap">
 
@@ -135,7 +123,7 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                 </span>
-                <input type="password" id="oldPassword" required class="input-clean-field" placeholder="••••••••" autocomplete="current-password">
+                <input type="password" id="oldPassword" required class="input-clean-field" placeholder="Masukkan sandi lama" autocomplete="current-password">
                 <button type="button" class="btn-toggle-eye toggle-password-btn" data-target="oldPassword" aria-label="Toggle lihat password">
                   <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
@@ -159,7 +147,7 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                 </span>
-                <input type="password" id="newPassword" required class="input-clean-field" placeholder="••••••••" autocomplete="new-password">
+                <input type="password" id="newPassword" required class="input-clean-field" placeholder="Masukkan sandi baru" autocomplete="new-password">
                 <button type="button" class="btn-toggle-eye toggle-password-btn" data-target="newPassword" aria-label="Toggle lihat password">
                   <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
@@ -183,7 +171,7 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                 </span>
-                <input type="password" id="confirmPassword" required class="input-clean-field" placeholder="••••••••" autocomplete="new-password">
+                <input type="password" id="confirmPassword" required class="input-clean-field" placeholder="Konfirmasi sandi baru" autocomplete="new-password">
                 <button type="button" class="btn-toggle-eye toggle-password-btn" data-target="confirmPassword" aria-label="Toggle lihat password">
                   <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
@@ -210,4 +198,5 @@
 
   <script src="assets/js/app.js"></script>
 </body>
+
 </html>
