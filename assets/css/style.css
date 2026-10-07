@@ -1097,22 +1097,22 @@ select.glass-input { cursor: pointer; }
 }
 
 .input-pill-box {
-  display: flex;
+  display: flex !important;
   align-items: center;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 11px 14px;
-  background: #ffffff;
-  transition: all 0.2s ease;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 11px 14px !important;
+  background: #ffffff !important;
+  min-height: 46px;
 }
 
 .input-pill-box:focus-within {
-  border-color: #1ea1f2;
-  box-shadow: 0 0 0 3px rgba(30, 161, 242, 0.15);
+  border-color: #1ea1f2 !important;
+  box-shadow: 0 0 0 3px rgba(30, 161, 242, 0.15) !important;
 }
 
 .input-icon-left {
-  display: flex;
+  display: flex !important;
   align-items: center;
   color: #94a3b8;
   margin-right: 10px;
@@ -1121,14 +1121,13 @@ select.glass-input { cursor: pointer; }
 
 .input-clean-field {
   flex: 1;
-  border: none;
+  border: none !important;
   outline: none;
   background: transparent;
   font-size: 14px;
   color: #1e293b;
   font-family: inherit;
   padding: 0;
-  letter-spacing: normal;
 }
 
 .input-clean-field::placeholder {
@@ -1159,22 +1158,21 @@ select.glass-input { cursor: pointer; }
 
 .btn-toggle-eye:hover { color: #475569; }
 
-.btn-simpan-perubahan {
-  width: 100%;
-  height: 48px;
-  border-radius: 12px;
-  background: #1ea1f2;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
+.btn-toggle-eye .hidden {
+  display: none !important;
+}
+
+.btn-toggle-eye {
+  background: transparent;
   border: none;
+  padding: 4px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(30, 161, 242, 0.35);
-  transition: all 0.2s ease;
-  display: flex;
+  color: #94a3b8;
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  margin-top: 10px;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
 .btn-simpan-perubahan:hover {
