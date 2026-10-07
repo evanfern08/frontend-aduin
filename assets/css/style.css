@@ -962,6 +962,7 @@ select.glass-input { cursor: pointer; }
   font-weight: 700;
   border: 4px solid #ffffff;
   box-shadow: 0 4px 14px rgba(234, 88, 12, 0.12);
+  overflow: hidden;  
 }
 
 .avatar-camera-btn {
@@ -980,6 +981,7 @@ select.glass-input { cursor: pointer; }
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  z-index: 2;
 }
 
 .avatar-camera-btn:hover {
@@ -1175,37 +1177,36 @@ select.glass-input { cursor: pointer; }
   .metric-value { font-size: 24px; }
 }
 
-/* ==========================================================================
-   PROFILE META LIST (halaman pengaturan — kartu profil kiri)
-   ========================================================================== */
+/* --------------------------------------------------------------------------
+   PROFILE META LIST — kartu profil kiri (Pengaturan)
+   -------------------------------------------------------------------------- */
 .profile-meta-list {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 18px;
   text-align: left;
   font-size: 13px;
 }
 
 .profile-meta-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  padding-bottom: 10px;
+  display: grid;
+  grid-template-columns: 130px 1fr;   /* label fixed 130px, value isi sisa */
+  align-items: start;
+  gap: 12px;
+  padding: 12px 0;
   border-bottom: 1px dashed #e2e7ef;
 }
 
 .profile-meta-item:last-child {
   border-bottom: none;
-  padding-bottom: 0;
 }
 
 .profile-meta-label {
   color: #737d92;
   font-weight: 500;
-  flex-shrink: 0;
+  line-height: 1.5;
 }
 
 .profile-meta-value {
@@ -1213,7 +1214,8 @@ select.glass-input { cursor: pointer; }
   font-weight: 600;
   text-align: right;
   word-break: break-word;
-  max-width: 60%;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 /* Divider antara badge & meta list */
@@ -1221,5 +1223,59 @@ select.glass-input { cursor: pointer; }
   width: 100%;
   height: 1px;
   background: #e2e7ef;
-  margin: 18px 0;
+  margin: 18px 0 6px 0;
+}
+
+/* --------------------------------------------------------------------------
+   AVATAR WARNA PER ROLE
+   -------------------------------------------------------------------------- */
+
+/* Pelapor — biru muda */
+.profile-avatar-large.role-pelapor,
+.user-avatar-sm.role-pelapor {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Verifikator — orange muda */
+.profile-avatar-large.role-verifikator,
+.user-avatar-sm.role-verifikator {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+/* Teknisi — hijau muda */
+.profile-avatar-large.role-teknisi,
+.user-avatar-sm.role-teknisi {
+  background: #d1fae5;
+  color: #047857;
+}
+
+/* --------------------------------------------------------------------------
+   PROFILE EMAIL (kartu profil kiri)
+   -------------------------------------------------------------------------- */
+.profile-email {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e7ef;
+  font-size: 13px;
+  color: #737d92;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   AVATAR DENGAN FOTO (kalau user upload)
+   -------------------------------------------------------------------------- */
+.profile-avatar-large img,
+.user-avatar-sm img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }

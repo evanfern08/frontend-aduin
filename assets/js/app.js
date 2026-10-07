@@ -779,17 +779,90 @@ async function initPengaturanPage() {
       if (el) el.textContent = val || '–';
     };
 
-    setText('sidebarAvatar', user.avatar);
+    const sidebarAvatarEl = document.getElementById('sidebarAvatar');
+    if (sidebarAvatarEl) {
+      sidebarAvatarEl.textContent = user.avatar;
+      sidebarAvatarEl.classList.remove('role-pelapor', 'role-verifikator', 'role-teknisi');
+      const roleMap = {
+        'Pelapor': 'role-pelapor',
+        'Verifikator': 'role-verifikator',
+        'Teknisi': 'role-teknisi',
+      };
+      const roleClass = roleMap[user.role_utama];
+      if (roleClass) sidebarAvatarEl.classList.add(roleClass);
+    }
     setText('sidebarName', user.nama);
     setText('sidebarRole', user.jabatan);
 
     // ---------- 3. Render kartu profil ----------
-    setText('profileAvatar', user.avatar);
+    const profileAvatarEl = document.getElementById('profileAvatar');
+    if (profileAvatarEl) {
+      profileAvatarEl.textContent = user.avatar;
+      // Hapus class role lama (kalau ada), lalu apply yang baru
+      profileAvatarEl.classList.remove('role-pelapor', 'role-verifikator', 'role-teknisi');
+      const roleMap = {
+        'Pelapor': 'role-pelapor',
+        'Verifikator': 'role-verifikator',
+        'Teknisi': 'role-teknisi',
+      };
+      const roleClass = roleMap[user.role_utama];
+      if (roleClass) profileAvatarEl.classList.add(roleClass);
+    }
     setText('profileName', user.nama);
     setText('profileId', (user.role_utama === 'Pelapor' ? 'NIM: ' : 'NIP: ') + user.id);
     setText('profileRoleBadge', user.jabatan);
     setText('profileUnit', user.unit_kerja);
     setText('profileEmail', user.email);
+
+    // ---------- HANDLE UPLOAD FOTO PROFIL ----------
+    const avatarInput = document.getElementById('avatarUploadInput');
+    const avatarPreview = document.getElementById('profileAvatar');
+
+    if (avatarInput && avatarPreview) {
+      // Cek apakah ada foto tersimpan di localStorage
+      const savedAvatar = localStorage.getItem('aduin_avatar_' + user.id);
+      if (savedAvatar) {
+        avatarPreview.innerHTML = `<img src="${savedAvatar}" alt="Avatar">`;
+      }
+
+      avatarInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validasi: hanya gambar, max 2MB
+        if (!file.type.startsWith('image/')) {
+          alert('File harus berupa gambar.');
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Ukuran gambar maksimal 2MB.');
+          return;
+        }
+
+        // Baca sebagai base64 & simpan ke localStorage
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const base64 = ev.target.result;
+          avatarPreview.innerHTML = `<img src="${base64}" alt="Avatar">`;
+          localStorage.setItem('aduin_avatar_' + user.id, base64);
+
+          // Sinkron ke sidebar avatar juga
+          const sidebarAvatar = document.getElementById('sidebarAvatar');
+          if (sidebarAvatar) {
+            sidebarAvatar.innerHTML = `<img src="${base64}" alt="Avatar">`;
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Sinkron foto ke sidebar saat load
+      if (savedAvatar) {
+        const sidebarAvatar = document.getElementById('sidebarAvatar');
+        if (sidebarAvatar) {
+          sidebarAvatar.innerHTML = `<img src="${savedAvatar}" alt="Avatar">`;
+        }
+      }
+    }
 
     // ---------- 4. Breadcrumb kecil ----------
     setText('breadcrumbRole', user.role_utama);
