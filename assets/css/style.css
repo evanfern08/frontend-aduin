@@ -1175,6 +1175,24 @@ select.glass-input { cursor: pointer; }
   flex-shrink: 0;
 }
 
+.btn-simpan-perubahan {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background: #1ea1f2;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(30, 161, 242, 0.35);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
 .btn-simpan-perubahan:hover {
   background: #158ad4;
   box-shadow: 0 6px 18px rgba(30, 161, 242, 0.45);
