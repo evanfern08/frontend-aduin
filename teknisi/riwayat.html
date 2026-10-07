@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar Laporan / Riwayat - ADUIN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+
+  <div class="dashboard-wrapper">
+    <!-- Sidebar Navigasi Utama -->
+    <aside class="sidebar-blue" aria-label="Navigasi teknisi">
+      <div class="sidebar-top">
+        <a href="index.html" class="sidebar-brand">
+          <span class="sidebar-brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01"></path>
+            </svg>
+          </span>
+          <span>
+            <span class="sidebar-brand-title">ADUIN</span>
+            <span class="sidebar-brand-subtitle">Facility Reporting</span>
+          </span>
+        </a>
+
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-link">
+            <i class="fa-solid fa-border-all"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="daftar-tugas.html" class="nav-link">
+            <i class="fa-solid fa-list-check"></i>
+            <span>Daftar Tugas</span>
+          </a>
+          <a href="riwayat.html" class="nav-link active">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>Daftar Laporan</span>
+          </a>
+          <a href="../pengaturan.html" class="nav-link">
+            <i class="fa-solid fa-gear"></i>
+            <span>Pengaturan</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-user-card">
+          <span class="user-avatar-sm">BP</span>
+          <div class="sidebar-user-info">
+            <p class="sidebar-user-name">Budi Prakroso</p>
+            <p class="sidebar-user-role">Teknisi</p>
+          </div>
+        </div>
+        <a href="../login.html" class="btn-logout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <path d="m16 17 5-5-5-5M21 12H9"></path>
+          </svg>
+          <span>Keluar</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <header class="content-header">
+        <div>
+          <span class="header-breadcrumb">Teknisi Pemeliharaan / <strong>Daftar Laporan</strong></span>
+          <h1 class="header-title">Daftar Laporan</h1>
+        </div>
+      </header>
+
+      <main class="content-body">
+        <section>
+          <h2 class="card-title">Riwayat perbaikan</h2>
+          <p class="text-muted" style="margin-bottom: 15px;">Catatan perbaikan yang sudah kamu selesaikan beserta bukti pengerjaan.</p>
+
+          <!-- Filter Pill Buttons -->
+          <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+            <button class="btn btn-success">Semua</button>
+            <button class="btn btn-ghost" style="border: 1px solid #d1d5db;">Minggu Ini</button>
+            <button class="btn btn-ghost" style="border: 1px solid #d1d5db;">Bulan Ini</button>
+          </div>
+        </section>
+
+        <!-- History Card List -->
+        <section style="display: flex; flex-direction: column; gap: 20px;">
+
+          <!-- Card 1 -->
+          <article class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+              <div>
+                <h3 class="card-title" style="margin: 0;">Pintu Macet</h3>
+                <p class="text-muted" style="font-size: 14px; margin-top: 4px;">R.06.04 · Ruang Dosen 4</p>
+              </div>
+              <span class="status-badge status-badge-success">Selesai</span>
+            </div>
+
+            <div style="display: flex; gap: 20px; font-size: 13px; color: #64748b; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px;">
+              <span><i class="fa-regular fa-square-check"></i> Selesai 19 Sep 2026</span>
+              <span><i class="fa-regular fa-clock"></i> Dikerjakan 1 hari</span>
+            </div>
+
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+              <div style="display: flex; gap: 10px;">
+                <div style="text-align: center; font-size: 12px; color: #666;">
+                  <div style="width: 70px; height: 70px; background: #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
+                  Sebelum
+                </div>
+                <div style="text-align: center; font-size: 12px; color: #666;">
+                  <div style="width: 70px; height: 70px; background: #bbf7d0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
+                  Sesudah
+                </div>
+              </div>
+              <div style="flex: 1; min-width: 200px;">
+                <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">Catatan Teknisi</span>
+                <p style="margin-top: 4px; font-size: 14px; color: #334155;">Engsel diganti dan dilumasi, pintu sudah bisa dibuka dan ditutup normal.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+              <div>
+                <h3 class="card-title" style="margin: 0;">Stop Kontak Rusak</h3>
+                <p class="text-muted" style="font-size: 14px; margin-top: 4px;">LKJ2_7T · Lab Sist Komp dan Jaringan 2</p>
+              </div>
+              <span class="status-badge status-badge-success">Selesai</span>
+            </div>
+
+            <div style="display: flex; gap: 20px; font-size: 13px; color: #64748b; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px;">
+              <span><i class="fa-regular fa-square-check"></i> Selesai 12 Sep 2026</span>
+              <span><i class="fa-regular fa-clock"></i> Dikerjakan 2 hari</span>
+            </div>
+
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+              <div style="display: flex; gap: 10px;">
+                <div style="text-align: center; font-size: 12px; color: #666;">
+                  <div style="width: 70px; height: 70px; background: #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
+                  Sebelum
+                </div>
+                <div style="text-align: center; font-size: 12px; color: #666;">
+                  <div style="width: 70px; height: 70px; background: #bbf7d0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
+                  Sesudah
+                </div>
+              </div>
+              <div style="flex: 1; min-width: 200px;">
+                <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">Catatan Teknisi</span>
+                <p style="margin-top: 4px; font-size: 14px; color: #334155;">Stop kontak diganti baru dan kabel di bawah meja dirapikan.</p>
+              </div>
+            </div>
+          </article>
+
+        </section>
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>
