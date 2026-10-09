@@ -1041,6 +1041,7 @@ async function initPengaturanPage() {
       return;
     }
 
+<<<<<<< HEAD
     try {
       const users = getStoredUsers();
       const user = users.find((item) => item.id === profile.id);
@@ -1055,6 +1056,122 @@ async function initPengaturanPage() {
       passwordForm.reset();
     } catch (error) {
       showAlert(`Kata sandi tidak dapat disimpan: ${error.message}`, false);
+=======
+    // ---------- 1. Render sidebar menu ----------
+    nav.innerHTML = user.sidebar_menu.map((item) => {
+      const isActive = item.title === 'Pengaturan';
+      const icon = MENU_ICONS[item.icon] || MENU_ICONS.default;
+      return `
+        <a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}">
+          ${icon}
+          <span>${item.title}</span>
+        </a>
+      `;
+    }).join('');
+
+    // ---------- 2. Render sidebar user card ----------
+    const setText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val || '–';
+    };
+
+    const sidebarAvatarEl = document.getElementById('sidebarAvatar');
+    if (sidebarAvatarEl) {
+      sidebarAvatarEl.textContent = user.avatar;
+      sidebarAvatarEl.classList.remove('role-pelapor', 'role-verifikator', 'role-teknisi');
+      const roleMap = {
+        'Pelapor': 'role-pelapor',
+        'Verifikator': 'role-verifikator',
+        'Teknisi': 'role-teknisi',
+      };
+      const roleClass = roleMap[user.role_utama];
+      if (roleClass) sidebarAvatarEl.classList.add(roleClass);
+    }
+    setText('sidebarName', user.nama);
+    setText('sidebarRole', user.jabatan);
+
+    // ---------- 3. Render kartu profil ----------
+    const profileAvatarEl = document.getElementById('profileAvatar');
+    if (profileAvatarEl) {
+      profileAvatarEl.textContent = user.avatar;
+      // Hapus class role lama (kalau ada), lalu apply yang baru
+      profileAvatarEl.classList.remove('role-pelapor', 'role-verifikator', 'role-teknisi');
+      const roleMap = {
+        'Pelapor': 'role-pelapor',
+        'Verifikator': 'role-verifikator',
+        'Teknisi': 'role-teknisi',
+      };
+      const roleClass = roleMap[user.role_utama];
+      if (roleClass) profileAvatarEl.classList.add(roleClass);
+    }
+    setText('profileName', user.nama);
+    setText('profileId', (user.role_utama === 'Pelapor' ? 'NIM: ' : 'NIP: ') + user.id);
+    setText('profileRoleBadge', user.jabatan);
+    setText('profileUnit', user.unit_kerja);
+    setText('profileEmail', user.email);
+
+    // ---------- HANDLE UPLOAD FOTO PROFIL ----------
+    const avatarInput = document.getElementById('avatarUploadInput');
+    const avatarPreview = document.getElementById('profileAvatar');
+
+    if (avatarInput && avatarPreview) {
+      // Cek apakah ada foto tersimpan di localStorage
+      const savedAvatar = localStorage.getItem('aduin_avatar_' + user.id);
+      if (savedAvatar) {
+        avatarPreview.innerHTML = `<img src="${savedAvatar}" alt="Avatar">`;
+      }
+
+      avatarInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validasi: hanya gambar, max 2MB
+        if (!file.type.startsWith('image/')) {
+          alert('File harus berupa gambar.');
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Ukuran gambar maksimal 2MB.');
+          return;
+        }
+
+        // Baca sebagai base64 & simpan ke localStorage
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const base64 = ev.target.result;
+          avatarPreview.innerHTML = `<img src="${base64}" alt="Avatar">`;
+          localStorage.setItem('aduin_avatar_' + user.id, base64);
+
+          // Sinkron ke sidebar avatar juga
+          const sidebarAvatar = document.getElementById('sidebarAvatar');
+          if (sidebarAvatar) {
+            sidebarAvatar.innerHTML = `<img src="${base64}" alt="Avatar">`;
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Sinkron foto ke sidebar saat load
+      if (savedAvatar) {
+        const sidebarAvatar = document.getElementById('sidebarAvatar');
+        if (sidebarAvatar) {
+          sidebarAvatar.innerHTML = `<img src="${savedAvatar}" alt="Avatar">`;
+        }
+      }
+    }
+
+    // ---------- 4. Breadcrumb kecil ----------
+    setText('breadcrumbRole', user.role_utama);
+
+    // ---------- 5. Handle logout (clear session) ----------
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof clearSession === 'function') clearSession();
+        window.location.href = 'login.html';
+      });
+>>>>>>> 2c8f901c338485f59b115cd9ee34820dbb286bea
     }
   });
 }
