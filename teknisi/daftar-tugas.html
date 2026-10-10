@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Teknisi - ADUIN</title>
+  <title>Daftar Tugas Teknisi - ADUIN</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,11 +29,11 @@
         </a>
 
         <nav class="sidebar-nav">
-          <a href="index.html" class="nav-link active">
+          <a href="index.html" class="nav-link">
             <i class="fa-solid fa-border-all"></i>
             <span>Dashboard</span>
           </a>
-          <a href="daftar-tugas.html" class="nav-link">
+          <a href="daftar-tugas.html" class="nav-link active">
             <i class="fa-solid fa-list-check"></i>
             <span>Daftar Tugas</span>
           </a>
@@ -70,31 +70,24 @@
     <div class="main-content">
       <header class="content-header">
         <div>
-          <span class="header-breadcrumb">Teknisi Pemeliharaan / <strong>Dashboard</strong></span>
-          <h1 class="header-title">Dashboard</h1>
+          <span class="header-breadcrumb">Teknisi Pemeliharaan / <strong>Daftar Tugas</strong></span>
+          <h1 class="header-title">Daftar Tugas</h1>
         </div>
       </header>
 
       <main class="content-body">
-        <!-- Ringkasan Statistik -->
-        <section class="metric-grid">
-          <article class="glass-card metric-card">
-            <span class="metric-label">Laporan Baru</span>
-            <strong class="metric-value">3</strong>
-          </article>
-          <article class="glass-card metric-card">
-            <span class="metric-label">Laporan Proses</span>
-            <strong class="metric-value">2</strong>
-          </article>
-          <article class="glass-card metric-card">
-            <span class="metric-label">Laporan Selesai</span>
-            <strong class="metric-value">5</strong>
-          </article>
+        <!-- Tab Filter Status -->
+        <section class="glass-card" style="padding: 12px 20px; margin-bottom: 20px;">
+          <div style="display: flex; gap: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+            <button class="btn btn-ghost active" style="color: #0284c7; border-bottom: 2px solid #0284c7; border-radius: 0; font-weight: 600;">Tugas Baru (3)</button>
+            <button class="btn btn-ghost" style="color: #64748b;">Sedang Dikerjakan (2)</button>
+            <button class="btn btn-ghost" style="color: #64748b;">Selesai (5)</button>
+          </div>
         </section>
 
-        <!-- List Tugas Aktif -->
+        <!-- Grid Cards Tugas -->
         <section class="task-section">
-          <div class="task-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+          <div class="task-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
 
             <article class="glass-card task-card">
               <div class="task-body">
