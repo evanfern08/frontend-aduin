@@ -97,6 +97,10 @@
   }
 
   function getProfile() {
+    const session = readStorage("aduin_session", null);
+    if (session && session.role === "Pelapor" && typeof session.nama === "string" && session.nama.trim()) {
+      return { name: session.nama.trim() };
+    }
     const profile = readStorage(PROFILE_KEY, DEFAULT_PROFILE);
     if (!profile || typeof profile.name !== "string" || !profile.name.trim()) {
       showAppError("Data profil tidak valid. Ubah profil kembali melalui halaman Pengaturan.");
