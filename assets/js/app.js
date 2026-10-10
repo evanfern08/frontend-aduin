@@ -1,6 +1,6 @@
 /**
  * app.js - ADUIN Client-Side Script (FINAL)
- * Frontend only — pakai localStorage + fetch users.json/data.json
+ * Frontend only — localStorage + fetch users.json/data.json
  * ============================================================
  */
 
@@ -174,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const id = document.getElementById('loginId')?.value.trim();
       const pass = document.getElementById('loginPassword')?.value.trim();
-      const roleSelect = document.getElementById('loginRole')?.value || 'pelapor';
       const alertBox = document.getElementById('alertBox');
 
       if (!id || !pass) {
@@ -234,83 +233,108 @@ const MENU_ICONS = {
   default: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>',
 };
 
+// Menu default per role
+const DEFAULT_MENUS = {
+  Pelapor: [
+    { title: 'Dashboard', link: 'pelapor/index.html', icon: 'home' },
+    { title: 'Buat Laporan', link: 'pelapor/buat_laporan.html', icon: 'plus' },
+    { title: 'Daftar Laporan', link: 'pelapor/riwayat.html', icon: 'list' },
+    { title: 'Pengaturan', link: 'pengaturan.html?role=pelapor', icon: 'settings' },
+  ],
+  Verifikator: [
+    { title: 'Dashboard', link: 'verifikator/index.html', icon: 'home' },
+    { title: 'Daftar Laporan', link: 'verifikator/riwayat.html', icon: 'list' },
+    { title: 'Statistik', link: 'verifikator/statistik.html', icon: 'chart' },
+    { title: 'Pengaturan', link: 'pengaturan.html?role=verifikator', icon: 'settings' },
+  ],
+  Teknisi: [
+    { title: 'Dashboard', link: 'teknisi/index.html', icon: 'home' },
+    { title: 'Daftar Tugas', link: 'teknisi/daftar-tugas.html', icon: 'plus' },
+    { title: 'Riwayat', link: 'teknisi/riwayat.html', icon: 'list' },
+    { title: 'Pengaturan', link: 'pengaturan.html?role=teknisi', icon: 'settings' },
+  ],
+};
+
 async function initPengaturanPage() {
   const nav = document.getElementById('sidebarNav');
   if (!nav) return;
 
-  // Fallback data kalau fetch gagal (misal buka via file://)
-  const FALLBACK_DATA = {
-    simulated_active_user_id: '197710302005012001',
-    users: [
-      {
-        id: '197710302005012001',
-        nama: 'Mungki Astiningrum, S.T., M.Kom.',
-        role_utama: 'Verifikator',
-        jabatan: 'Kepala Jurusan',
-        avatar: 'MA',
-        unit_kerja: 'Jurusan Teknologi Informasi',
-        email: 'mungki@polinema.ac.id',
-        status: 'Aktif',
-        sidebar_menu: [
-          { title: 'Dashboard', link: 'verifikator/index.html', icon: 'home' },
-          { title: 'Daftar Laporan', link: 'verifikator/riwayat.html', icon: 'list' },
-          { title: 'Statistik', link: 'verifikator/statistik.html', icon: 'chart' },
-          { title: 'Pengaturan', link: 'pengaturan.html', icon: 'settings' },
-        ],
-      },
-      {
-        id: '254107060052',
-        nama: 'Rachmah Nur Chotimah',
-        role_utama: 'Pelapor',
-        jabatan: 'Mahasiswa',
-        avatar: 'RN',
-        unit_kerja: 'D-4 Sistem Informasi Bisnis',
-        email: '254107060052@student.polinema.ac.id',
-        status: 'Aktif',
-        sidebar_menu: [
-          { title: 'Dashboard', link: 'pelapor/index.html', icon: 'home' },
-          { title: 'Buat Laporan', link: 'pelapor/buat_laporan.html', icon: { ariaHidden: true } },
-          { title: 'Daftar Laporan', link: 'pelapor/riwayat.html', icon: 'list' },
-          { title: 'Pengaturan', link: 'pengaturan.html', icon: 'settings' },
-        ],
-      },
-      {
-        id: 'E0009',
-        nama: 'Budi Prakroso',
-        role_utama: 'Teknisi',
-        jabatan: 'Teknisi',
-        avatar: 'BP',
-        unit_kerja: 'Jurusan Teknologi Informasi',
-        email: 'budi.prakroso@polinema.ac.id',
-        status: 'Aktif',
-        sidebar_menu: [
-          { title: 'Dashboard', link: 'teknisi/index.html', icon: 'home' },
-          { title: 'Daftar Tugas', link: 'teknisi/tugas.html', icon: 'plus' },
-          { title: 'Riwayat', link: 'teknisi/riwayat.html', icon: 'list' },
-          { title: 'Pengaturan', link: 'pengaturan.html', icon: 'settings' },
-        ],
-      },
-    ],
+  // ============================================================
+  // LANGKAH 1: TENTUKAN ROLE DARI URL (?role=) ATAU SESSION
+  // ============================================================
+  const params = new URLSearchParams(window.location.search);
+  const roleFromUrl = (params.get('role') || '').toLowerCase();
+
+  const roleMapUrlToInternal = {
+    pelapor: 'Pelapor',
+    verifikator: 'Verifikator',
+    teknisi: 'Teknisi',
   };
 
-  let data;
-  try {
-    const res = await fetch(USERS_JSON_PATH);
-    if (!res.ok) throw new Error('fetch gagal');
-    data = await res.json();
-  } catch (err) {
-    console.warn('Fallback ke data bawaan (fetch gagal):', err);
-    data = FALLBACK_DATA;
+  const session = getSession();
+
+  // Prioritas: URL → Session → default Pelapor
+  let roleInternal = roleMapUrlToInternal[roleFromUrl];
+  if (!roleInternal && session?.role) {
+    roleInternal = session.role;
+  }
+  if (!roleInternal) {
+    roleInternal = 'Pelapor';
   }
 
-  const user = data.users.find((u) => u.id === data.simulated_active_user_id);
-  if (!user) return;
+  // ============================================================
+  // LANGKAH 2: FETCH users.json
+  // ============================================================
+  let usersData = null;
+  try {
+    const res = await fetch(USERS_JSON_PATH);
+    if (!res.ok) throw new Error('fetch users.json gagal');
+    usersData = await res.json();
+  } catch (err) {
+    console.warn('users.json tidak bisa di-fetch:', err);
+  }
 
-  // ---------- 1. Sidebar menu ----------
+  // ============================================================
+  // LANGKAH 3: CARI USER DENGAN role_utama SESUAI roleInternal
+  // ============================================================
+  let user = null;
+  if (usersData?.users) {
+    user = usersData.users.find((u) => u.role_utama === roleInternal);
+  }
+
+  // Fallback: cari user dari session kalau tidak ketemu di JSON
+  if (!user && session?.id && usersData?.users) {
+    user = usersData.users.find((u) => u.id === session.id);
+  }
+
+  // Fallback terakhir: bikin object minimal
+  if (!user) {
+    user = {
+      id: session?.id || '-',
+      nama: session?.nama || `Pengguna ${roleInternal}`,
+      role_utama: roleInternal,
+      jabatan: roleInternal,
+      avatar: session?.avatar || roleInternal.slice(0, 2).toUpperCase(),
+      unit_kerja: '-',
+      email: session?.email || '-',
+      status: 'Aktif',
+      sidebar_menu: DEFAULT_MENUS[roleInternal] || DEFAULT_MENUS.Pelapor,
+    };
+  }
+
+  // Pastikan sidebar_menu ada
+  if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
+    user.sidebar_menu = DEFAULT_MENUS[user.role_utama] || DEFAULT_MENUS.Pelapor;
+  }
+
+  // ============================================================
+  // LANGKAH 4: RENDER MENU SIDEBAR
+  // ============================================================
   nav.innerHTML = user.sidebar_menu
     .map((item) => {
       const isActive = item.title === 'Pengaturan';
-      const icon = MENU_ICONS[item.icon] || MENU_ICONS.default;
+      const iconKey = typeof item.icon === 'string' ? item.icon : 'default';
+      const icon = MENU_ICONS[iconKey] || MENU_ICONS.default;
       return `
         <a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}">
           ${icon}
@@ -325,7 +349,9 @@ async function initPengaturanPage() {
     if (el) el.textContent = val || '–';
   };
 
-  // ---------- 2. Sidebar user card ----------
+  // ============================================================
+  // LANGKAH 5: RENDER SIDEBAR USER CARD
+  // ============================================================
   const roleMap = {
     Pelapor: 'role-pelapor',
     Verifikator: 'role-verifikator',
@@ -346,7 +372,9 @@ async function initPengaturanPage() {
   setText('sidebarName', user.nama);
   setText('sidebarRole', user.jabatan);
 
-  // ---------- 3. Kartu profil ----------
+  // ============================================================
+  // LANGKAH 6: RENDER KARTU PROFIL
+  // ============================================================
   const profileAvatarEl = document.getElementById('profileAvatar');
   if (profileAvatarEl) {
     profileAvatarEl.textContent = user.avatar;
@@ -361,7 +389,9 @@ async function initPengaturanPage() {
   setText('profileEmail', user.email);
   setText('breadcrumbRole', user.role_utama);
 
-  // ---------- 4. Upload foto profil ----------
+  // ============================================================
+  // LANGKAH 7: UPLOAD FOTO PROFIL
+  // ============================================================
   const avatarInput = document.getElementById('avatarUploadInput');
   const savedAvatar = localStorage.getItem('aduin_avatar_' + user.id);
 
@@ -394,7 +424,9 @@ async function initPengaturanPage() {
     });
   }
 
-  // ---------- 5. Logout ----------
+  // ============================================================
+  // LANGKAH 8: LOGOUT
+  // ============================================================
   const btnLogout = document.getElementById('btnLogout');
   if (btnLogout) {
     btnLogout.addEventListener('click', (e) => {
@@ -404,7 +436,9 @@ async function initPengaturanPage() {
     });
   }
 
-  // ---------- 6. Form ubah password ----------
+  // ============================================================
+  // LANGKAH 9: FORM UBAH PASSWORD (BERLAKU UNTUK SEMUA ROLE)
+  // ============================================================
   const form = document.getElementById('formUbahPassword');
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -437,18 +471,34 @@ async function initPengaturanPage() {
         return;
       }
 
-      // Cek password lama dari localStorage (kalau ada)
+      // Cari user di localStorage berdasarkan user.id (dari URL) atau session
       const users = getStoredUsers();
-      const u = users.find((x) => x.id === user.id);
-      if (u && u.password !== oldPass) {
+      const targetId = user.id !== '-' ? user.id : (session?.id || null);
+      const u = targetId ? users.find((x) => x.id === targetId) : null;
+
+      if (!u) {
+        // User belum ada di localStorage → simpan sebagai user baru
+        users.push({
+          id: user.id,
+          email: user.email,
+          password: newPass,
+          role: user.role_utama,
+          nama: user.nama,
+          avatar: user.avatar,
+        });
+        saveStoredUsers(users);
+        showAlert('Kata sandi berhasil diperbarui dengan aman!', true);
+        form.reset();
+        return;
+      }
+
+      if (u.password !== oldPass) {
         showAlert('Password lama salah.', false);
         return;
       }
-      if (u) {
-        u.password = newPass;
-        saveStoredUsers(users);
-      }
 
+      u.password = newPass;
+      saveStoredUsers(users);
       showAlert('Kata sandi berhasil diperbarui dengan aman!', true);
       form.reset();
     });

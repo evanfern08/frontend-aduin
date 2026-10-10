@@ -13,7 +13,7 @@
         { "title": "Dashboard", "link": "verifikator/index.html", "icon": "home" },
         { "title": "Daftar Laporan", "link": "verifikator/riwayat.html", "icon": "list" },
         { "title": "Statistik", "link": "verifikator/statistik.html", "icon": "chart" },
-        { "title": "Pengaturan", "link": "pengaturan.html", "icon": "settings" }
+        { "title": "Pengaturan", "link": "pengaturan.html?role=verifikator", "icon": "settings" }
       ]
     },
     {
@@ -28,7 +28,7 @@
         { "title": "Dashboard", "link": "pelapor/index.html", "icon": "home" },
         { "title": "Buat Laporan", "link": "pelapor/buat_laporan.html", "icon": "plus" },
         { "title": "Daftar Laporan", "link": "pelapor/riwayat.html", "icon": "list" },
-        { "title": "Pengaturan", "link": "pengaturan.html", "icon": "settings" }
+        { "title": "Pengaturan", "link": "pengaturan.html?role=pelapor", "icon": "settings" }
       ]
     },
     {
@@ -40,10 +40,10 @@
       "email": "budi.prakroso@polinema.ac.id",
       "status": "Aktif",
       "sidebar_menu": [
-        { "title": "Dashboard", "link": "pelapor/index.html", "icon": "home" },
-        { "title": "Daftar Tugas", "link": "pelapor/buat_laporan.html", "icon": "plus" },
-        { "title": "Riwayat", "link": "pelapor/riwayat.html", "icon": "list" },
-        { "title": "Pengaturan", "link": "pengaturan.html", "icon": "settings" }
+        { "title": "Dashboard", "link": "teknisi/index.html", "icon": "home" },
+        { "title": "Daftar Tugas", "link": "teknisi/daftar-tugas.html", "icon": "plus" },
+        { "title": "Riwayat", "link": "teknisi/riwayat.html", "icon": "list" },
+        { "title": "Pengaturan", "link": "pengaturan.html?role=teknisi", "icon": "settings" }
       ]
     }
   ]
