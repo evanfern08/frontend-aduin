@@ -209,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const idInput = document.getElementById('regId');
       const emailInput = document.getElementById('regEmail');
       const passInput = document.getElementById('regPassword');
-      const roleInput = document.getElementById('regRole');
       const errorBox = document.getElementById('alertBox');
 
       if (!idInput.value.trim() || !emailInput.value.trim() || !passInput.value.trim()) {
@@ -247,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
           id,
           email,
           password: passInput.value,
-          role: roleInput.value,
+          role: 'Pelapor',
           nama: id,
         };
         users.push(user);
@@ -317,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const id = document.getElementById('regId')?.value.trim();
       const email = document.getElementById('regEmail')?.value.trim();
       const pass = document.getElementById('regPassword')?.value.trim();
-      const role = document.getElementById('regRole')?.value || 'Pelapor';
+      const role = 'Pelapor';
       const alertBox = document.getElementById('alertBox');
 
       if (!id || !email || !pass) {
