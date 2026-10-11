@@ -20,110 +20,22 @@
     // 2. DATA DUMMY AWAL
     // ============================================================
 
-    function initTeknisiStorage() {
+    function initTeknisiStorage(initialData) {
 
         // Daftar tugas aktif
         if (!localStorage.getItem(STORAGE_KEY_TASKS)) {
-
-            const initialTasks = [
-                {
-                    id: 'TK-101',
-                    judul: 'Proyektor Rusak',
-                    prioritas: 'High Priority',
-                    prioritasBadgeStyle:
-                        'background: #fee2e2; color: #dc2626;',
-                    lokasiKode: 'LPR1_7B',
-                    lokasiNama: 'Lab Pemrograman 1',
-                    pelapor: 'Septya Andhita Pradhana',
-                    waktu: '10 Menit lalu',
-                    status: 'Tugas Baru',
-                    kategori: 'Peralatan Lab',
-                    catatan: '',
-                    fotoSebelum: '',
-                    fotoSesudah: ''
-                },
-
-                {
-                    id: 'TK-102',
-                    judul: 'AC Tidak Dingin',
-                    prioritas: 'Medium Priority',
-                    prioritasBadgeStyle:
-                        'background: #fef3c7; color: #d97706;',
-                    lokasiKode: 'RT05_5B',
-                    lokasiNama: 'Ruang Teori 5',
-                    pelapor: 'Rachmah Nur Chotimah',
-                    waktu: '45 Menit lalu',
-                    status: 'Tugas Baru',
-                    kategori: 'Fasilitas Kelas',
-                    catatan: '',
-                    fotoSebelum: '',
-                    fotoSesudah: ''
-                },
-
-                {
-                    id: 'TK-103',
-                    judul: 'Lampu Tidak Menyala',
-                    prioritas: 'Low Priority',
-                    prioritasBadgeStyle:
-                        'background: #e0f2fe; color: #0284c7;',
-                    lokasiKode: 'LERP_7T',
-                    lokasiNama: 'Lab ERP',
-                    pelapor: 'Alfatitah Alifia Putri',
-                    waktu: '1 Jam lalu',
-                    status: 'Sedang Dikerjakan',
-                    kategori: 'Kelistrikan',
-                    catatan: 'Sekring panel sedang dicek',
-                    fotoSebelum: '',
-                    fotoSesudah: ''
-                }
-            ];
-
             localStorage.setItem(
                 STORAGE_KEY_TASKS,
-                JSON.stringify(initialTasks)
+                JSON.stringify(initialData.tugas_aktif)
             );
         }
 
 
         // Riwayat perbaikan
         if (!localStorage.getItem(STORAGE_KEY_HISTORY)) {
-
-            const initialHistory = [
-                {
-                    id: 'TK-098',
-                    judul: 'Pintu Macet',
-                    lokasi: 'R.06.04 · Ruang Dosen 4',
-                    pelapor: 'Dosen Pembimbing',
-                    tanggalSelesai: '19 Sep 2026',
-                    durasi: '1 hari',
-                    status: 'Selesai',
-                    catatan:
-                        'Engsel diganti dan dilumasi, pintu sudah bisa dibuka dan ditutup normal.',
-                    fotoSebelum: '',
-                    fotoSesudah: '',
-                    periode: 'Minggu Ini'
-                },
-
-                {
-                    id: 'TK-095',
-                    judul: 'Stop Kontak Rusak',
-                    lokasi:
-                        'LKJ2_7T · Lab Sist Komp dan Jaringan 2',
-                    pelapor: 'Laboran Jaringan',
-                    tanggalSelesai: '12 Sep 2026',
-                    durasi: '2 hari',
-                    status: 'Selesai',
-                    catatan:
-                        'Stop kontak diganti baru dan kabel di bawah meja dirapikan.',
-                    fotoSebelum: '',
-                    fotoSesudah: '',
-                    periode: 'Bulan Ini'
-                }
-            ];
-
             localStorage.setItem(
                 STORAGE_KEY_HISTORY,
-                JSON.stringify(initialHistory)
+                JSON.stringify(initialData.riwayat)
             );
         }
     }
@@ -1345,8 +1257,11 @@
 
         const tabButtons =
             document.querySelectorAll(
-                '.glass-card button, .glass-card .btn-ghost'
+                'main > section.glass-card button'
             );
+
+        renderCompletedHistoryCards();
+        updateTaskTabCounts(tabButtons);
 
 
         tabButtons.forEach(
@@ -1448,8 +1363,111 @@
             }
         );
 
+        const activeTab =
+            document.querySelector(
+                'main > section.glass-card button.active'
+            );
+
+        if (activeTab) {
+            activeTab.click();
+        }
 
         bindTaskButtons();
+    }
+
+    function renderCompletedHistoryCards() {
+        const taskGrid =
+            document.querySelector('.task-grid');
+
+        if (!taskGrid) {
+            return;
+        }
+
+        const activeTaskIds = new Set(
+            getTasks().map(task => task.id)
+        );
+
+        getHistory()
+            .filter(item => !activeTaskIds.has(item.id))
+            .forEach(item => {
+                const card = document.createElement('article');
+                card.className = 'glass-card task-card';
+                card.dataset.historyTask = 'true';
+
+                const body = document.createElement('div');
+                body.className = 'task-body';
+
+                const heading = document.createElement('h3');
+                heading.className = 'card-title';
+                heading.textContent = item.judul || 'Tugas selesai';
+
+                const code = document.createElement('small');
+                code.style.cssText = 'float:right; font-size:12px; color:#666;';
+                code.textContent = item.id;
+                heading.append(code);
+
+                const location = document.createElement('p');
+                location.className = 'text-muted';
+                location.style.margin = '10px 0';
+                location.textContent = item.lokasi || 'Lokasi tidak tersedia';
+
+                const reporter = document.createElement('p');
+                reporter.className = 'text-muted';
+                reporter.textContent = item.pelapor || 'Pelapor tidak tersedia';
+
+                const completed = document.createElement('p');
+                completed.className = 'text-muted';
+                completed.style.marginBottom = '15px';
+                completed.textContent = `Selesai ${item.tanggalSelesai || '-' } · Dikerjakan ${item.durasi || '-'}`;
+
+                const status = document.createElement('span');
+                status.className = 'status-badge status-badge-success';
+                status.textContent = 'Selesai';
+
+                body.append(heading, location, reporter, completed, status);
+
+                if (item.catatan) {
+                    const note = document.createElement('p');
+                    note.className = 'text-muted';
+                    note.style.marginTop = '12px';
+                    note.textContent = `Catatan teknisi: ${item.catatan}`;
+                    body.append(note);
+                }
+
+                card.append(body);
+                taskGrid.append(card);
+            });
+    }
+
+    function updateTaskTabCounts(tabButtons) {
+        const tasks = getTasks();
+        const history = getHistory();
+        const completedIds = new Set(
+            history.map(item => item.id)
+        );
+        tasks
+            .filter(task => task.status === 'Selesai')
+            .forEach(task => completedIds.add(task.id));
+
+        const counts = {
+            'tugas baru': tasks.filter(task =>
+                ['Tugas Baru', 'Menunggu'].includes(task.status)
+            ).length,
+            'sedang dikerjakan': tasks.filter(task =>
+                ['Sedang Dikerjakan', 'Proses'].includes(task.status)
+            ).length,
+            selesai: completedIds.size
+        };
+
+        tabButtons.forEach(button => {
+            const label = button.textContent.trim();
+            const key = label.toLowerCase().startsWith('tugas baru')
+                ? 'tugas baru'
+                : label.toLowerCase().startsWith('sedang')
+                    ? 'sedang dikerjakan'
+                    : 'selesai';
+            button.textContent = `${key === 'tugas baru' ? 'Tugas Baru' : key === 'sedang dikerjakan' ? 'Sedang Dikerjakan' : 'Selesai'} (${counts[key]})`;
+        });
     }
 
 
@@ -1465,6 +1483,9 @@
 
         const tasks =
             getTasks();
+
+        const history =
+            getHistory();
 
 
         cards.forEach(
@@ -1488,11 +1509,12 @@
                             t.id === taskId
                     );
 
+                const historyItem =
+                    history.find(
+                        item => item.id === taskId
+                    );
 
-                if (
-                    !task ||
-                    statusKey === 'semua'
-                ) {
+                if (statusKey === 'semua') {
 
                     card.style.display =
                         '';
@@ -1500,10 +1522,9 @@
                     return;
                 }
 
-
                 const taskStatus =
                     (
-                        task.status || ''
+                        task?.status || historyItem?.status || ''
                     ).toLowerCase();
 
 
@@ -1709,18 +1730,11 @@
     // 11. INISIALISASI
     // ============================================================
 
-    document.addEventListener(
-        'DOMContentLoaded',
-        () => {
-
-            initTeknisiStorage();
-
-            initDashboard();
-
-            initDaftarTugas();
-
-            initRiwayat();
-        }
-    );
+    window.initTeknisiPage = function (initialData) {
+        initTeknisiStorage(initialData);
+        initDashboard();
+        initDaftarTugas();
+        initRiwayat();
+    };
 
 })();

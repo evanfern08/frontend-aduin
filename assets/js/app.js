@@ -652,7 +652,33 @@ function renderStatistik(data) {
 }
 
 /* ==========================================================================
-   10. MODAL HELPERS (GLOBAL)
+   10. HALAMAN PELAPOR
+   ========================================================================== */
+async function loadPelaporData() {
+  const res = await fetch('data.json');
+  if (!res.ok) throw new Error('Gagal memuat pelapor/data.json');
+  const data = await res.json();
+  if (!Array.isArray(data.laporan_masuk)) {
+    throw new Error('Format laporan_masuk pada pelapor/data.json tidak valid');
+  }
+  return data;
+}
+
+/* ==========================================================================
+   11. HALAMAN TEKNISI
+   ========================================================================== */
+async function loadTeknisiData() {
+  const res = await fetch('data.json');
+  if (!res.ok) throw new Error('Gagal memuat teknisi/data.json');
+  const data = await res.json();
+  if (!Array.isArray(data.tugas_aktif) || !Array.isArray(data.riwayat)) {
+    throw new Error('Format tugas_aktif atau riwayat pada teknisi/data.json tidak valid');
+  }
+  return data;
+}
+
+/* ==========================================================================
+   12. MODAL HELPERS (GLOBAL)
    ========================================================================== */
 let activeReportForAction = null;
 
@@ -751,7 +777,7 @@ function bindVerifikatorEvents() {
 }
 
 /* ==========================================================================
-   11. AUTO INIT
+   13. AUTO INIT
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', async () => {
   initPasswordToggles();
@@ -760,6 +786,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Halaman Pengaturan
   if (document.getElementById('sidebarNav')) {
     initPengaturanPage();
+    return;
+  }
+
+  // Halaman Pelapor
+  const isPelaporPage =
+    document.getElementById('total-reports') ||
+    document.getElementById('reports-list') ||
+    document.getElementById('report-form');
+
+  if (isPelaporPage) {
+    try {
+      const data = await loadPelaporData();
+      if (typeof window.initPelaporPage !== 'function') {
+        throw new Error('Inisialisasi halaman Pelapor tidak tersedia');
+      }
+      window.initPelaporPage(data.laporan_masuk);
+    } catch (err) {
+      console.error('Gagal memuat halaman Pelapor:', err);
+      showToast('Data laporan Pelapor gagal dimuat. Coba muat ulang halaman.', 'error');
+    }
+    return;
+  }
+
+  // Halaman Teknisi
+  if (window.location.pathname.toLowerCase().includes('/teknisi/')) {
+    try {
+      const data = await loadTeknisiData();
+      if (typeof window.initTeknisiPage !== 'function') {
+        throw new Error('Inisialisasi halaman Teknisi tidak tersedia');
+      }
+      window.initTeknisiPage(data);
+    } catch (err) {
+      console.error('Gagal memuat halaman Teknisi:', err);
+      showToast('Data Teknisi gagal dimuat. Coba muat ulang halaman.', 'error');
+    }
     return;
   }
 
