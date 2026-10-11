@@ -278,18 +278,53 @@ async function initPengaturanPage() {
     console.warn('[initPengaturanPage] users.json tidak dapat dimuat:', err);
   }
 
-  // ---- LANGKAH 3: CARI USER YANG COCOK ----
+  // ---- LANGKAH 3: AMBIL USER SESUAI ROLE (IF-ELSE EKSPLISIT) ----
   let user = null;
-  if (usersData?.users) {
-    user = usersData.users.find((u) => u.role_utama === roleInternal);
-  }
-  if (!user) {
-    user = { ...(MOCK_USERS_BY_ROLE[roleInternal] || MOCK_USERS_BY_ROLE.Pelapor) };
-  }
 
-  user.role_utama = roleInternal;
-  if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
-    user.sidebar_menu = DEFAULT_MENUS[roleInternal] || DEFAULT_MENUS.Pelapor;
+  if (roleInternal === 'Pelapor') {
+    // --- PENGATURAN PELAPOR ---
+    if (usersData?.users) {
+      user = usersData.users.find((u) => u.role_utama === 'Pelapor');
+    }
+    if (!user) {
+      user = { ...MOCK_USERS_BY_ROLE.Pelapor };
+    }
+    user.role_utama = 'Pelapor';
+    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
+      user.sidebar_menu = DEFAULT_MENUS.Pelapor;
+    }
+
+  } else if (roleInternal === 'Verifikator') {
+    // --- PENGATURAN VERIFIKATOR ---
+    if (usersData?.users) {
+      user = usersData.users.find((u) => u.role_utama === 'Verifikator');
+    }
+    if (!user) {
+      user = { ...MOCK_USERS_BY_ROLE.Verifikator };
+    }
+    user.role_utama = 'Verifikator';
+    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
+      user.sidebar_menu = DEFAULT_MENUS.Verifikator;
+    }
+
+  } else if (roleInternal === 'Teknisi') {
+    // --- PENGATURAN TEKNISI ---
+    if (usersData?.users) {
+      user = usersData.users.find((u) => u.role_utama === 'Teknisi');
+    }
+    if (!user) {
+      user = { ...MOCK_USERS_BY_ROLE.Teknisi };
+    }
+    user.role_utama = 'Teknisi';
+    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
+      user.sidebar_menu = DEFAULT_MENUS.Teknisi;
+    }
+
+  } else {
+    // --- FALLBACK (role tidak dikenali) → Pelapor ---
+    user = { ...MOCK_USERS_BY_ROLE.Pelapor };
+    user.role_utama = 'Pelapor';
+    user.sidebar_menu = DEFAULT_MENUS.Pelapor;
   }
 
   const setText = (id, val) => {
