@@ -855,7 +855,7 @@ select.glass-input { cursor: pointer; }
 
 .timeline {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   text-align: center;
   position: relative;
 }
@@ -864,8 +864,8 @@ select.glass-input { cursor: pointer; }
   content: "";
   position: absolute;
   top: 15px;
-  left: 12%;
-  right: 12%;
+  left: 16.6667%;
+  right: 16.6667%;
   height: 3px;
   background: #e2e7ef;
   border-radius: 9999px;
