@@ -8,7 +8,7 @@
   "laporan_masuk": [
     {
       "id": "R.05.01",
-      "judul": "AC Tidak Dingin & Bocor Air",
+      "judul": "AC Tidak Dingin dan Bocor Air",
       "pelapor": {
         "nama": "Alfatitah Alifia Putri",
         "nim": "254107060143",
@@ -19,17 +19,17 @@
         "nama": "Ruang Kelas Teori 1 - Gedung TI Lt. 5"
       },
       "kategori": "AC / Pendingin",
-      "foto_url": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800",
-      "thumb_url": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=100",
+      "foto_url": "https://plus.unsplash.com/premium_photo-1682126009570-3fe2399162f7?w=800",
+      "thumb_url": "https://plus.unsplash.com/premium_photo-1682126009570-3fe2399162f7?w=100",
       "status": "Menunggu Verifikasi",
       "tanggal": "05 Okt 2026",
       "waktu": "08:15 WIB",
       "teknisi": "Pak Joko (Teknisi Sarpras TI)",
-      "deskripsi": "AC meneteskan air ke meja mahasiswa dan tidak mengeluarkan hawa dingin sama sekali."
+      "deskripsi": "AC meneteskan air ke meja mahasiswa dan tidak mengeluarkan udara dingin. Penyebab kerusakan perlu diperiksa oleh teknisi."
     },
     {
       "id": "LPR 1_7B",
-      "judul": "Proyektor Layar Berkedip & Warna Kuning",
+      "judul": "Proyektor Menampilkan Warna Kuning dan Berkedip",
       "pelapor": {
         "nama": "Rachmah Nur Chotimah",
         "nim": "254107060052",
@@ -37,20 +37,20 @@
       },
       "lokasi": {
         "kode": "LPR 1_7B",
-        "nama": "Lab Pemrograman 1 — Gedung TI Lt. 7"
+        "nama": "Lab Pemrograman 1 - Gedung TI Lt. 7"
       },
       "kategori": "Proyektor",
-      "foto_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800",
-      "thumb_url": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=100",
+      "foto_url": "https://images.unsplash.com/photo-1768502171609-a51a20ea027a?w=800",
+      "thumb_url": "https://images.unsplash.com/photo-1768502171609-a51a20ea027a?w=100",
       "status": "Menunggu Verifikasi",
       "tanggal": "05 Okt 2026",
       "waktu": "09:30 WIB",
       "teknisi": "Pak Agus (Teknisi Listrik JTI)",
-      "deskripsi": "Kabel VGA/HDMI kendor atau lampu proyektor mendekati masa akhir pakai."
+      "deskripsi": "Tampilan proyektor berkedip dan didominasi warna kuning. Kabel koneksi dan kondisi lampu atau komponen proyektor perlu diperiksa untuk mengetahui penyebabnya."
     },
     {
       "id": "RT05_5B",
-      "judul": "Terminal Listrik Rusak / Terbakar",
+      "judul": "Terminal Listrik Rusak dan Tercium Bau Hangus",
       "pelapor": {
         "nama": "Dosen Pengampu TI",
         "nim": "198204122008121003",
@@ -58,7 +58,7 @@
       },
       "lokasi": {
         "kode": "RT05_5B",
-        "nama": "Ruang Teori 05 — Gedung Sipil Lt. 5"
+        "nama": "Ruang Teori 05 - Gedung Sipil Lt. 5"
       },
       "kategori": "Terminal Listrik",
       "foto_url": "",
@@ -67,7 +67,7 @@
       "tanggal": "04 Okt 2026",
       "waktu": "13:00 WIB",
       "teknisi": "Pak Joko (Teknisi Sarpras TI)",
-      "deskripsi": "Ada bau hangus dari stop kontak baris depan ruang teori."
+      "deskripsi": "Tercium bau hangus dari stopkontak di baris depan ruang teori. Kondisi terminal listrik perlu ditangani dan diperiksa oleh teknisi."
     },
     {
       "id": "LERP_7T",
@@ -79,16 +79,16 @@
       },
       "lokasi": {
         "kode": "LERP_7T",
-        "nama": "Lab Elektronika & Robotika — Gedung TI Lt. 7"
+        "nama": "Lab Elektronika & Robotika - Gedung TI Lt. 7"
       },
       "kategori": "Penerangan",
-      "foto_url": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=800",
-      "thumb_url": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=100",
+      "foto_url": "https://plus.unsplash.com/premium_photo-1680807869780-e0876a6f3cd5?w=800",
+      "thumb_url": "https://plus.unsplash.com/premium_photo-1680807869780-e0876a6f3cd5?w=100",
       "status": "Selesai",
       "tanggal": "02 Okt 2026",
       "waktu": "11:20 WIB",
       "teknisi": "Pak Agus (Teknisi Listrik JTI)",
-      "deskripsi": "Driver LED sudah diganti baru dan lux meter menunjukkan pencahayaan normal."
+      "deskripsi": "Lampu LED panel telah diperbaiki dengan penggantian driver LED. Pencahayaan dilaporkan kembali normal setelah perbaikan."
     },
     {
       "id": "LSI_6A",
@@ -100,7 +100,7 @@
       },
       "lokasi": {
         "kode": "LSI_6A",
-        "nama": "Lab Sistem Informasi — Gedung TI Lt. 6"
+        "nama": "Lab Sistem Informasi - Gedung TI Lt. 6"
       },
       "kategori": "Jaringan / LAN",
       "foto_url": "",
@@ -109,7 +109,7 @@
       "tanggal": "01 Okt 2026",
       "waktu": "15:45 WIB",
       "teknisi": "-",
-      "deskripsi": "Laporan diduplikasi oleh pengguna lain pada meja yang sama."
+      "deskripsi": "Laporan ditolak karena teridentifikasi sebagai laporan duplikat untuk kerusakan pada meja praktikum yang sama."
     }
   ],
   "statistik": {
@@ -118,12 +118,38 @@
     "rata_rata_penanganan": "1.4 Hari",
     "respon_verifikasi": "35 Menit",
     "tren_mingguan": {
-      "labels": ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-      "data": [4, 7, 5, 9, 12, 6, 5]
+      "labels": [
+        "Sen",
+        "Sel",
+        "Rab",
+        "Kam",
+        "Jum",
+        "Sab",
+        "Min"
+      ],
+      "data": [
+        4,
+        7,
+        5,
+        9,
+        12,
+        6,
+        5
+      ]
     },
     "kategori_distribusi": {
-      "labels": ["AC / Pendingin", "Proyektor", "Kelistrikan", "Furnitur & Lainnya"],
-      "data": [19, 13, 10, 6]
+      "labels": [
+        "AC / Pendingin",
+        "Proyektor",
+        "Kelistrikan",
+        "Furnitur & Lainnya"
+      ],
+      "data": [
+        19,
+        13,
+        10,
+        6
+      ]
     },
     "ranking_lokasi": [
       {
