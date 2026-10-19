@@ -62,8 +62,8 @@ function showToast(message, type = 'success') {
     type === 'error'
       ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
       : type === 'info'
-      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
-      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>`;
+        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
+        : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>`;
 
   toast.innerHTML = `<span style="display:flex;align-items:center;gap:8px;">${icon}<span>${message}</span></span>`;
   container.appendChild(toast);
@@ -835,5 +835,185 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isDashboard) { renderDashboard(data); bindVerifikatorEvents(); }
     if (isRiwayat) renderRiwayat(data);
     if (isStatistik) renderStatistik(data);
+  }
+});
+
+/* ==========================================================================
+   MODUL: KELOLA TEKNISI (verifikator/kelola_teknisi.html)
+   ========================================================================== */
+
+// State array teknisi
+let daftarTeknisi = [];
+
+// Ambil data teknisi dari data.json
+async function loadDataTeknisi() {
+  try {
+    const res = await fetch('../data.json');   // sesuaikan path kalau perlu
+    if (!res.ok) throw new Error('Gagal fetch data.json');
+    const json = await res.json();
+    daftarTeknisi = json.teknisi || [];
+  } catch (err) {
+    console.warn('[loadDataTeknisi] gagal:', err);
+    // fallback lokal kalau fetch gagal
+    daftarTeknisi = [
+      { id: 'T001', nama: 'Pak Joko', nip: 'E0010', spesialisasi: 'AC / Pendingin', status: 'Aktif', tugas_berjalan: 2 },
+      { id: 'T002', nama: 'Pak Agus', nip: 'E0011', spesialisasi: 'Kelistrikan', status: 'Aktif', tugas_berjalan: 1 },
+      { id: 'T003', nama: 'Pak Doni', nip: 'E0012', spesialisasi: 'Furnitur', status: 'Cuti', tugas_berjalan: 0 },
+    ];
+  }
+  renderTabelTeknisi();
+}
+
+// Render tabel teknisi
+function renderTabelTeknisi() {
+  const tbody = document.getElementById('tabelTeknisiBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (daftarTeknisi.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 32px; color: var(--muted);">Belum ada data teknisi.</td></tr>`;
+    return;
+  }
+
+  daftarTeknisi.forEach((t, index) => {
+    const tr = document.createElement('tr');
+
+    // Badge warna status
+    const statusClass = t.status === 'Aktif'
+      ? 'status-pill status-pill-success'
+      : t.status === 'Cuti'
+        ? 'status-pill status-pill-warning'
+        : 'status-pill status-pill-danger';
+
+    // Badge tugas berjalan
+    const tugasClass = t.tugas_berjalan > 0 ? 'status-pill status-pill-info' : 'status-pill status-pill-neutral';
+
+    tr.innerHTML = `
+  <td class="text-center" style="color: var(--muted); font-weight: 700;">${index + 1}</td>
+  <td>
+    <div class="cell-reporter">
+      <div class="avatar-circle">
+        ${t.nama.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase()}
+      </div>
+      <div>
+        <span class="cell-name">${t.nama}</span>
+      </div>
+    </div>
+  </td>
+  <td><span class="cell-name">${t.nip}</span></td>
+  <td><span class="status-pill status-pill-info">${t.spesialisasi}</span></td>
+  <td><span class="${statusClass}">${t.status}</span></td>
+  <td>
+    <!-- Hapus class text-center di sini biar rata kiri -->
+    <span class="${tugasClass}">${t.tugas_berjalan} tugas</span>
+  </td>
+  <td class="text-right">
+    <div class="action-group" style="justify-content: flex-end;">
+      <button type="button" class="btn-icon" title="Edit" onclick="bukaModalTeknisi('${t.id}')"
+        style="color: var(--blue-dark); border-color: #bfdbfe; background: #eff6ff;">✎</button>
+      <button type="button" class="btn-icon btn-icon-danger" title="Hapus" onclick="hapusTeknisi('${t.id}')">🗑</button>
+    </div>
+  </td>
+`;
+
+    tbody.appendChild(tr);
+  });
+}
+
+// Buka modal (tambah / edit)
+function bukaModalTeknisi(id = null) {
+  const modal = document.getElementById('modalTeknisi');
+  const title = document.getElementById('modalTeknisiTitle');
+  const form = document.getElementById('formTeknisi');
+  if (!modal) return;
+
+  form.reset();
+  document.getElementById('teknisiId').value = '';
+
+  if (id) {
+    // Mode Edit
+    const t = daftarTeknisi.find((x) => x.id === id);
+    if (!t) return;
+
+    title.textContent = 'Edit Data Teknisi';
+    document.getElementById('teknisiId').value = t.id;
+    document.getElementById('namaTeknisi').value = t.nama;
+    document.getElementById('nipTeknisi').value = t.nip;
+    document.getElementById('spesialisasiTeknisi').value = t.spesialisasi;
+    document.getElementById('statusTeknisi').value = t.status;
+  } else {
+    // Mode Tambah
+    title.textContent = 'Tambah Teknisi Baru';
+  }
+
+  modal.classList.remove('hidden');
+}
+
+// Tutup modal
+function tutupModalTeknisi() {
+  const modal = document.getElementById('modalTeknisi');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Simpan (tambah / update)
+function simpanTeknisi(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('teknisiId').value;
+  const nama = document.getElementById('namaTeknisi').value.trim();
+  const nip = document.getElementById('nipTeknisi').value.trim();
+  const spesialisasi = document.getElementById('spesialisasiTeknisi').value;
+  const status = document.getElementById('statusTeknisi').value;
+
+  if (!nama || !nip || !spesialisasi || !status) {
+    alert('Semua kolom wajib diisi!');
+    return;
+  }
+
+  if (id) {
+    // Update
+    const t = daftarTeknisi.find((x) => x.id === id);
+    if (t) {
+      t.nama = nama;
+      t.nip = nip;
+      t.spesialisasi = spesialisasi;
+      t.status = status;
+    }
+    showToast('Data teknisi berhasil diperbarui.', 'success');
+  } else {
+    // Tambah baru
+    const newId = 'T' + String(Date.now()).slice(-4);
+    daftarTeknisi.push({
+      id: newId,
+      nama: nama,
+      nip: nip,
+      spesialisasi: spesialisasi,
+      status: status,
+      tugas_berjalan: 0,
+    });
+    showToast('Teknisi baru berhasil ditambahkan.', 'success');
+  }
+
+  tutupModalTeknisi();
+  renderTabelTeknisi();
+}
+
+// Hapus
+function hapusTeknisi(id) {
+  const t = daftarTeknisi.find((x) => x.id === id);
+  if (!t) return;
+
+  if (!confirm(`Yakin ingin menghapus teknisi "${t.nama}"?`)) return;
+
+  daftarTeknisi = daftarTeknisi.filter((x) => x.id !== id);
+  showToast(`Teknisi "${t.nama}" telah dihapus.`, 'info');
+  renderTabelTeknisi();
+}
+
+// Auto-init kalau di halaman kelola_teknisi
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('tabelTeknisiBody')) {
+    loadDataTeknisi();
   }
 });

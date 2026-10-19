@@ -172,6 +172,32 @@
         "lokasi": "LERP_7T - Lab Elektronika & Robotika (Gedung TI Lt. 7)",
         "jumlah": 5
       }
-    ]
+    ],
+    "teknisi": [
+  {
+    "id": "T001",
+    "nama": "Pak Joko",
+    "nip": "E0010",
+    "spesialisasi": "Teknisi Sarpras TI",
+    "status": "Aktif",
+    "tugas_berjalan": 2
+  },
+  {
+    "id": "T002",
+    "nama": "Pak Agus",
+    "nip": "E0011",
+    "spesialisasi": "Teknisi Listrik JTI",
+    "status": "Aktif",
+    "tugas_berjalan": 1
+  },
+  {
+    "id": "T003",
+    "nama": "Pak Doni",
+    "nip": "E0012",
+    "spesialisasi": "Logistik & Furniture",
+    "status": "Cuti",
+    "tugas_berjalan": 0
+  }
+]
   }
 }
