@@ -27,8 +27,8 @@
       "status": "Aktif",
       "sidebar_menu": [
         { "title": "Dashboard", "link": "pelapor/index.html", "icon": "home" },
-        { "title": "Buat Laporan", "link": "pelapor/buat_laporan.html", "icon": "plus" },
-        { "title": "Daftar Laporan", "link": "pelapor/riwayat.html", "icon": "list" },
+        { "title": "Buat Laporan", "link": "pelapor/laporan.html", "icon": "plus" },
+        { "title": "Daftar Laporan", "link": "pelapor/daftar_laporan.html", "icon": "list" },
         { "title": "Pengaturan", "link": "pengaturan.html?role=pelapor", "icon": "settings" }
       ]
     },
@@ -42,8 +42,8 @@
       "status": "Aktif",
       "sidebar_menu": [
         { "title": "Dashboard", "link": "teknisi/index.html", "icon": "home" },
-        { "title": "Daftar Tugas", "link": "teknisi/daftar-tugas.html", "icon": "plus" },
-        { "title": "Riwayat", "link": "teknisi/riwayat.html", "icon": "list" },
+        { "title": "Daftar Tugas", "link": "teknisi/daftar-tugas.html", "icon": "list" },
+        { "title": "Daftar Laporan", "link": "teknisi/riwayat.html", "icon": "list" },
         { "title": "Pengaturan", "link": "pengaturan.html?role=teknisi", "icon": "settings" }
       ]
     }
