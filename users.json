@@ -13,6 +13,7 @@
         { "title": "Dashboard", "link": "verifikator/index.html", "icon": "home" },
         { "title": "Daftar Laporan", "link": "verifikator/riwayat.html", "icon": "list" },
         { "title": "Statistik", "link": "verifikator/statistik.html", "icon": "chart" },
+        {"title": "Kelola Teknisi", "link": "verifikator/kelola_teknisi.html", "icon": "people" },
         { "title": "Pengaturan", "link": "pengaturan.html?role=verifikator", "icon": "settings" }
       ]
     },
