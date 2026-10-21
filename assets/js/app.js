@@ -542,10 +542,29 @@ function renderDashboard(data) {
            <button type="button" class="btn-icon btn-icon-danger" onclick="openRejectModal('${item.id}', '${item.judul}')" title="Reject">✕</button>
          </div>`
       : `<span class="status-pill">${item.status}</span>`;
+      
     tr.innerHTML = `
-      <td><div class="cell-reporter"><div class="cell-avatar">${item.pelapor?.inisial || '?'}</div><div><span class="cell-name">${item.pelapor?.nama || '-'}</span><span class="cell-meta">NIM: ${item.pelapor?.nim || '-'}</span></div></div></td>
-      <td><span class="cell-name">${item.lokasi?.kode || '-'}</span><span class="cell-meta">${item.lokasi?.nama || '-'}</span></td>
-      <td><span class="status-pill">${item.kategori || '-'}</span><span class="cell-meta">${item.judul || '-'}</span></td>
+      <td>
+        <div class="cell-reporter">
+          <div class="cell-avatar">${item.pelapor?.inisial || '?'}</div>
+          <div>
+            <span class="cell-name" style="display: block;">${item.pelapor?.nama || '-'}</span>
+            <span class="cell-meta" style="display: block; margin-top: 3px;">NIM: ${item.pelapor?.nim || '-'}</span>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div>
+          <span class="cell-name" style="display: block;">${item.lokasi?.kode || '-'}</span>
+          <span class="cell-meta" style="display: block; margin-top: 3px;">${item.lokasi?.nama || '-'}</span>
+        </div>
+      </td>
+      <td>
+        <div>
+          <span class="status-pill">${item.kategori || '-'}</span>
+          <span class="cell-meta" style="display: block; margin-top: 6px;">${item.judul || '-'}</span>
+        </div>
+      </td>
       <td class="text-center">${fotoCell}</td>
       <td class="text-right">${aksiCell}</td>
     `;
