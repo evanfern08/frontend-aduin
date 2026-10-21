@@ -42,6 +42,59 @@ function clearSession() {
   localStorage.removeItem(STORAGE_KEYS.SESSION);
 }
 
+function initResponsiveSidebar() {
+  const sidebar = document.querySelector('.sidebar-blue');
+  const mainContent = document.querySelector('.main-content');
+  if (!sidebar || !mainContent) return;
+
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'sidebar-toggle';
+  toggle.setAttribute('aria-label', 'Buka menu navigasi');
+  toggle.setAttribute('aria-controls', 'primary-sidebar');
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.innerHTML = '<span></span><span></span><span></span>';
+  sidebar.id = 'primary-sidebar';
+
+  const backdrop = document.createElement('button');
+  backdrop.type = 'button';
+  backdrop.className = 'sidebar-backdrop';
+  backdrop.setAttribute('aria-label', 'Tutup menu navigasi');
+  backdrop.tabIndex = -1;
+
+  document.body.append(backdrop, toggle);
+  if (!mainContent.querySelector('.content-header')) {
+    mainContent.classList.add('has-sidebar-toggle');
+  }
+
+  const closeMenu = () => {
+    sidebar.classList.remove('is-open');
+    document.body.classList.remove('sidebar-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Buka menu navigasi');
+  };
+
+  const openMenu = () => {
+    sidebar.classList.add('is-open');
+    document.body.classList.add('sidebar-open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Tutup menu navigasi');
+  };
+
+  toggle.addEventListener('click', () => {
+    if (sidebar.classList.contains('is-open')) closeMenu();
+    else openMenu();
+  });
+  backdrop.addEventListener('click', closeMenu);
+  sidebar.addEventListener('click', (event) => {
+    if (event.target.closest('a')) closeMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+  window.matchMedia('(min-width: 993px)').addEventListener('change', closeMenu);
+}
+
 /* ==========================================================================
    2. TOAST NOTIFICATION COMPONENT
    ========================================================================== */
@@ -122,8 +175,8 @@ const MENU_ICONS = {
 const DEFAULT_MENUS = {
   Pelapor: [
     { title: 'Dashboard', link: 'pelapor/index.html', icon: 'home' },
-    { title: 'Buat Laporan', link: 'pelapor/buat_laporan.html', icon: 'plus' },
-    { title: 'Daftar Laporan', link: 'pelapor/riwayat.html', icon: 'list' },
+    { title: 'Buat Laporan', link: 'pelapor/laporan.html', icon: 'plus' },
+    { title: 'Daftar Laporan', link: 'pelapor/daftar_laporan.html', icon: 'list' },
     { title: 'Pengaturan', link: 'pengaturan.html?role=pelapor', icon: 'settings' },
   ],
   Verifikator: [
@@ -134,8 +187,8 @@ const DEFAULT_MENUS = {
   ],
   Teknisi: [
     { title: 'Dashboard', link: 'teknisi/index.html', icon: 'home' },
-    { title: 'Daftar Tugas', link: 'teknisi/daftar-tugas.html', icon: 'plus' },
-    { title: 'Riwayat', link: 'teknisi/riwayat.html', icon: 'list' },
+    { title: 'Daftar Tugas', link: 'teknisi/daftar-tugas.html', icon: 'list' },
+    { title: 'Daftar Laporan', link: 'teknisi/riwayat.html', icon: 'list' },
     { title: 'Pengaturan', link: 'pengaturan.html?role=teknisi', icon: 'settings' },
   ],
 };
@@ -780,6 +833,7 @@ function bindVerifikatorEvents() {
    13. AUTO INIT
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', async () => {
+  initResponsiveSidebar();
   initPasswordToggles();
   initAuthForms();
 
