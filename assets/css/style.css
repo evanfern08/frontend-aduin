@@ -1356,3 +1356,5 @@ select.glass-input { cursor: pointer; }
   .metric-value { font-size: 24px; }
 }
 
+.status-pill-purple { background: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+

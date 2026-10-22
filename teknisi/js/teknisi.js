@@ -8,1761 +8,451 @@
 (function () {
     'use strict';
 
-    // ============================================================
-    // 1. KONSTANTA & KEY LOCALSTORAGE
-    // ============================================================
-
     const STORAGE_KEY_TASKS = 'aduin_teknisi_tasks';
     const STORAGE_KEY_HISTORY = 'aduin_teknisi_history';
 
+    let globalTasks = [];
+    let globalHistory = [];
 
     // ============================================================
-    // 2. DATA DUMMY AWAL
+    // 1. FUNGSI GET & SET DATA
     // ============================================================
-
     function initTeknisiStorage(initialData) {
+        const savedTasks = localStorage.getItem(STORAGE_KEY_TASKS);
+        const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
 
-        // Daftar tugas aktif
-        if (!localStorage.getItem(STORAGE_KEY_TASKS)) {
-            localStorage.setItem(
-                STORAGE_KEY_TASKS,
-                JSON.stringify(initialData.tugas_aktif)
-            );
+        if (savedTasks !== null) {
+            globalTasks = JSON.parse(savedTasks);
+        } else {
+            globalTasks = initialData.tugas_aktif || [];
+            localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(globalTasks));
         }
 
-
-        // Riwayat perbaikan
-        if (!localStorage.getItem(STORAGE_KEY_HISTORY)) {
-            localStorage.setItem(
-                STORAGE_KEY_HISTORY,
-                JSON.stringify(initialData.riwayat)
-            );
-        }
-    }
-
-
-    // ============================================================
-    // 3. FUNGSI GET & SET DATA
-    // ============================================================
-
-    function getTasks() {
-
-        try {
-            return JSON.parse(
-                localStorage.getItem(STORAGE_KEY_TASKS) || '[]'
-            );
-
-        } catch (e) {
-
-            console.error(
-                'Error membaca data tugas:',
-                e
-            );
-
-            return [];
+        if (savedHistory !== null) {
+            globalHistory = JSON.parse(savedHistory);
+        } else {
+            globalHistory = initialData.riwayat || [];
+            localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(globalHistory));
         }
     }
 
-
-    function saveTasks(tasks) {
-
-        localStorage.setItem(
-            STORAGE_KEY_TASKS,
-            JSON.stringify(tasks)
-        );
+    function getTasks() { return globalTasks; }
+    function saveTasks(tasks) { 
+        globalTasks = tasks; 
+        localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks)); 
     }
 
-
-    function getHistory() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem(STORAGE_KEY_HISTORY) || '[]'
-            );
-
-        } catch (e) {
-
-            console.error(
-                'Error membaca data riwayat:',
-                e
-            );
-
-            return [];
-        }
+    function getHistory() { return globalHistory; }
+    function saveHistory(history) { 
+        globalHistory = history; 
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history)); 
     }
-
-
-    function saveHistory(history) {
-
-        localStorage.setItem(
-            STORAGE_KEY_HISTORY,
-            JSON.stringify(history)
-        );
-    }
-
 
     // ============================================================
-    // 4. TOAST NOTIFICATION
+    // 2. TOAST & MODAL UPDATE
     // ============================================================
-
-    function showTeknisiToast(
-        pesan,
-        tipe = 'success'
-    ) {
-
-        let toastContainer =
-            document.getElementById(
-                'teknisiToastContainer'
-            );
-
+    function showTeknisiToast(pesan, tipe = 'success') {
+        let toastContainer = document.getElementById('teknisiToastContainer');
         if (!toastContainer) {
-
-            toastContainer =
-                document.createElement('div');
-
-            toastContainer.id =
-                'teknisiToastContainer';
-
-            toastContainer.style.cssText =
-                'position: fixed;' +
-                'bottom: 24px;' +
-                'right: 24px;' +
-                'z-index: 10000;' +
-                'display: flex;' +
-                'flex-direction: column;' +
-                'gap: 10px;';
-
-            document.body.appendChild(
-                toastContainer
-            );
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'teknisiToastContainer';
+            toastContainer.style.cssText = 'position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px;';
+            document.body.appendChild(toastContainer);
         }
-
-
-        const toast =
-            document.createElement('div');
-
-        const isSuccess =
-            tipe === 'success';
-
-
-        toast.style.cssText = `
-            background: ${
-                isSuccess
-                    ? '#0f172a'
-                    : '#b91c1c'
-            };
-            color: #ffffff;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow:
-                0 10px 15px -3px
-                rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: fadeIn 0.3s ease;
-        `;
-
-
-        toast.innerHTML =
-            `<span>${
-                isSuccess ? '✓' : '⚠'
-            }</span>
-             <span>${pesan}</span>`;
-
-
-        toastContainer.appendChild(
-            toast
-        );
-
-
-        setTimeout(() => {
-
-            toast.style.opacity = '0';
-
-            toast.style.transition =
-                'opacity 0.3s ease';
-
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-
-        }, 3200);
+        const toast = document.createElement('div');
+        const isSuccess = tipe === 'success';
+        toast.style.cssText = `background: ${isSuccess ? '#0f172a' : '#b91c1c'}; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px;`;
+        toast.innerHTML = `<span>${isSuccess ? '✓' : '⚠'}</span> <span>${pesan}</span>`;
+        toastContainer.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3200);
     }
-
-
-    // ============================================================
-    // 5. MODAL UPDATE TUGAS
-    // ============================================================
 
     let activeModalTaskId = null;
 
-
     function ensureModalExists() {
-
-        if (
-            document.getElementById(
-                'modalTeknisiUpdate'
-            )
-        ) {
-            return;
-        }
-
+        if (document.getElementById('modalTeknisiUpdate')) return;
 
         const modalHTML = `
-            <div
-                id="modalTeknisiUpdate"
-                style="
-                    display: none;
-                    position: fixed;
-                    inset: 0;
-                    background:
-                        rgba(15, 23, 42, 0.6);
-                    backdrop-filter: blur(4px);
-                    z-index: 9999;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 16px;
-                "
-            >
-
-                <div
-                    style="
-                        background: #ffffff;
-                        border-radius: 16px;
-                        max-width: 500px;
-                        width: 100%;
-                        padding: 24px;
-                        box-shadow:
-                            0 25px 50px -12px
-                            rgba(0, 0, 0, 0.25);
-                        border:
-                            1px solid #e2e8f0;
-                    "
-                >
-
-                    <!-- Header Modal -->
-                    <div
-                        style="
-                            display: flex;
-                            justify-content:
-                                space-between;
-                            align-items:
-                                flex-start;
-                            border-bottom:
-                                1px solid #f1f5f9;
-                            padding-bottom: 14px;
-                            margin-bottom: 16px;
-                        "
-                    >
-
+            <div id="modalTeknisiUpdate" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+                <div style="background: #ffffff; border-radius: 16px; max-width: 500px; width: 100%; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 16px;">
                         <div>
-
-                            <span
-                                id="modalTaskCode"
-                                style="
-                                    font-size: 11px;
-                                    font-weight: 700;
-                                    background: #e0f2fe;
-                                    color: #0284c7;
-                                    padding: 3px 8px;
-                                    border-radius: 6px;
-                                    text-transform:
-                                        uppercase;
-                                "
-                            >
-                                TK-101
-                            </span>
-
-                            <h3
-                                id="modalTaskTitle"
-                                style="
-                                    font-size: 18px;
-                                    font-weight: 700;
-                                    color: #0f172a;
-                                    margin: 6px 0 0 0;
-                                "
-                            >
-                                Update Pengerjaan Tugas
-                            </h3>
-
+                            <span id="modalTaskCode" style="font-size: 11px; font-weight: 700; background: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 6px; text-transform: uppercase;">TK-101</span>
+                            <h3 id="modalTaskTitle" style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 6px 0 0 0;">Update Pengerjaan Tugas</h3>
                         </div>
-
-
-                        <button
-                            type="button"
-                            id="btnTutupModalTeknisi"
-                            style="
-                                background: none;
-                                border: none;
-                                font-size: 22px;
-                                color: #94a3b8;
-                                cursor: pointer;
-                                line-height: 1;
-                            "
-                        >
-                            &times;
-                        </button>
-
+                        <button type="button" id="btnTutupModalTeknisi" style="background: none; border: none; font-size: 22px; color: #94a3b8; cursor: pointer; line-height: 1;">&times;</button>
                     </div>
-
-
-                    <!-- Form -->
                     <form id="formTeknisiUpdate">
-
-                        <!-- Status -->
                         <div style="margin-bottom: 14px;">
-
-                            <label
-                                style="
-                                    display: block;
-                                    font-size: 13px;
-                                    font-weight: 600;
-                                    color: #334155;
-                                    margin-bottom: 6px;
-                                "
-                            >
-                                Status Pengerjaan
-                            </label>
-
-
-                            <select
-                                id="selectStatusTugas"
-                                style="
-                                    width: 100%;
-                                    padding: 10px 12px;
-                                    border:
-                                        1px solid #cbd5e1;
-                                    border-radius: 8px;
-                                    font-size: 14px;
-                                    color: #1e293b;
-                                    background: #f8fafc;
-                                    outline: none;
-                                    cursor: pointer;
-                                "
-                            >
-
-                                <option value="Tugas Baru">
-                                    Tugas Baru
-                                    (Belum Mulai)
-                                </option>
-
-                                <option value="Sedang Dikerjakan">
-                                    Sedang Dikerjakan
-                                    (Dalam Proses)
-                                </option>
-
-                                <option value="Selesai">
-                                    Selesai
-                                    (Perbaikan Tuntas)
-                                </option>
-
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Status Pengerjaan</label>
+                            <select id="selectStatusTugas" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #1e293b; background: #f8fafc; outline: none; cursor: pointer;">
+                                <option value="Tugas Baru">Tugas Baru (Belum Mulai)</option>
+                                <option value="Sedang Dikerjakan">Sedang Dikerjakan (Dalam Proses)</option>
+                                <option value="Selesai">Selesai (Perbaikan Tuntas)</option>
                             </select>
-
                         </div>
-
-
-                        <!-- Catatan -->
                         <div style="margin-bottom: 14px;">
-
-                            <label
-                                style="
-                                    display: block;
-                                    font-size: 13px;
-                                    font-weight: 600;
-                                    color: #334155;
-                                    margin-bottom: 6px;
-                                "
-                            >
-                                Catatan Hasil Perbaikan
-                            </label>
-
-
-                            <textarea
-                                id="textareaCatatanPerbaikan"
-                                rows="3"
-                                placeholder="Contoh: Kabel power dan sekring diganti, unit sudah diuji dan berfungsi normal."
-                                style="
-                                    width: 100%;
-                                    box-sizing: border-box;
-                                    padding: 10px 12px;
-                                    border:
-                                        1px solid #cbd5e1;
-                                    border-radius: 8px;
-                                    font-size: 13px;
-                                    color: #1e293b;
-                                    background: #f8fafc;
-                                    outline: none;
-                                    resize: vertical;
-                                "
-                            ></textarea>
-
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Catatan Hasil Perbaikan</label>
+                            <textarea id="textareaCatatanPerbaikan" rows="3" placeholder="Contoh: Kabel power dan sekring diganti..." style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; color: #1e293b; background: #f8fafc; outline: none; resize: vertical;"></textarea>
                         </div>
-
-
-                        <!-- Upload Foto -->
-                        <div
-                            style="
-                                display: grid;
-                                grid-template-columns:
-                                    1fr 1fr;
-                                gap: 12px;
-                                margin-bottom: 18px;
-                            "
-                        >
-
-                            <!-- Foto Sebelum -->
-                            <div
-                                style="
-                                    border:
-                                        1px dashed
-                                        #cbd5e1;
-                                    border-radius: 8px;
-                                    padding: 10px;
-                                    text-align: center;
-                                    background: #f8fafc;
-                                "
-                            >
-
-                                <label
-                                    style="
-                                        display: block;
-                                        font-size: 12px;
-                                        font-weight: 600;
-                                        color: #475569;
-                                        margin-bottom: 6px;
-                                    "
-                                >
-                                    Foto Sebelum
-                                </label>
-
-
-                                <input
-                                    type="file"
-                                    id="fileFotoSebelum"
-                                    accept="image/*"
-                                    style="
-                                        font-size: 11px;
-                                        width: 100%;
-                                        color: #64748b;
-                                    "
-                                >
-
-
-                                <div
-                                    id="previewFotoSebelumWrap"
-                                    style="
-                                        margin-top: 6px;
-                                        display: none;
-                                    "
-                                >
-
-                                    <img
-                                        id="imgPreviewFotoSebelum"
-                                        src=""
-                                        alt="Sebelum"
-                                        style="
-                                            max-height: 55px;
-                                            border-radius: 4px;
-                                            margin: 0 auto;
-                                            display: block;
-                                            border:
-                                                1px solid
-                                                #e2e8f0;
-                                        "
-                                    >
-
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
+                            <div style="border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px; text-align: center; background: #f8fafc;">
+                                <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">Foto Sebelum</label>
+                                <input type="file" id="fileFotoSebelum" accept="image/*" style="font-size: 11px; width: 100%; color: #64748b;">
+                                <div id="previewFotoSebelumWrap" style="margin-top: 6px; display: none;">
+                                    <img id="imgPreviewFotoSebelum" src="" style="max-height: 55px; border-radius: 4px; margin: 0 auto; display: block; border: 1px solid #e2e8f0;">
                                 </div>
-
                             </div>
-
-
-                            <!-- Foto Sesudah -->
-                            <div
-                                style="
-                                    border:
-                                        1px dashed
-                                        #cbd5e1;
-                                    border-radius: 8px;
-                                    padding: 10px;
-                                    text-align: center;
-                                    background: #f8fafc;
-                                "
-                            >
-
-                                <label
-                                    style="
-                                        display: block;
-                                        font-size: 12px;
-                                        font-weight: 600;
-                                        color: #475569;
-                                        margin-bottom: 6px;
-                                    "
-                                >
-                                    Foto Sesudah
-                                </label>
-
-
-                                <input
-                                    type="file"
-                                    id="fileFotoSesudah"
-                                    accept="image/*"
-                                    style="
-                                        font-size: 11px;
-                                        width: 100%;
-                                        color: #64748b;
-                                    "
-                                >
-
-
-                                <div
-                                    id="previewFotoSesudahWrap"
-                                    style="
-                                        margin-top: 6px;
-                                        display: none;
-                                    "
-                                >
-
-                                    <img
-                                        id="imgPreviewFotoSesudah"
-                                        src=""
-                                        alt="Sesudah"
-                                        style="
-                                            max-height: 55px;
-                                            border-radius: 4px;
-                                            margin: 0 auto;
-                                            display: block;
-                                            border:
-                                                1px solid
-                                                #e2e8f0;
-                                        "
-                                    >
-
+                            <div style="border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px; text-align: center; background: #f8fafc;">
+                                <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">Foto Sesudah</label>
+                                <input type="file" id="fileFotoSesudah" accept="image/*" style="font-size: 11px; width: 100%; color: #64748b;">
+                                <div id="previewFotoSesudahWrap" style="margin-top: 6px; display: none;">
+                                    <img id="imgPreviewFotoSesudah" src="" style="max-height: 55px; border-radius: 4px; margin: 0 auto; display: block; border: 1px solid #e2e8f0;">
                                 </div>
-
                             </div>
-
                         </div>
-
-
-                        <!-- Tombol -->
-                        <div
-                            style="
-                                display: flex;
-                                justify-content:
-                                    flex-end;
-                                gap: 10px;
-                                border-top:
-                                    1px solid #f1f5f9;
-                                padding-top: 14px;
-                            "
-                        >
-
-                            <button
-                                type="button"
-                                id="btnBatalTeknisiModal"
-                                style="
-                                    padding: 8px 16px;
-                                    border-radius: 8px;
-                                    border:
-                                        1px solid
-                                        #cbd5e1;
-                                    background: #ffffff;
-                                    color: #64748b;
-                                    font-size: 13px;
-                                    font-weight: 600;
-                                    cursor: pointer;
-                                "
-                            >
-                                Batal
-                            </button>
-
-
-                            <button
-                                type="submit"
-                                id="btnSimpanTeknisiTask"
-                                style="
-                                    padding: 8px 18px;
-                                    border-radius: 8px;
-                                    border: none;
-                                    background: #0284c7;
-                                    color: #ffffff;
-                                    font-size: 13px;
-                                    font-weight: 600;
-                                    cursor: pointer;
-                                "
-                            >
-                                Simpan Perubahan
-                            </button>
-
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+                            <button type="button" id="btnBatalTeknisiModal" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; font-size: 13px; font-weight: 600; cursor: pointer;">Batal</button>
+                            <button type="submit" id="btnSimpanTeknisiTask" style="padding: 8px 18px; border-radius: 8px; border: none; background: #0284c7; color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer;">Simpan Perubahan</button>
                         </div>
-
                     </form>
-
                 </div>
-
             </div>
         `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
 
+        const modal = document.getElementById('modalTeknisiUpdate');
+        const closeModal = () => { modal.style.display = 'none'; activeModalTaskId = null; };
 
-        document.body.insertAdjacentHTML(
-            'beforeend',
-            modalHTML
-        );
+        document.getElementById('btnTutupModalTeknisi')?.addEventListener('click', closeModal);
+        document.getElementById('btnBatalTeknisiModal')?.addEventListener('click', closeModal);
 
-
-        const modal =
-            document.getElementById(
-                'modalTeknisiUpdate'
-            );
-
-        const btnTutup =
-            document.getElementById(
-                'btnTutupModalTeknisi'
-            );
-
-        const btnBatal =
-            document.getElementById(
-                'btnBatalTeknisiModal'
-            );
-
-
-        const closeModal = () => {
-
-            modal.style.display = 'none';
-
-            activeModalTaskId = null;
-        };
-
-
-        btnTutup?.addEventListener(
-            'click',
-            closeModal
-        );
-
-        btnBatal?.addEventListener(
-            'click',
-            closeModal
-        );
-
-
-        // Upload foto sebelum
-        const inputBefore =
-            document.getElementById(
-                'fileFotoSebelum'
-            );
-
-
-        inputBefore?.addEventListener(
-            'change',
-            (e) => {
-
-                const file =
-                    e.target.files[0];
-
+        const setupPreview = (inputId, imgId, wrapId) => {
+            document.getElementById(inputId)?.addEventListener('change', (e) => {
+                const file = e.target.files[0];
                 if (file) {
-
-                    const reader =
-                        new FileReader();
-
-
-                    reader.onload =
-                        (evt) => {
-
-                            const img =
-                                document.getElementById(
-                                    'imgPreviewFotoSebelum'
-                                );
-
-                            const wrap =
-                                document.getElementById(
-                                    'previewFotoSebelumWrap'
-                                );
-
-
-                            if (img && wrap) {
-
-                                img.src =
-                                    evt.target.result;
-
-                                wrap.style.display =
-                                    'block';
-                            }
-                        };
-
-
+                    const reader = new FileReader();
+                    reader.onload = (evt) => { document.getElementById(imgId).src = evt.target.result; document.getElementById(wrapId).style.display = 'block'; };
                     reader.readAsDataURL(file);
                 }
-            }
-        );
-
-
-        // Upload foto sesudah
-        const inputAfter =
-            document.getElementById(
-                'fileFotoSesudah'
-            );
-
-
-        inputAfter?.addEventListener(
-            'change',
-            (e) => {
-
-                const file =
-                    e.target.files[0];
-
-                if (file) {
-
-                    const reader =
-                        new FileReader();
-
-
-                    reader.onload =
-                        (evt) => {
-
-                            const img =
-                                document.getElementById(
-                                    'imgPreviewFotoSesudah'
-                                );
-
-                            const wrap =
-                                document.getElementById(
-                                    'previewFotoSesudahWrap'
-                                );
-
-
-                            if (img && wrap) {
-
-                                img.src =
-                                    evt.target.result;
-
-                                wrap.style.display =
-                                    'block';
-                            }
-                        };
-
-
-                    reader.readAsDataURL(file);
-                }
-            }
-        );
-
-
-        // Submit form
-        const form =
-            document.getElementById(
-                'formTeknisiUpdate'
-            );
-
-
-        form?.addEventListener(
-            'submit',
-            (e) => {
-
-                e.preventDefault();
-
-
-                if (!activeModalTaskId) {
-                    return;
-                }
-
-
-                const newStatus =
-                    document.getElementById(
-                        'selectStatusTugas'
-                    ).value;
-
-
-                const notes =
-                    document.getElementById(
-                        'textareaCatatanPerbaikan'
-                    ).value.trim();
-
-
-                const tasks =
-                    getTasks();
-
-
-                const taskIndex =
-                    tasks.findIndex(
-                        t =>
-                            t.id ===
-                            activeModalTaskId
-                    );
-
-
-                if (taskIndex !== -1) {
-
-                    const currentTask =
-                        tasks[taskIndex];
-
-
-                    currentTask.status =
-                        newStatus;
-
-
-                    if (notes) {
-                        currentTask.catatan =
-                            notes;
-                    }
-
-
-                    const previewBefore =
-                        document.getElementById(
-                            'imgPreviewFotoSebelum'
-                        )?.src;
-
-
-                    const previewAfter =
-                        document.getElementById(
-                            'imgPreviewFotoSesudah'
-                        )?.src;
-
-
-                    if (
-                        previewBefore &&
-                        previewBefore.startsWith(
-                            'data:image'
-                        )
-                    ) {
-                        currentTask.fotoSebelum =
-                            previewBefore;
-                    }
-
-
-                    if (
-                        previewAfter &&
-                        previewAfter.startsWith(
-                            'data:image'
-                        )
-                    ) {
-                        currentTask.fotoSesudah =
-                            previewAfter;
-                    }
-
-
-                    // Jika selesai, masukkan ke riwayat
-                    if (newStatus === 'Selesai') {
-
-                        const history =
-                            getHistory();
-
-
-                        history.unshift({
-
-                            id:
-                                currentTask.id,
-
-                            judul:
-                                currentTask.judul,
-
-                            lokasi:
-                                `${
-                                    currentTask.lokasiKode ||
-                                    'R.01'
-                                } · ${
-                                    currentTask.lokasiNama ||
-                                    'Lokasi Kampus'
-                                }`,
-
-                            pelapor:
-                                currentTask.pelapor,
-
-                            tanggalSelesai:
-                                'Hari ini',
-
-                            durasi:
-                                '1 hari',
-
-                            status:
-                                'Selesai',
-
-                            catatan:
-                                notes ||
-                                'Perbaikan fasilitas telah diselesaikan oleh teknisi.',
-
-                            fotoSebelum:
-                                currentTask.fotoSebelum,
-
-                            fotoSesudah:
-                                currentTask.fotoSesudah,
-
-                            periode:
-                                'Minggu Ini'
-                        });
-
-
-                        saveHistory(history);
-                    }
-
-
-                    saveTasks(tasks);
-
-
-                    showTeknisiToast(
-                        `Tugas ${activeModalTaskId} diperbarui ke status: "${newStatus}"!`
-                    );
-
-
-                    closeModal();
-
-
-                    renderActivePage();
-                }
-            }
-        );
-    }
-
-
-    // ============================================================
-    // 6. MEMBUKA MODAL
-    // ============================================================
-
-    function openModalForTask(
-        taskId,
-        taskJudul
-    ) {
-
-        ensureModalExists();
-
-
-        activeModalTaskId =
-            taskId;
-
-
-        const modal =
-            document.getElementById(
-                'modalTeknisiUpdate'
-            );
-
-
-        const codeEl =
-            document.getElementById(
-                'modalTaskCode'
-            );
-
-
-        const titleEl =
-            document.getElementById(
-                'modalTaskTitle'
-            );
-
-
-        const selectStatus =
-            document.getElementById(
-                'selectStatusTugas'
-            );
-
-
-        const textNotes =
-            document.getElementById(
-                'textareaCatatanPerbaikan'
-            );
-
-
-        const wrapBefore =
-            document.getElementById(
-                'previewFotoSebelumWrap'
-            );
-
-
-        const wrapAfter =
-            document.getElementById(
-                'previewFotoSesudahWrap'
-            );
-
-
-        if (codeEl) {
-            codeEl.textContent =
-                taskId;
-        }
-
-
-        if (titleEl) {
-            titleEl.textContent =
-                taskJudul ||
-                'Update Pengerjaan Tugas';
-        }
-
-
-        const tasks =
-            getTasks();
-
-
-        const task =
-            tasks.find(
-                t => t.id === taskId
-            );
-
-
-        if (task) {
-
-            if (selectStatus) {
-                selectStatus.value =
-                    task.status ||
-                    'Tugas Baru';
-            }
-
-
-            if (textNotes) {
-                textNotes.value =
-                    task.catatan ||
-                    '';
-            }
-        }
-
-
-        if (wrapBefore) {
-            wrapBefore.style.display =
-                'none';
-        }
-
-
-        if (wrapAfter) {
-            wrapAfter.style.display =
-                'none';
-        }
-
-
-        if (modal) {
-            modal.style.display =
-                'flex';
-        }
-    }
-
-
-    // ============================================================
-    // 7. DASHBOARD TEKNISI
-    // ============================================================
-
-    function initDashboard() {
-
-        const isDashboard =
-            document.querySelector(
-                '.metric-grid'
-            ) &&
-            document
-                .querySelector(
-                    '.header-title'
-                )
-                ?.textContent.includes(
-                    'Dashboard'
-                );
-
-
-        if (!isDashboard) {
-            return;
-        }
-
-
-        updateDashboardMetrics();
-
-        bindTaskButtons();
-    }
-
-
-    function updateDashboardMetrics() {
-
-        const tasks =
-            getTasks();
-
-
-        const history =
-            getHistory();
-
-
-        const countBaru =
-            tasks.filter(
-                t =>
-                    t.status ===
-                    'Tugas Baru'
-            ).length;
-
-
-        const countProses =
-            tasks.filter(
-                t =>
-                    t.status ===
-                    'Sedang Dikerjakan'
-            ).length;
-
-
-        const countSelesai =
-            history.length +
-            tasks.filter(
-                t =>
-                    t.status ===
-                    'Selesai'
-            ).length;
-
-
-        const metricCards =
-            document.querySelectorAll(
-                '.metric-card'
-            );
-
-
-        if (metricCards.length >= 3) {
-
-            const elBaru =
-                metricCards[0]
-                    .querySelector(
-                        '.metric-value'
-                    );
-
-
-            const elProses =
-                metricCards[1]
-                    .querySelector(
-                        '.metric-value'
-                    );
-
-
-            const elSelesai =
-                metricCards[2]
-                    .querySelector(
-                        '.metric-value'
-                    );
-
-
-            if (elBaru) {
-                elBaru.textContent =
-                    countBaru;
-            }
-
-
-            if (elProses) {
-                elProses.textContent =
-                    countProses;
-            }
-
-
-            if (elSelesai) {
-                elSelesai.textContent =
-                    countSelesai;
-            }
-        }
-    }
-
-
-    function bindTaskButtons() {
-
-        const cards =
-            document.querySelectorAll(
-                '.task-card'
-            );
-
-
-        cards.forEach(
-            (card, idx) => {
-
-                const btn =
-                    card.querySelector(
-                        'button'
-                    );
-
-
-                const titleEl =
-                    card.querySelector(
-                        '.card-title'
-                    );
-
-
-                const codeEl =
-                    card.querySelector(
-                        '.card-title small'
-                    );
-
-
-                const taskId =
-                    codeEl
-                        ? codeEl.textContent.trim()
-                        : `TK-10${idx + 1}`;
-
-
-                const taskJudul =
-                    titleEl
-                        ? titleEl
-                            .childNodes[0]
-                            .textContent
-                            .trim()
-                        : 'Perbaikan Fasilitas';
-
-
-                if (btn) {
-
-                    btn.style.cursor =
-                        'pointer';
-
-
-                    const newBtn =
-                        btn.cloneNode(true);
-
-
-                    btn.parentNode.replaceChild(
-                        newBtn,
-                        btn
-                    );
-
-
-                    newBtn.addEventListener(
-                        'click',
-                        (e) => {
-
-                            e.preventDefault();
-
-                            openModalForTask(
-                                taskId,
-                                taskJudul
-                            );
-                        }
-                    );
-                }
-            }
-        );
-    }
-
-
-    // ============================================================
-    // 8. DAFTAR TUGAS
-    // ============================================================
-
-    function initDaftarTugas() {
-
-        const isDaftarTugas =
-            window.location.pathname.includes(
-                'daftar-tugas.html'
-            ) ||
-            (
-                document
-                    .querySelector(
-                        '.header-title'
-                    )
-                    ?.textContent.includes(
-                        'Daftar Tugas'
-                    ) &&
-                document.querySelector(
-                    '.glass-card button'
-                )
-            );
-
-
-        if (!isDaftarTugas) {
-            return;
-        }
-
-
-        const tabButtons =
-            document.querySelectorAll(
-                'main > section.glass-card button'
-            );
-
-        renderCompletedHistoryCards();
-        updateTaskTabCounts(tabButtons);
-
-
-        tabButtons.forEach(
-            btn => {
-
-                btn.style.cursor =
-                    'pointer';
-
-
-                btn.addEventListener(
-                    'click',
-                    (e) => {
-
-                        e.preventDefault();
-
-
-                        tabButtons.forEach(
-                            b => {
-
-                                b.classList.remove(
-                                    'active'
-                                );
-
-                                b.style.color =
-                                    '#64748b';
-
-                                b.style.borderBottom =
-                                    'none';
-
-                                b.style.fontWeight =
-                                    'normal';
-                            }
-                        );
-
-
-                        btn.classList.add(
-                            'active'
-                        );
-
-
-                        btn.style.color =
-                            '#0284c7';
-
-
-                        btn.style.borderBottom =
-                            '2px solid #0284c7';
-
-
-                        btn.style.fontWeight =
-                            '600';
-
-
-                        const label =
-                            btn.textContent
-                                .toLowerCase();
-
-
-                        let targetFilter =
-                            'semua';
-
-
-                        if (
-                            label.includes(
-                                'baru'
-                            )
-                        ) {
-
-                            targetFilter =
-                                'tugas baru';
-
-                        } else if (
-                            label.includes(
-                                'sedang'
-                            ) ||
-                            label.includes(
-                                'dikerjakan'
-                            )
-                        ) {
-
-                            targetFilter =
-                                'sedang dikerjakan';
-
-                        } else if (
-                            label.includes(
-                                'selesai'
-                            )
-                        ) {
-
-                            targetFilter =
-                                'selesai';
-                        }
-
-
-                        filterTaskCards(
-                            targetFilter
-                        );
-                    }
-                );
-            }
-        );
-
-        const activeTab =
-            document.querySelector(
-                'main > section.glass-card button.active'
-            );
-
-        if (activeTab) {
-            activeTab.click();
-        }
-
-        bindTaskButtons();
-    }
-
-    function renderCompletedHistoryCards() {
-        const taskGrid =
-            document.querySelector('.task-grid');
-
-        if (!taskGrid) {
-            return;
-        }
-
-        const activeTaskIds = new Set(
-            getTasks().map(task => task.id)
-        );
-
-        getHistory()
-            .filter(item => !activeTaskIds.has(item.id))
-            .forEach(item => {
-                const card = document.createElement('article');
-                card.className = 'glass-card task-card';
-                card.dataset.historyTask = 'true';
-
-                const body = document.createElement('div');
-                body.className = 'task-body';
-
-                const heading = document.createElement('h3');
-                heading.className = 'card-title';
-                heading.textContent = item.judul || 'Tugas selesai';
-
-                const code = document.createElement('small');
-                code.style.cssText = 'float:right; font-size:12px; color:#666;';
-                code.textContent = item.id;
-                heading.append(code);
-
-                const location = document.createElement('p');
-                location.className = 'text-muted';
-                location.style.margin = '10px 0';
-                location.textContent = item.lokasi || 'Lokasi tidak tersedia';
-
-                const reporter = document.createElement('p');
-                reporter.className = 'text-muted';
-                reporter.textContent = item.pelapor || 'Pelapor tidak tersedia';
-
-                const completed = document.createElement('p');
-                completed.className = 'text-muted';
-                completed.style.marginBottom = '15px';
-                completed.textContent = `Selesai ${item.tanggalSelesai || '-' } · Dikerjakan ${item.durasi || '-'}`;
-
-                const status = document.createElement('span');
-                status.className = 'status-badge status-badge-success';
-                status.textContent = 'Selesai';
-
-                body.append(heading, location, reporter, completed, status);
-
-                if (item.catatan) {
-                    const note = document.createElement('p');
-                    note.className = 'text-muted';
-                    note.style.marginTop = '12px';
-                    note.textContent = `Catatan teknisi: ${item.catatan}`;
-                    body.append(note);
-                }
-
-                card.append(body);
-                taskGrid.append(card);
             });
-    }
-
-    function updateTaskTabCounts(tabButtons) {
-        const tasks = getTasks();
-        const history = getHistory();
-        const completedIds = new Set(
-            history.map(item => item.id)
-        );
-        tasks
-            .filter(task => task.status === 'Selesai')
-            .forEach(task => completedIds.add(task.id));
-
-        const counts = {
-            'tugas baru': tasks.filter(task =>
-                ['Tugas Baru', 'Menunggu'].includes(task.status)
-            ).length,
-            'sedang dikerjakan': tasks.filter(task =>
-                ['Sedang Dikerjakan', 'Proses'].includes(task.status)
-            ).length,
-            selesai: completedIds.size
         };
+        setupPreview('fileFotoSebelum', 'imgPreviewFotoSebelum', 'previewFotoSebelumWrap');
+        setupPreview('fileFotoSesudah', 'imgPreviewFotoSesudah', 'previewFotoSesudahWrap');
 
-        tabButtons.forEach(button => {
-            const label = button.textContent.trim();
-            const key = label.toLowerCase().startsWith('tugas baru')
-                ? 'tugas baru'
-                : label.toLowerCase().startsWith('sedang')
-                    ? 'sedang dikerjakan'
-                    : 'selesai';
-            button.textContent = `${key === 'tugas baru' ? 'Tugas Baru' : key === 'sedang dikerjakan' ? 'Sedang Dikerjakan' : 'Selesai'} (${counts[key]})`;
+        document.getElementById('formTeknisiUpdate')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!activeModalTaskId) return;
+
+            const newStatus = document.getElementById('selectStatusTugas').value;
+            const notes = document.getElementById('textareaCatatanPerbaikan').value.trim();
+            const tasks = getTasks();
+            const history = getHistory();
+            
+            const taskIndex = tasks.findIndex(t => t.id === activeModalTaskId);
+            const historyIndex = history.findIndex(h => h.id === activeModalTaskId);
+
+            if (historyIndex !== -1) {
+                const currentHistory = history[historyIndex];
+                currentHistory.status = newStatus;
+                if (notes) currentHistory.catatan = notes;
+                const previewBefore = document.getElementById('imgPreviewFotoSebelum')?.src;
+                const previewAfter = document.getElementById('imgPreviewFotoSesudah')?.src;
+                if (previewBefore && previewBefore.startsWith('data:image')) currentHistory.fotoSebelum = previewBefore;
+                if (previewAfter && previewAfter.startsWith('data:image')) currentHistory.fotoSesudah = previewAfter;
+                saveHistory(history);
+                showTeknisiToast(`Laporan riwayat berhasil diperbarui!`);
+            } else if (taskIndex !== -1) {
+                const currentTask = tasks[taskIndex];
+                currentTask.status = newStatus;
+                if (notes) currentTask.catatan = notes;
+                const previewBefore = document.getElementById('imgPreviewFotoSebelum')?.src;
+                const previewAfter = document.getElementById('imgPreviewFotoSesudah')?.src;
+                if (previewBefore && previewBefore.startsWith('data:image')) currentTask.fotoSebelum = previewBefore;
+                if (previewAfter && previewAfter.startsWith('data:image')) currentTask.fotoSesudah = previewAfter;
+
+                if (newStatus === 'Selesai') {
+                    history.unshift({
+                        id: currentTask.id,
+                        judul: currentTask.judul,
+                        lokasi: `${currentTask.lokasiKode || 'R.01'} · ${currentTask.lokasiNama || 'Lokasi Kampus'}`,
+                        pelapor: currentTask.pelapor,
+                        tanggalSelesai: 'Hari ini',
+                        durasi: '1 hari',
+                        status: 'Selesai',
+                        catatan: notes || 'Perbaikan fasilitas telah diselesaikan oleh teknisi.',
+                        fotoSebelum: currentTask.fotoSebelum,
+                        fotoSesudah: currentTask.fotoSesudah
+                    });
+                    saveHistory(history);
+                    tasks.splice(taskIndex, 1); 
+                }
+                saveTasks(tasks);
+                showTeknisiToast(`Tugas ${activeModalTaskId} diperbarui ke "${newStatus}"!`);
+            }
+
+            closeModal();
+            // Render ulang tanpa reload
+            updateDashboardMetrics();
+            renderDashboard();
+            renderDaftarTugas();
+            initDaftarTugasTabs(); 
         });
     }
 
+    function openModalForTask(taskId, taskJudul) {
+        ensureModalExists();
+        activeModalTaskId = taskId;
 
-    function filterTaskCards(
-        statusKey
-    ) {
+        const modal = document.getElementById('modalTeknisiUpdate');
+        if (document.getElementById('modalTaskCode')) document.getElementById('modalTaskCode').textContent = taskId;
+        if (document.getElementById('modalTaskTitle')) document.getElementById('modalTaskTitle').textContent = taskJudul;
 
-        const cards =
-            document.querySelectorAll(
-                '.task-card'
-            );
+        const task = getTasks().find(t => t.id === taskId);
+        const history = getHistory().find(h => h.id === taskId);
+        const data = task || history;
 
-
-        const tasks =
-            getTasks();
-
-        const history =
-            getHistory();
-
-
-        cards.forEach(
-            (card, idx) => {
-
-                const codeEl =
-                    card.querySelector(
-                        '.card-title small'
-                    );
-
-
-                const taskId =
-                    codeEl
-                        ? codeEl.textContent.trim()
-                        : `TK-10${idx + 1}`;
-
-
-                const task =
-                    tasks.find(
-                        t =>
-                            t.id === taskId
-                    );
-
-                const historyItem =
-                    history.find(
-                        item => item.id === taskId
-                    );
-
-                if (statusKey === 'semua') {
-
-                    card.style.display =
-                        '';
-
-                    return;
-                }
-
-                const taskStatus =
-                    (
-                        task?.status || historyItem?.status || ''
-                    ).toLowerCase();
-
-
-                if (
-                    statusKey ===
-                        'tugas baru' &&
-                    (
-                        taskStatus ===
-                            'tugas baru' ||
-                        taskStatus ===
-                            'menunggu'
-                    )
-                ) {
-
-                    card.style.display =
-                        '';
-
-                } else if (
-                    statusKey ===
-                        'sedang dikerjakan' &&
-                    (
-                        taskStatus ===
-                            'sedang dikerjakan' ||
-                        taskStatus ===
-                            'proses'
-                    )
-                ) {
-
-                    card.style.display =
-                        '';
-
-                } else if (
-                    statusKey ===
-                        'selesai' &&
-                    taskStatus ===
-                        'selesai'
-                ) {
-
-                    card.style.display =
-                        '';
-
-                } else {
-
-                    card.style.display =
-                        'none';
-                }
-            }
-        );
+        if (data) {
+            if (document.getElementById('selectStatusTugas')) document.getElementById('selectStatusTugas').value = data.status || 'Tugas Baru';
+            if (document.getElementById('textareaCatatanPerbaikan')) document.getElementById('textareaCatatanPerbaikan').value = data.catatan || '';
+        }
+        if (document.getElementById('previewFotoSebelumWrap')) document.getElementById('previewFotoSebelumWrap').style.display = 'none';
+        if (document.getElementById('previewFotoSesudahWrap')) document.getElementById('previewFotoSesudahWrap').style.display = 'none';
+        if (modal) modal.style.display = 'flex';
     }
 
-
     // ============================================================
-    // 9. RIWAYAT
+    // 3. FUNGSI RENDER DASHBOARD (Hanya yg BELUM Selesai)
     // ============================================================
+    function renderDashboard() {
+        const container = document.getElementById('dashboard-task-container');
+        if (!container) return;
 
-    function initRiwayat() {
-
-        const isRiwayat =
-            window.location.pathname.includes(
-                'riwayat.html'
-            ) ||
-            document
-                .querySelector(
-                    '.header-title'
-                )
-                ?.textContent.includes(
-                    'Daftar Laporan'
-                );
-
-
-        if (!isRiwayat) {
+        // Ambil tugas yang statusnya BUKAN 'Selesai'
+        const activeTasks = getTasks().filter(t => t.status !== 'Selesai');
+        
+        container.innerHTML = '';
+        if (activeTasks.length === 0) {
+            container.innerHTML = `<p class="text-muted">Tidak ada tugas aktif saat ini.</p>`;
             return;
         }
 
-
-        const filterBtns =
-            document.querySelectorAll(
-                'main section div button'
-            );
-
-
-        filterBtns.forEach(
-            btn => {
-
-                btn.style.cursor =
-                    'pointer';
-
-
-                btn.addEventListener(
-                    'click',
-                    (e) => {
-
-                        e.preventDefault();
-
-
-                        filterBtns.forEach(
-                            b => {
-
-                                b.className =
-                                    'btn btn-ghost';
-
-                                b.style.border =
-                                    '1px solid #d1d5db';
-
-                                b.style.background =
-                                    '';
-
-                                b.style.color =
-                                    '';
-                            }
-                        );
-
-
-                        btn.className =
-                            'btn btn-success';
-
-
-                        btn.style.border =
-                            'none';
-
-
-                        const filterVal =
-                            btn.textContent
-                                .trim()
-                                .toLowerCase();
-
-
-                        const articles =
-                            document.querySelectorAll(
-                                'main section:last-of-type article'
-                            );
-
-
-                        articles.forEach(
-                            art => {
-
-                                if (
-                                    filterVal ===
-                                    'semua'
-                                ) {
-
-                                    art.style.display =
-                                        '';
-
-                                } else if (
-                                    filterVal ===
-                                    'minggu ini'
-                                ) {
-
-                                    const textContent =
-                                        art.textContent;
-
-
-                                    art.style.display =
-                                        textContent.includes(
-                                            '19 Sep'
-                                        ) ||
-                                        textContent.includes(
-                                            'Hari ini'
-                                        )
-                                            ? ''
-                                            : 'none';
-
-                                } else if (
-                                    filterVal ===
-                                    'bulan ini'
-                                ) {
-
-                                    art.style.display =
-                                        '';
-                                }
-                            }
-                        );
-                    }
-                );
-            }
-        );
+        activeTasks.forEach(task => {
+            const card = document.createElement('article');
+            card.className = 'glass-card task-card';
+            card.innerHTML = `
+                <div class="task-body">
+                    <h3 class="card-title">${task.judul || 'Perbaikan Fasilitas'} <small style="float:right; font-size: 12px; color:#666;">${task.id}</small></h3>
+                    <p class="text-muted" style="margin: 10px 0;"><i class="fa-solid fa-location-dot"></i> ${task.lokasiKode || 'Lokasi'} - ${task.lokasiNama || 'Kampus'}</p>
+                    <p class="text-muted"><i class="fa-regular fa-user"></i> ${task.pelapor || 'Pelapor'}</p>
+                    <p class="text-muted" style="margin-bottom: 15px;"><i class="fa-regular fa-clock"></i> ${task.waktu || 'Baru saja'}</p>
+                    <button class="btn btn-success" style="width: 100%;" onclick="openModalForTask('${task.id}', '${task.judul || 'Perbaikan'}')">Update Status &amp; Upload Bukti</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
     }
 
-
     // ============================================================
-    // 10. REFRESH HALAMAN
+    // 4. FUNGSI RENDER DAFTAR TUGAS (Tampil semua)
     // ============================================================
+    function renderDaftarTugas() {
+        const container = document.getElementById('task-list-container');
+        if (!container) return;
 
-    function renderActivePage() {
-
-        updateDashboardMetrics();
-
-
-        const activeTab =
-            document.querySelector(
-                '.glass-card button.active'
-            );
-
-
-        if (activeTab) {
-            activeTab.click();
+        const activeTasks = getTasks().map(t => ({ ...t, type: 'active' }));
+        const historyTasks = getHistory().map(h => ({ ...h, type: 'history', status: 'Selesai' }));
+        const allData = [...activeTasks, ...historyTasks];
+        
+        container.innerHTML = '';
+        if (allData.length === 0) {
+            container.innerHTML = `<p class="text-muted" style="grid-column: 1/-1;">Belum ada data tugas.</p>`;
+            return;
         }
+
+        allData.forEach(item => {
+            const isHistory = item.type === 'history';
+            const card = document.createElement('article');
+            card.className = 'glass-card task-card';
+            
+            const btnHTML = isHistory 
+                ? `<button class="btn btn-ghost" style="width: 100%; border: 1px solid #cbd5e1;" onclick="lihatDetailRiwayat('${item.id}')">Lihat Detail Pengerjaan</button>`
+                : `<button class="btn btn-success" style="width: 100%;" onclick="openModalForTask('${item.id}', '${item.judul || 'Perbaikan Fasilitas'}')">Update Status &amp; Upload Bukti</button>`;
+
+            card.innerHTML = `
+                <div class="task-body">
+                    <h3 class="card-title">${item.judul || 'Perbaikan Fasilitas'} <small style="float:right; font-size: 12px; color:#666;">${item.id}</small></h3>
+                    <p class="text-muted" style="margin: 10px 0;"><i class="fa-solid fa-location-dot"></i> ${item.lokasiKode ? `${item.lokasiKode} - ${item.lokasiNama}` : item.lokasi}</p>
+                    <p class="text-muted"><i class="fa-regular fa-user"></i> ${item.pelapor || 'Pelapor'}</p>
+                    <p class="text-muted" style="margin-bottom: 15px;"><i class="fa-regular fa-clock"></i> ${isHistory ? 'Selesai ' + item.tanggalSelesai : (item.waktu || 'Baru saja')}</p>
+                    ${btnHTML}
+                </div>
+            `;
+            container.appendChild(card);
+        });
     }
 
+    // ============================================================
+    // 5. INISIALISASI DASHBOARD & METRIK
+    // ============================================================
+    function updateDashboardMetrics() {
+        const tasks = getTasks();
+        const history = getHistory();
+        
+        const countBaru = tasks.filter(t => t.status === 'Tugas Baru').length;
+        const countProses = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
+        const countSelesai = history.length + tasks.filter(t => t.status === 'Selesai').length;
+
+        const elBaru = document.getElementById('metric-baru');
+        const elProses = document.getElementById('metric-proses');
+        const elSelesai = document.getElementById('metric-selesai');
+
+        if (elBaru) elBaru.textContent = countBaru;
+        if (elProses) elProses.textContent = countProses;
+        if (elSelesai) elSelesai.textContent = countSelesai;
+    }
+
+    function initDaftarTugasTabs() {
+        const tabContainer = document.getElementById('tab-container');
+        if (!tabContainer) return;
+
+        const tasks = getTasks();
+        const history = getHistory();
+        
+        const countBaru = tasks.filter(t => t.status === 'Tugas Baru').length;
+        const countProses = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
+        const countSelesai = tasks.filter(t => t.status === 'Selesai').length + history.length;
+
+        tabContainer.innerHTML = `
+            <button class="btn btn-ghost active" data-filter="tugas baru" style="color: #0284c7; border-bottom: 2px solid #0284c7; border-radius: 0; font-weight: 600;">Tugas Baru (${countBaru})</button>
+            <button class="btn btn-ghost" data-filter="sedang dikerjakan" style="color: #64748b;">Sedang Dikerjakan (${countProses})</button>
+            <button class="btn btn-ghost" data-filter="selesai" style="color: #64748b;">Selesai (${countSelesai})</button>
+        `;
+
+        const tabButtons = tabContainer.querySelectorAll('button');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                tabButtons.forEach(b => { b.classList.remove('active'); b.style.color = '#64748b'; b.style.borderBottom = 'none'; b.style.fontWeight = 'normal'; });
+                btn.classList.add('active'); btn.style.color = '#0284c7'; btn.style.borderBottom = '2px solid #0284c7'; btn.style.fontWeight = '600';
+                filterTaskCards(btn.dataset.filter);
+            });
+        });
+        if (tabButtons[0]) tabButtons[0].click();
+    }
+
+    function filterTaskCards(statusKey) {
+        const cards = document.querySelectorAll('.task-card');
+        const tasks = getTasks();
+        const history = getHistory();
+
+        cards.forEach((card, idx) => {
+            const codeEl = card.querySelector('.card-title small');
+            const taskId = codeEl ? codeEl.textContent.trim() : '';
+            
+            const task = tasks.find(t => t.id === taskId);
+            const historyItem = history.find(item => item.id === taskId);
+
+            if (statusKey === 'semua') { card.style.display = ''; return; }
+
+            const isTaskBaru = task && task.status === 'Tugas Baru';
+            const isProses = task && task.status === 'Sedang Dikerjakan';
+            const isSelesai = historyItem || (task && task.status === 'Selesai');
+
+            if (statusKey === 'tugas baru' && isTaskBaru) card.style.display = '';
+            else if (statusKey === 'sedang dikerjakan' && isProses) card.style.display = '';
+            else if (statusKey === 'selesai' && isSelesai) card.style.display = '';
+            else card.style.display = 'none';
+        });
+    }
 
     // ============================================================
-    // 11. INISIALISASI
+    // 6. FUNGSI RIWAYAT & DETAIL
     // ============================================================
+    function renderRiwayat() {
+        const container = document.getElementById('history-list');
+        if (!container) return;
 
+        const history = getHistory();
+        container.innerHTML = '';
+        if (history.length === 0) {
+            container.innerHTML = `<p class="text-muted">Belum ada riwayat perbaikan.</p>`;
+            return;
+        }
+
+        history.forEach(item => {
+            const card = document.createElement('article');
+            card.className = 'glass-card';
+            card.style.cursor = 'pointer';
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <div>
+                        <h3 class="card-title" style="margin: 0;">${item.judul || 'Perbaikan'}</h3>
+                        <p class="text-muted" style="font-size: 14px; margin-top: 4px;">${item.lokasi || '-'}</p>
+                    </div>
+                    <span class="status-badge status-badge-success">Selesai</span>
+                </div>
+                <div style="display: flex; gap: 20px; font-size: 13px; color: #64748b; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px;">
+                    <span><i class="fa-regular fa-square-check"></i> Selesai ${item.tanggalSelesai || '-'}</span>
+                    <span><i class="fa-regular fa-clock"></i> Dikerjakan ${item.durasi || '-'}</span>
+                </div>
+                <div>
+                    <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">Catatan Teknisi</span>
+                    <p style="margin-top: 4px; font-size: 14px; color: #334155;">${item.catatan || '-'}</p>
+                </div>
+            `;
+            card.addEventListener('click', () => window.lihatDetailRiwayat(item.id));
+            container.appendChild(card);
+        });
+    }
+
+    let currentDetailId = null;
+
+    window.lihatDetailRiwayat = function(id) {
+        const history = getHistory();
+        const item = history.find(h => h.id === id);
+        if (!item) return;
+
+        currentDetailId = id;
+        const modal = document.getElementById('modalDetailPengaduan');
+        if (!modal) return;
+
+        if (document.getElementById('detailJudul')) document.getElementById('detailJudul').textContent = item.judul || '-';
+        if (document.getElementById('detailId')) document.getElementById('detailId').textContent = '#' + (item.id || '-');
+        if (document.getElementById('detailLokasi')) document.getElementById('detailLokasi').textContent = item.lokasi || '-';
+        if (document.getElementById('detailPelapor')) document.getElementById('detailPelapor').textContent = item.pelapor || '-';
+        if (document.getElementById('detailStatus')) document.getElementById('detailStatus').textContent = item.status || 'Selesai';
+        if (document.getElementById('detailTanggal')) document.getElementById('detailTanggal').textContent = item.tanggalSelesai || '-';
+        if (document.getElementById('detailDeskripsi')) document.getElementById('detailDeskripsi').textContent = item.catatan || '-';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+    };
+
+    window.editLaporanSelesai = function() {
+        if (!currentDetailId) return;
+        window.tutupDetail();
+        window.openModalForTask(currentDetailId, 'Edit Laporan Selesai');
+    };
+
+    window.tutupDetail = function() {
+        const modal = document.getElementById('modalDetailPengaduan');
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('active'); }
+    };
+
+    window.openModalForTask = openModalForTask;
+
+    // ============================================================
+    // 7. BOOT
+    // ============================================================
     window.initTeknisiPage = function (initialData) {
         initTeknisiStorage(initialData);
-        initDashboard();
-        initDaftarTugas();
-        initRiwayat();
+        
+        updateDashboardMetrics();
+        renderDashboard();
+        renderDaftarTugas();
+        initDaftarTugasTabs();
+        renderRiwayat();
     };
 
 })();
-
-/* ============================================================
-   FUNGSI MODAL DETAIL RIWAYAT TEKNISI (GLOBAL)
-   ============================================================ */
-window.openHistoryDetail = function(judul, lokasi, tanggalSelesai, catatan) {
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (!modal) return;
-
-  document.getElementById('detailJudul').textContent = judul || '-';
-  document.getElementById('detailId').textContent = '#' + Math.floor(Math.random() * 10000);
-  document.getElementById('detailPelapor').textContent = 'Pelapor';
-  document.getElementById('detailLokasi').textContent = lokasi || '-';
-  document.getElementById('detailKategori').textContent = 'Fasilitas';
-  document.getElementById('detailStatus').textContent = 'Selesai';
-  document.getElementById('detailTanggal').textContent = tanggalSelesai || '-';
-  document.getElementById('detailDeskripsi').textContent = catatan || '-';
-
-  modal.classList.remove('hidden');
-  modal.classList.add('active');
-};
-
-window.tutupDetail = function() {
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('active');
-  }
-};

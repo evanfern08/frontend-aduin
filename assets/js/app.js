@@ -645,24 +645,132 @@ function renderDashboard(data) {
 function renderRiwayat(data) {
   const list = document.getElementById('riwayatList');
   if (!list || !data) return;
+  
+  // Ambil data dari localStorage (biar statusnya up-to-date)
+  let laporan = data.laporan_masuk || [];
+  try {
+    const stored = localStorage.getItem('aduin_reports');
+    if (stored) laporan = JSON.parse(stored);
+  } catch (e) {}
+
   list.innerHTML = '';
-  (data.laporan_masuk || []).forEach((item) => list.appendChild(buildRiwayatCard(item)));
+  laporan.forEach((item) => list.appendChild(buildRiwayatCard(item)));
+
+  // Logika Filter Pills
   document.querySelectorAll('.filter-pill').forEach((pill) => {
-    pill.addEventListener('click', () => {
+    // Hapus event lama biar gak dobel
+    const newPill = pill.cloneNode(true);
+    pill.parentNode.replaceChild(newPill, pill);
+
+    newPill.addEventListener('click', () => {
       document.querySelectorAll('.filter-pill').forEach((p) => p.classList.remove('active'));
-      pill.classList.add('active');
-      const f = pill.getAttribute('data-filter');
+      newPill.classList.add('active');
+      const f = newPill.getAttribute('data-filter');
+      
       document.querySelectorAll('.riwayat-card').forEach((card) => {
         const s = card.getAttribute('data-status');
-        card.style.display = f === 'Semua' || s === f ? '' : 'none';
+        card.style.display = (f === 'Semua' || s === f) ? '' : 'none';
       });
     });
   });
 }
 
+function buildRiwayatCard(item) {
+  const card = document.createElement('div');
+  card.className = 'glass-card riwayat-card';
+  card.setAttribute('data-status', item.status);
+  card.style.cursor = 'pointer'; // Biar bisa diklik
+  
+  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Diteruskan ke Pusat', 'Selesai'];
+  const currentIndex = statusOrder.indexOf(item.status);
+  const isRejected = item.status === 'Ditolak';
+  const isPusat = item.status === 'Diteruskan ke Pusat';
+
+  const pillMap = { 
+    'Menunggu Verifikasi': 'status-pill-warning', 
+    'Disetujui': 'status-pill-info', 
+    'Dalam Perbaikan': 'status-pill-info', 
+    'Diteruskan ke Pusat': 'status-pill-purple', 
+    'Selesai': 'status-pill-success', 
+    'Ditolak': 'status-pill-danger' 
+  };
+  const pillClass = pillMap[item.status] || 'status-pill-neutral';
+
+  const nodes = [
+    { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
+    { label: 'Disetujui', sub: 'Validasi Kajur' },
+    { 
+      label: isPusat || (item.status === 'Selesai' && item.disposition === 'UPA PP Pusat') ? 'UPA PP Pusat' : 'Dalam Perbaikan', 
+      sub: isPusat ? 'Diserahkan ke Pusat' : (item.teknisi || 'Teknisi') 
+    },
+    { label: 'Selesai', sub: 'Fasilitas Normal' },
+  ];
+
+  const timelineHTML = nodes.map((n, i) => {
+    let cls = 'timeline-node';
+    let dot = i + 1;
+    
+    let adjustedIndex = currentIndex;
+    if (isPusat) adjustedIndex = 2; 
+    else if (item.disposition === 'UPA PP Pusat' && item.status === 'Selesai') adjustedIndex = 4;
+
+    if (!isRejected) {
+      if (i < adjustedIndex) { cls += ' done'; dot = '✓'; }
+      else if (i === adjustedIndex) {
+        if (item.status === 'Selesai') { cls += ' success'; dot = '✓'; }
+        else { cls += ' active'; dot = i === 0 ? '✓' : i === 2 ? '⚙' : i + 1; }
+      }
+    } else if (i === 0) { cls += ' done'; dot = '✓'; }
+    
+    return `<div class="${cls}"><div class="timeline-dot">${dot}</div><span class="timeline-caption">${n.label}</span><span class="timeline-sub">${n.sub}</span></div>`;
+  }).join('');
+
+  const btnEditStatus = isPusat 
+    ? `<button class="btn btn-success" style="margin-top: 10px; padding: 6px 12px; font-size: 12px;" onclick="event.stopPropagation(); tandaiSelesaiPusat('${item.id}')">✓ Tandai Selesai (Pusat)</button>` 
+    : '';
+
+  card.innerHTML = `
+    <div class="riwayat-head">
+      <div>
+        <h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3>
+        <p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <span class="status-pill ${pillClass}">${item.status}</span>
+        ${btnEditStatus}
+      </div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="timeline-label">Progress Tracker Timeline</div>
+      <div class="timeline">${timelineHTML}</div>
+    </div>
+  `;
+
+  // Klik kartu buka modal detail
+  card.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') return;
+    if (document.getElementById('detailJudul')) document.getElementById('detailJudul').textContent = item.judul || '-';
+    if (document.getElementById('detailId')) document.getElementById('detailId').textContent = '#' + (item.id || '-');
+    if (document.getElementById('detailPelapor')) document.getElementById('detailPelapor').textContent = item.pelapor?.nama || '-';
+    if (document.getElementById('detailLokasi')) document.getElementById('detailLokasi').textContent = item.lokasi?.nama || '-';
+    if (document.getElementById('detailKategori')) document.getElementById('detailKategori').textContent = item.kategori || '-';
+    if (document.getElementById('detailStatus')) document.getElementById('detailStatus').textContent = item.status || '-';
+    if (document.getElementById('detailTanggal')) document.getElementById('detailTanggal').textContent = `${item.tanggal} · ${item.waktu}` || '-';
+    if (document.getElementById('detailDeskripsi')) document.getElementById('detailDeskripsi').textContent = item.deskripsi || '-';
+
+    const modal = document.getElementById('modalDetailPengaduan');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  });
+
+  return card;
+}
 
 // Fungsi untuk mengubah status "Diteruskan ke Pusat" menjadi "Selesai"
-function tandaiSelesaiPusat(id) {
+window.tandaiSelesaiPusat = function(id) {
   if (!confirm('Apakah Anda yakin penanganan di UPA PP Pusat sudah selesai? Status akan diubah menjadi Selesai.')) {
     return;
   }
@@ -675,14 +783,18 @@ function tandaiSelesaiPusat(id) {
     saveStoredReports(reports);
     showToast('Status laporan berhasil diubah menjadi Selesai.', 'success');
     
-    // Reload halaman setelah 1 detik agar perubahan langsung kelihatan
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+    // Refresh data tanpa reload penuh
+    loadVerifikatorData().then(data => {
+      if (data) {
+        // Kita override data laporan_masuk pake data dari localStorage
+        const latestData = { ...data, laporan_masuk: getStoredReports() };
+        renderRiwayat(latestData);
+      }
+    });
   } else {
     showToast('Laporan tidak ditemukan.', 'error');
   }
-}
+};
 
 function renderStatistik(data) {
   if (!data || !data.statistik) return;
@@ -955,11 +1067,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Halaman Teknisi
   if (window.location.pathname.toLowerCase().includes('/teknisi/')) {
     try {
-      const data = await loadTeknisiData();
+      const data = await loadTeknisiData(); // Ini harus fetch data.json
       if (typeof window.initTeknisiPage !== 'function') {
         throw new Error('Inisialisasi halaman Teknisi tidak tersedia');
       }
-      window.initTeknisiPage(data);
+      window.initTeknisiPage(data); // Lempar data.json ke teknisi.js
     } catch (err) {
       console.error('Gagal memuat halaman Teknisi:', err);
       showToast('Data Teknisi gagal dimuat. Coba muat ulang halaman.', 'error');
