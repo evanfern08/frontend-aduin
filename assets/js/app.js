@@ -657,34 +657,103 @@ function buildRiwayatCard(item) {
   const card = document.createElement('div');
   card.className = 'glass-card riwayat-card';
   card.setAttribute('data-status', item.status);
-  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Selesai'];
+
+  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Diteruskan ke Pusat', 'Selesai'];
   const currentIndex = statusOrder.indexOf(item.status);
   const isRejected = item.status === 'Ditolak';
-  const pillMap = { 'Menunggu Verifikasi': 'status-pill-warning', Disetujui: 'status-pill-info', 'Dalam Perbaikan': 'status-pill-info', Selesai: 'status-pill-success', Ditolak: 'status-pill-danger' };
+  const isPusat = item.status === 'Diteruskan ke Pusat';
+
+  const pillMap = { 
+    'Menunggu Verifikasi': 'status-pill-warning', 
+    'Disetujui': 'status-pill-info', 
+    'Dalam Perbaikan': 'status-pill-info', 
+    'Diteruskan ke Pusat': 'status-pill-purple', // pastikan class ini ada di CSS, atau pakai status-pill-info
+    'Selesai': 'status-pill-success', 
+    'Ditolak': 'status-pill-danger' 
+  };
   const pillClass = pillMap[item.status] || 'status-pill-neutral';
+
+  // Nodes Timeline (Disesuaikan jika lewat pusat)
   const nodes = [
     { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
     { label: 'Disetujui', sub: 'Validasi Kajur' },
-    { label: 'Dalam Perbaikan', sub: item.teknisi || 'Teknisi' },
+    { 
+      label: isPusat || item.status === 'Selesai' && item.disposition === 'UPA PP Pusat' ? 'UPA PP Pusat' : 'Dalam Perbaikan', 
+      sub: isPusat ? 'Diserahkan ke Pusat' : (item.teknisi || 'Teknisi') 
+    },
     { label: 'Selesai', sub: 'Fasilitas Normal' },
   ];
+
   const timelineHTML = nodes.map((n, i) => {
     let cls = 'timeline-node';
     let dot = i + 1;
+    
+    // Sesuaikan index jika statusnya Diteruskan ke Pusat
+    let adjustedIndex = currentIndex;
+    if (isPusat) adjustedIndex = 2; 
+    else if (item.disposition === 'UPA PP Pusat' && item.status === 'Selesai') adjustedIndex = 4;
+
     if (!isRejected) {
-      if (i < currentIndex) { cls += ' done'; dot = '✓'; }
-      else if (i === currentIndex) {
+      if (i < adjustedIndex) { cls += ' done'; dot = '✓'; }
+      else if (i === adjustedIndex) {
         if (item.status === 'Selesai') { cls += ' success'; dot = '✓'; }
         else { cls += ' active'; dot = i === 0 ? '✓' : i === 2 ? '⚙' : i + 1; }
       }
     } else if (i === 0) { cls += ' done'; dot = '✓'; }
+    
     return `<div class="${cls}"><div class="timeline-dot">${dot}</div><span class="timeline-caption">${n.label}</span><span class="timeline-sub">${n.sub}</span></div>`;
   }).join('');
+
+  // TOMBOL EDIT STATUS KHUSUS (Hanya muncul jika Diteruskan ke Pusat)
+  const btnEditStatus = isPusat 
+    ? `<button class="btn btn-success" style="margin-top: 10px; padding: 6px 12px; font-size: 12px;" onclick="tandaiSelesaiPusat('${item.id}')">✓ Tandai Selesai (Pusat)</button>` 
+    : '';
+
   card.innerHTML = `
-    <div class="riwayat-head"><div><h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3><p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p></div><span class="status-pill ${pillClass}">${item.status}</span></div>
-    <div class="timeline-wrap"><div class="timeline-label">Progress Tracker Timeline</div><div class="timeline">${timelineHTML}</div></div>
+    <div class="riwayat-head">
+      <div>
+        <h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3>
+        <p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <span class="status-pill ${pillClass}">${item.status}</span>
+        ${btnEditStatus}
+      </div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="timeline-label">Progress Tracker Timeline</div>
+      <div class="timeline">${timelineHTML}</div>
+    </div>
   `;
   return card;
+}
+
+// Fungsi untuk mengubah status "Diteruskan ke Pusat" menjadi "Selesai"
+function tandaiSelesaiPusat(id) {
+  if (!confirm('Apakah Anda yakin penanganan di UPA PP Pusat sudah selesai? Status akan diubah menjadi Selesai.')) {
+    return;
+  }
+
+  // Ambil data dari localStorage
+  const reports = getStoredReports();
+  const target = reports.find(r => r.id === id);
+
+  if (target) {
+    target.status = 'Selesai';
+    // Simpan kembali ke localStorage
+    saveStoredReports(reports);
+    
+    showToast('Status laporan berhasil diubah menjadi Selesai.', 'success');
+    
+    // Render ulang tabel/list agar perubahan langsung terlihat
+    // Kita panggil loadVerifikatorData yang nanti akan memanggil renderRiwayat
+    loadVerifikatorData().then(data => {
+      if (data) renderRiwayat(data);
+    });
+  } else {
+    showToast('Laporan tidak ditemukan.', 'error');
+  }
 }
 
 function renderStatistik(data) {

@@ -14,6 +14,9 @@
 
   <div class="dashboard-wrapper">
     <!-- Sidebar Navigasi Utama -->
+    <div class="dashboard-wrapper">
+    
+    <!-- SIDEBAR KIRI -->
     <aside class="sidebar-blue" aria-label="Navigasi teknisi">
       <div class="sidebar-top">
         <a href="index.html" class="sidebar-brand">
@@ -41,7 +44,7 @@
             <i class="fa-solid fa-clipboard-list"></i>
             <span>Daftar Laporan</span>
           </a>
-          <a href="../pengaturan.html" class="nav-link">
+          <a href="../pengaturan.html?role=teknisi" class="nav-link">
             <i class="fa-solid fa-gear"></i>
             <span>Pengaturan</span>
           </a>
@@ -50,14 +53,14 @@
 
       <div class="sidebar-bottom">
         <div class="sidebar-user-card">
-          <span class="user-avatar-sm">BP</span>
+          <span class="user-avatar-sm role-teknisi">BP</span>
           <div class="sidebar-user-info">
             <p class="sidebar-user-name">Budi Prakroso</p>
             <p class="sidebar-user-role">Teknisi</p>
           </div>
         </div>
         <a href="../login.html" class="btn-logout">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
             <path d="m16 17 5-5-5-5M21 12H9"></path>
           </svg>
@@ -65,6 +68,7 @@
         </a>
       </div>
     </aside>
+
 
     <!-- Main Content Area -->
     <div class="main-content">

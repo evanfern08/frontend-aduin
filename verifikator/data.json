@@ -110,6 +110,26 @@
       "waktu": "15:45 WIB",
       "teknisi": "-",
       "deskripsi": "Laporan ditolak karena teridentifikasi sebagai laporan duplikat untuk kerusakan pada meja praktikum yang sama."
+    },
+    {
+      "id": "LIG_1_7T",
+      "judul": "Kursi Rusak",
+      "pelapor": {
+        "nama": "Rachmah Nur Chotimah",
+        "nim": "254107060052",
+        "inisial": "RN"
+      },
+      "lokasi": {
+        "kode": "LIG 1_7T",
+        "nama": "Lab Informatika Gedung 1 Lt. 7"
+      },
+      "kategori": "Furnitur",
+      "status": "Diteruskan ke Pusat",
+      "disposition": "UPA PP Pusat",
+      "tanggal": "28 Agustus 2026",
+      "waktu": "10:15 WIB",
+      "teknisi": "-",
+      "deskripsi": "Kursi kuliah di baris ketiga patah pada bagian sandaran. Karena membutuhkan penggantian unit baru dari pusat, laporan ini diteruskan ke UPA PP Pusat."
     }
   ],
   "statistik": {
@@ -174,30 +194,30 @@
       }
     ],
     "teknisi": [
-  {
-    "id": "T001",
-    "nama": "Pak Joko",
-    "nip": "E0010",
-    "spesialisasi": "Teknisi Sarpras TI",
-    "status": "Aktif",
-    "tugas_berjalan": 2
-  },
-  {
-    "id": "T002",
-    "nama": "Pak Agus",
-    "nip": "E0011",
-    "spesialisasi": "Teknisi Listrik JTI",
-    "status": "Aktif",
-    "tugas_berjalan": 1
-  },
-  {
-    "id": "T003",
-    "nama": "Pak Doni",
-    "nip": "E0012",
-    "spesialisasi": "Logistik & Furniture",
-    "status": "Cuti",
-    "tugas_berjalan": 0
-  }
-]
+      {
+        "id": "T001",
+        "nama": "Pak Joko",
+        "nip": "E0010",
+        "spesialisasi": "Teknisi Sarpras TI",
+        "status": "Aktif",
+        "tugas_berjalan": 2
+      },
+      {
+        "id": "T002",
+        "nama": "Pak Agus",
+        "nip": "E0011",
+        "spesialisasi": "Teknisi Listrik JTI",
+        "status": "Aktif",
+        "tugas_berjalan": 1
+      },
+      {
+        "id": "T003",
+        "nama": "Pak Doni",
+        "nip": "E0012",
+        "spesialisasi": "Logistik & Furniture",
+        "status": "Cuti",
+        "tugas_berjalan": 0
+      }
+    ]
   }
 }
