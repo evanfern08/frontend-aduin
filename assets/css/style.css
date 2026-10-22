@@ -295,6 +295,11 @@ button { font-family: inherit; cursor: pointer; }
   border-color: rgba(225, 29, 72, 0.3);
 }
 
+.sidebar-nav .nav-link i {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
 
 
 /* --------------------------------------------------------------------------
