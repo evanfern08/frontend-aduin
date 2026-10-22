@@ -564,7 +564,14 @@ async function loadVerifikatorData() {
   try {
     const res = await fetch('data.json');
     if (!res.ok) throw new Error('Gagal memuat data.json');
-    return await res.json();
+    const data = await res.json();
+    
+    // Simpan data dari JSON ke localStorage agar bisa diubah statusnya
+    if (!localStorage.getItem('aduin_reports') && data.laporan_masuk) {
+      localStorage.setItem('aduin_reports', JSON.stringify(data.laporan_masuk));
+    }
+    
+    return data;
   } catch (err) {
     console.warn('loadVerifikatorData gagal:', err);
     return null;
@@ -735,22 +742,18 @@ function tandaiSelesaiPusat(id) {
     return;
   }
 
-  // Ambil data dari localStorage
   const reports = getStoredReports();
   const target = reports.find(r => r.id === id);
 
   if (target) {
     target.status = 'Selesai';
-    // Simpan kembali ke localStorage
     saveStoredReports(reports);
-    
     showToast('Status laporan berhasil diubah menjadi Selesai.', 'success');
     
-    // Render ulang tabel/list agar perubahan langsung terlihat
-    // Kita panggil loadVerifikatorData yang nanti akan memanggil renderRiwayat
-    loadVerifikatorData().then(data => {
-      if (data) renderRiwayat(data);
-    });
+    // Reload halaman setelah 1 detik agar perubahan langsung kelihatan
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   } else {
     showToast('Laporan tidak ditemukan.', 'error');
   }
