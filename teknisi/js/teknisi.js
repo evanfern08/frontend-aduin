@@ -1738,3 +1738,31 @@
     };
 
 })();
+
+/* ============================================================
+   FUNGSI MODAL DETAIL RIWAYAT TEKNISI (GLOBAL)
+   ============================================================ */
+window.openHistoryDetail = function(judul, lokasi, tanggalSelesai, catatan) {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (!modal) return;
+
+  document.getElementById('detailJudul').textContent = judul || '-';
+  document.getElementById('detailId').textContent = '#' + Math.floor(Math.random() * 10000);
+  document.getElementById('detailPelapor').textContent = 'Pelapor';
+  document.getElementById('detailLokasi').textContent = lokasi || '-';
+  document.getElementById('detailKategori').textContent = 'Fasilitas';
+  document.getElementById('detailStatus').textContent = 'Selesai';
+  document.getElementById('detailTanggal').textContent = tanggalSelesai || '-';
+  document.getElementById('detailDeskripsi').textContent = catatan || '-';
+
+  modal.classList.remove('hidden');
+  modal.classList.add('active');
+};
+
+window.tutupDetail = function() {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('active');
+  }
+};

@@ -660,81 +660,6 @@ function renderRiwayat(data) {
   });
 }
 
-function buildRiwayatCard(item) {
-  const card = document.createElement('div');
-  card.className = 'glass-card riwayat-card';
-  card.setAttribute('data-status', item.status);
-
-  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Diteruskan ke Pusat', 'Selesai'];
-  const currentIndex = statusOrder.indexOf(item.status);
-  const isRejected = item.status === 'Ditolak';
-  const isPusat = item.status === 'Diteruskan ke Pusat';
-
-  const pillMap = { 
-    'Menunggu Verifikasi': 'status-pill-warning', 
-    'Disetujui': 'status-pill-info', 
-    'Dalam Perbaikan': 'status-pill-info', 
-    'Diteruskan ke Pusat': 'status-pill-purple', // pastikan class ini ada di CSS, atau pakai status-pill-info
-    'Selesai': 'status-pill-success', 
-    'Ditolak': 'status-pill-danger' 
-  };
-  const pillClass = pillMap[item.status] || 'status-pill-neutral';
-
-  // Nodes Timeline (Disesuaikan jika lewat pusat)
-  const nodes = [
-    { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
-    { label: 'Disetujui', sub: 'Validasi Kajur' },
-    { 
-      label: isPusat || item.status === 'Selesai' && item.disposition === 'UPA PP Pusat' ? 'UPA PP Pusat' : 'Dalam Perbaikan', 
-      sub: isPusat ? 'Diserahkan ke Pusat' : (item.teknisi || 'Teknisi') 
-    },
-    { label: 'Selesai', sub: 'Fasilitas Normal' },
-  ];
-
-  const timelineHTML = nodes.map((n, i) => {
-    let cls = 'timeline-node';
-    let dot = i + 1;
-    
-    // Sesuaikan index jika statusnya Diteruskan ke Pusat
-    let adjustedIndex = currentIndex;
-    if (isPusat) adjustedIndex = 2; 
-    else if (item.disposition === 'UPA PP Pusat' && item.status === 'Selesai') adjustedIndex = 4;
-
-    if (!isRejected) {
-      if (i < adjustedIndex) { cls += ' done'; dot = '✓'; }
-      else if (i === adjustedIndex) {
-        if (item.status === 'Selesai') { cls += ' success'; dot = '✓'; }
-        else { cls += ' active'; dot = i === 0 ? '✓' : i === 2 ? '⚙' : i + 1; }
-      }
-    } else if (i === 0) { cls += ' done'; dot = '✓'; }
-    
-    return `<div class="${cls}"><div class="timeline-dot">${dot}</div><span class="timeline-caption">${n.label}</span><span class="timeline-sub">${n.sub}</span></div>`;
-  }).join('');
-
-  // TOMBOL EDIT STATUS KHUSUS (Hanya muncul jika Diteruskan ke Pusat)
-  const btnEditStatus = isPusat 
-    ? `<button class="btn btn-success" style="margin-top: 10px; padding: 6px 12px; font-size: 12px;" onclick="tandaiSelesaiPusat('${item.id}')">✓ Tandai Selesai (Pusat)</button>` 
-    : '';
-
-  card.innerHTML = `
-    <div class="riwayat-head">
-      <div>
-        <h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3>
-        <p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p>
-      </div>
-      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-        <span class="status-pill ${pillClass}">${item.status}</span>
-        ${btnEditStatus}
-      </div>
-    </div>
-
-    <div class="timeline-wrap">
-      <div class="timeline-label">Progress Tracker Timeline</div>
-      <div class="timeline">${timelineHTML}</div>
-    </div>
-  `;
-  return card;
-}
 
 // Fungsi untuk mengubah status "Diteruskan ke Pusat" menjadi "Selesai"
 function tandaiSelesaiPusat(id) {
@@ -767,16 +692,24 @@ function renderStatistik(data) {
   setText('statResolusi', s.tingkat_resolusi);
   setText('statRata', s.rata_rata_penanganan);
   setText('statRespon', s.respon_verifikasi);
+  
   const tbody = document.getElementById('rankingTableBody');
   if (tbody) {
     tbody.innerHTML = '';
     (s.ranking_lokasi || []).forEach((r) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td><strong>#${r.peringkat}</strong></td><td>${r.lokasi}</td><td>${r.jumlah} Laporan</td>`;
+      // Aku ubah baris ini biar rata kanan dan ada jarak (padding)
+      tr.innerHTML = `
+        <td><strong>#${r.peringkat}</strong></td>
+        <td>${r.lokasi}</td>
+        <td style="text-align: right; padding-right: 24px;">${r.jumlah} Laporan</td>
+      `;
       tbody.appendChild(tr);
     });
   }
+  
   if (typeof Chart === 'undefined') return;
+  
   const trenEl = document.getElementById('trenChart');
   if (trenEl) {
     new Chart(trenEl, {
@@ -785,6 +718,7 @@ function renderStatistik(data) {
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
     });
   }
+  
   const katEl = document.getElementById('kategoriChart');
   if (katEl) {
     new Chart(katEl, {
@@ -807,6 +741,70 @@ async function loadPelaporData() {
   }
   return data;
 }
+
+  function createReportCard(report, profileName) {
+    const card = document.createElement("article");
+    card.className = "glass-card riwayat-card";
+    card.style.cursor = "pointer"; // Tambahkan pointer biar bisa diklik
+
+    const heading = document.createElement("div");
+    heading.className = "riwayat-head";
+    const details = document.createElement("div");
+    const title = document.createElement("h3");
+    title.className = "riwayat-title";
+    title.textContent = report.title;
+    const location = document.createElement("p");
+    location.className = "riwayat-meta";
+    location.textContent = `${report.roomLabel} · ${reportDate(report.date)}`;
+    const reporter = document.createElement("p");
+    reporter.className = "riwayat-meta";
+    reporter.textContent = `Pelapor: ${profileName} · ${report.category}`;
+    details.append(title, location, reporter);
+
+    const badge = document.createElement("span");
+    badge.className = `status-pill ${reportStatusClass(report.status)}`;
+    badge.textContent = report.status;
+    heading.append(details, badge);
+    card.append(heading);
+
+    if (report.description) {
+      const description = document.createElement("p");
+      description.className = "card-subtitle";
+      description.textContent = report.description;
+      card.append(description);
+    }
+    if (report.photoName) {
+      const photo = document.createElement("p");
+      photo.className = "text-muted";
+      photo.textContent = `Foto dipilih: ${report.photoName} (belum diunggah ke server)`;
+      card.append(photo);
+    }
+    card.append(progressCard(report.status));
+    card.dataset.status = report.status;
+
+    // ==========================================
+    // TAMBAHKAN EVENT KLIK UNTUK MEMBUKA DETAIL
+    // ==========================================
+    card.addEventListener("click", () => {
+      const modal = document.getElementById("modalDetailPengaduan");
+      if (!modal) return;
+
+      document.getElementById("detailJudul").textContent = report.title || "-";
+      document.getElementById("detailId").textContent = "#" + (report.id || "-");
+      document.getElementById("detailPelapor").textContent = profileName;
+      document.getElementById("detailLokasi").textContent = report.roomLabel || "-";
+      document.getElementById("detailKategori").textContent = report.category || "-";
+      document.getElementById("detailStatus").textContent = report.status || "-";
+      document.getElementById("detailTanggal").textContent = reportDate(report.date) || "-";
+      document.getElementById("detailDeskripsi").textContent = report.description || "-";
+
+      modal.classList.remove("hidden");
+      modal.classList.add("active");
+    });
+
+    return card;
+  }
+
 
 /* ==========================================================================
    11. HALAMAN TEKNISI
@@ -1162,3 +1160,31 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDataTeknisi();
   }
 });
+
+/* ==========================================================================
+   FUNGSI MODAL DETAIL PENGADUAN (GLOBAL)
+   ========================================================================== */
+function bukaDetail(item) {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (!modal) return; // skip kalau modal tidak ada di halaman ini
+
+  document.getElementById('detailJudul').textContent = item.judul || '-';
+  document.getElementById('detailId').textContent = '#' + (item.id || '-');
+  document.getElementById('detailPelapor').textContent = item.pelapor?.nama || '-';
+  document.getElementById('detailLokasi').textContent = `${item.lokasi?.kode || ''} - ${item.lokasi?.nama || ''}`;
+  document.getElementById('detailKategori').textContent = item.kategori || '-';
+  document.getElementById('detailStatus').textContent = item.status || '-';
+  document.getElementById('detailTanggal').textContent = `${item.tanggal || '-'} · ${item.waktu || '-'}`;
+  document.getElementById('detailDeskripsi').textContent = item.deskripsi || '-';
+
+  modal.classList.remove('hidden');
+  modal.classList.add('active'); // buat kompatibilitas CSS lama
+}
+
+function tutupDetail() {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('active');
+  }
+}

@@ -100,6 +100,29 @@
       </main>
     </div>
   </div>
+  <!-- MODAL DETAIL PENGADUAN -->
+<div id="modalDetailPengaduan" class="modal-overlay hidden" onclick="tutupDetail()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title" id="detailJudul">Judul Laporan</h3>
+        <span class="modal-subtitle" id="detailId">#ID</span>
+      </div>
+      <button type="button" class="modal-close" onclick="tutupDetail()">✕</button>
+    </div>
+    <div class="modal-body" style="font-size: 13px;">
+      <p><strong>Pelapor:</strong> <span id="detailPelapor">-</span></p>
+      <p><strong>Lokasi:</strong> <span id="detailLokasi">-</span></p>
+      <p><strong>Kategori:</strong> <span id="detailKategori">-</span></p>
+      <p><strong>Status:</strong> <span id="detailStatus">-</span></p>
+      <p><strong>Tanggal:</strong> <span id="detailTanggal">-</span></p>
+      <div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+        <strong>Deskripsi:</strong><br>
+        <span id="detailDeskripsi">-</span>
+      </div>
+    </div>
+  </div>
+</div>
 
   <script src="../assets/js/app.js"></script>
 </body>
