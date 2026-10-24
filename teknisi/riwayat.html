@@ -83,10 +83,10 @@
         <section>
           <h2 class="card-title">Riwayat perbaikan</h2>
           <p class="text-muted" style="margin-bottom: 15px;">Catatan perbaikan yang sudah kamu selesaikan beserta bukti pengerjaan.</p>
-          <div style="display: flex; gap: 10px; margin-bottom: 25px;">
-            <button class="btn btn-success">Semua</button>
-            <button class="btn btn-ghost" style="border: 1px solid #d1d5db;">Minggu Ini</button>
-            <button class="btn btn-ghost" style="border: 1px solid #d1d5db;">Bulan Ini</button>
+          <div id="history-filters" style="display: flex; gap: 10px; margin-bottom: 25px;">
+            <button type="button" class="btn btn-success" data-history-filter="Semua" aria-pressed="true">Semua</button>
+            <button type="button" class="btn btn-ghost" data-history-filter="Minggu Ini" aria-pressed="false" style="border: 1px solid #d1d5db;">Minggu Ini</button>
+            <button type="button" class="btn btn-ghost" data-history-filter="Bulan Ini" aria-pressed="false" style="border: 1px solid #d1d5db;">Bulan Ini</button>
           </div>
         </section>
 

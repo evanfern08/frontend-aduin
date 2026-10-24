@@ -369,14 +369,57 @@
     // ============================================================
     // 6. FUNGSI RIWAYAT & DETAIL
     // ============================================================
-    function renderRiwayat() {
+    function isHistoryInPeriod(item, period) {
+        if (period === 'Semua') return true;
+        if (item.periode === period) return true;
+
+        const completedAt = item.tanggalSelesai === 'Hari ini'
+            ? new Date()
+            : new Date(item.tanggalSelesai);
+        if (Number.isNaN(completedAt.getTime())) return false;
+
+        const now = new Date();
+        if (completedAt > now) return false;
+        if (period === 'Bulan Ini') {
+            return completedAt.getFullYear() === now.getFullYear()
+                && completedAt.getMonth() === now.getMonth();
+        }
+
+        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const daysSinceMonday = (startOfWeek.getDay() + 6) % 7;
+        startOfWeek.setDate(startOfWeek.getDate() - daysSinceMonday);
+        return completedAt >= startOfWeek;
+    }
+
+    function initRiwayatFilters() {
+        const filterContainer = document.getElementById('history-filters');
+        if (!filterContainer) return;
+
+        filterContainer.querySelectorAll('[data-history-filter]').forEach(button => {
+            button.addEventListener('click', () => {
+                const period = button.dataset.historyFilter;
+                filterContainer.querySelectorAll('[data-history-filter]').forEach(filterButton => {
+                    const isActive = filterButton === button;
+                    filterButton.classList.toggle('btn-success', isActive);
+                    filterButton.classList.toggle('btn-ghost', !isActive);
+                    filterButton.setAttribute('aria-pressed', String(isActive));
+                });
+                renderRiwayat(period);
+            });
+        });
+    }
+
+    function renderRiwayat(period = 'Semua') {
         const container = document.getElementById('history-list');
         if (!container) return;
 
-        const history = getHistory();
+        const history = getHistory().filter(item => isHistoryInPeriod(item, period));
         container.innerHTML = '';
         if (history.length === 0) {
-            container.innerHTML = `<p class="text-muted">Belum ada riwayat perbaikan.</p>`;
+            const emptyMessage = period === 'Semua'
+                ? 'Belum ada riwayat perbaikan.'
+                : `Belum ada riwayat perbaikan untuk ${period.toLowerCase()}.`;
+            container.innerHTML = `<p class="text-muted">${emptyMessage}</p>`;
             return;
         }
 
@@ -453,6 +496,7 @@
         renderDaftarTugas();
         initDaftarTugasTabs();
         renderRiwayat();
+        initRiwayatFilters();
     };
 
 })();
