@@ -977,6 +977,22 @@ select.glass-input { cursor: pointer; }
   align-items: start;
 }
 
+.settings-main {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  background-color: #f8fafc;
+}
+
+.settings-page-header {
+  flex: 0 0 auto;
+}
+
+.settings-content {
+  width: 100%;
+  padding: 32px 48px;
+}
+
 /* Profil card */
 .profile-card-clean,
 .profile-card-content {
@@ -1311,6 +1327,24 @@ select.glass-input { cursor: pointer; }
     height: 2px;
     border-radius: 2px;
     background: currentColor;
+    transition: transform 0.2s ease, opacity 0.15s ease;
+  }
+
+  body.sidebar-open .sidebar-toggle {
+    left: min(224px, calc(88vw - 56px));
+    top: 20px;
+  }
+
+  body.sidebar-open .sidebar-toggle span:first-child {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  body.sidebar-open .sidebar-toggle span:nth-child(2) {
+    opacity: 0;
+  }
+
+  body.sidebar-open .sidebar-toggle span:last-child {
+    transform: translateY(-7px) rotate(-45deg);
   }
 
   .sidebar-backdrop {
@@ -1355,4 +1389,3 @@ select.glass-input { cursor: pointer; }
   .header-title, .page-title { font-size: 17px; }
   .metric-value { font-size: 24px; }
 }
-

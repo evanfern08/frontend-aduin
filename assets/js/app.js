@@ -321,6 +321,13 @@ async function initPengaturanPage() {
     ROLE_URL_MAP[roleFromUrl] ||
     session?.role ||
     'Pelapor';
+  const dashboardLinks = {
+    Pelapor: 'pelapor/index.html',
+    Verifikator: 'verifikator/index.html',
+    Teknisi: 'teknisi/index.html',
+  };
+  const brandLink = document.querySelector('.sidebar-brand');
+  if (brandLink) brandLink.href = dashboardLinks[roleInternal] || dashboardLinks.Pelapor;
 
   // ---- LANGKAH 2: FETCH users.json ----
   let usersData = null;
