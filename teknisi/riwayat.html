@@ -14,6 +14,9 @@
 
   <div class="dashboard-wrapper">
     <!-- Sidebar Navigasi Utama -->
+    <div class="dashboard-wrapper">
+    
+    <!-- SIDEBAR KIRI -->
     <aside class="sidebar-blue" aria-label="Navigasi teknisi">
       <div class="sidebar-top">
         <a href="index.html" class="sidebar-brand">
@@ -50,14 +53,14 @@
 
       <div class="sidebar-bottom">
         <div class="sidebar-user-card">
-          <span class="user-avatar-sm">BP</span>
+          <span class="user-avatar-sm role-teknisi">BP</span>
           <div class="sidebar-user-info">
             <p class="sidebar-user-name">Budi Prakroso</p>
             <p class="sidebar-user-role">Teknisi</p>
           </div>
         </div>
         <a href="../login.html" class="btn-logout">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
             <path d="m16 17 5-5-5-5M21 12H9"></path>
           </svg>
@@ -66,8 +69,9 @@
       </div>
     </aside>
 
+
     <!-- Main Content Area -->
-    <div class="main-content">
+ <div class="main-content">
       <header class="content-header">
         <div>
           <span class="header-breadcrumb">Teknisi Pemeliharaan / <strong>Daftar Laporan</strong></span>
@@ -79,8 +83,6 @@
         <section>
           <h2 class="card-title">Riwayat perbaikan</h2>
           <p class="text-muted" style="margin-bottom: 15px;">Catatan perbaikan yang sudah kamu selesaikan beserta bukti pengerjaan.</p>
-
-          <!-- Filter Pill Buttons -->
           <div style="display: flex; gap: 10px; margin-bottom: 25px;">
             <button class="btn btn-success">Semua</button>
             <button class="btn btn-ghost" style="border: 1px solid #d1d5db;">Minggu Ini</button>
@@ -88,77 +90,31 @@
           </div>
         </section>
 
-        <!-- History Card List -->
-        <section style="display: flex; flex-direction: column; gap: 20px;">
-
-          <!-- Card 1 -->
-          <article class="glass-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-              <div>
-                <h3 class="card-title" style="margin: 0;">Pintu Macet</h3>
-                <p class="text-muted" style="font-size: 14px; margin-top: 4px;">R.06.04 · Ruang Dosen 4</p>
-              </div>
-              <span class="status-badge status-badge-success">Selesai</span>
-            </div>
-
-            <div style="display: flex; gap: 20px; font-size: 13px; color: #64748b; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px;">
-              <span><i class="fa-regular fa-square-check"></i> Selesai 19 Sep 2026</span>
-              <span><i class="fa-regular fa-clock"></i> Dikerjakan 1 hari</span>
-            </div>
-
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-              <div style="display: flex; gap: 10px;">
-                <div style="text-align: center; font-size: 12px; color: #666;">
-                  <div style="width: 70px; height: 70px; background: #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
-                  Sebelum
-                </div>
-                <div style="text-align: center; font-size: 12px; color: #666;">
-                  <div style="width: 70px; height: 70px; background: #bbf7d0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
-                  Sesudah
-                </div>
-              </div>
-              <div style="flex: 1; min-width: 200px;">
-                <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">Catatan Teknisi</span>
-                <p style="margin-top: 4px; font-size: 14px; color: #334155;">Engsel diganti dan dilumasi, pintu sudah bisa dibuka dan ditutup normal.</p>
-              </div>
-            </div>
-          </article>
-
-          <!-- Card 2 -->
-          <article class="glass-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-              <div>
-                <h3 class="card-title" style="margin: 0;">Stop Kontak Rusak</h3>
-                <p class="text-muted" style="font-size: 14px; margin-top: 4px;">LKJ2_7T · Lab Sist Komp dan Jaringan 2</p>
-              </div>
-              <span class="status-badge status-badge-success">Selesai</span>
-            </div>
-
-            <div style="display: flex; gap: 20px; font-size: 13px; color: #64748b; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px;">
-              <span><i class="fa-regular fa-square-check"></i> Selesai 12 Sep 2026</span>
-              <span><i class="fa-regular fa-clock"></i> Dikerjakan 2 hari</span>
-            </div>
-
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-              <div style="display: flex; gap: 10px;">
-                <div style="text-align: center; font-size: 12px; color: #666;">
-                  <div style="width: 70px; height: 70px; background: #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
-                  Sebelum
-                </div>
-                <div style="text-align: center; font-size: 12px; color: #666;">
-                  <div style="width: 70px; height: 70px; background: #bbf7d0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;"><i class="fa-regular fa-image"></i></div>
-                  Sesudah
-                </div>
-              </div>
-              <div style="flex: 1; min-width: 200px;">
-                <span style="font-size: 12px; font-weight: 600; color: #94a3b8;">Catatan Teknisi</span>
-                <p style="margin-top: 4px; font-size: 14px; color: #334155;">Stop kontak diganti baru dan kabel di bawah meja dirapikan.</p>
-              </div>
-            </div>
-          </article>
-
-        </section>
+        <!-- Container JS -->
+        <section id="history-list" style="display: flex; flex-direction: column; gap: 20px;"></section>
       </main>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL (Cuma 1 aja) -->
+  <div id="modalDetailPengaduan" class="modal-overlay hidden" onclick="tutupDetail()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="detailJudul">Judul Laporan</h3>
+          <span class="modal-subtitle" id="detailId">#ID</span>
+        </div>
+        <button type="button" class="modal-close" onclick="tutupDetail()">✕</button>
+      </div>
+      <div class="modal-body" style="font-size: 13px;">
+        <p><strong>Lokasi:</strong> <span id="detailLokasi">-</span></p>
+        <p><strong>Status:</strong> <span id="detailStatus">-</span></p>
+        <p><strong>Tanggal:</strong> <span id="detailTanggal">-</span></p>
+        <div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+          <strong>Catatan Teknisi:</strong><br>
+          <span id="detailDeskripsi">-</span>
+        </div>
+      </div>
     </div>
   </div>
   <script src="js/teknisi.js"></script>

@@ -295,6 +295,11 @@ button { font-family: inherit; cursor: pointer; }
   border-color: rgba(225, 29, 72, 0.3);
 }
 
+.sidebar-nav .nav-link i {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
 
 
 /* --------------------------------------------------------------------------
@@ -1389,3 +1394,9 @@ select.glass-input { cursor: pointer; }
   .header-title, .page-title { font-size: 17px; }
   .metric-value { font-size: 24px; }
 }
+<<<<<<< HEAD
+=======
+
+.status-pill-purple { background: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+
+>>>>>>> 497b789f543b3a4ab1691e16de8f63ba17acb841

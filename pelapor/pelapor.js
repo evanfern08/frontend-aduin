@@ -1,3 +1,34 @@
+
+const HIDDEN_KEY = 'aduin_pelapor_hidden';
+
+function getHiddenIds() {
+  try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+
+async function loadPelaporData() {
+  const res = await fetch('data.json');
+  if (!res.ok) throw new Error('Gagal memuat pelapor/data.json');
+  const data = await res.json();
+  if (!Array.isArray(data.laporan_masuk)) {
+    throw new Error('Format laporan_masuk pada pelapor/data.json tidak valid');
+  }
+
+  // Buang laporan yang sudah "dibersihkan"
+  const hidden = getHiddenIds();
+  data.laporan_masuk = data.laporan_masuk.filter(r => !hidden.includes(r.id));
+  return data;
+}
+
+window.bersihkanRiwayatSaya = async function () {
+  if (!confirm('Hapus semua riwayat laporan kamu?')) return;
+  const res = await fetch('data.json');
+  const data = await res.json();
+  const ids = (data.laporan_masuk || []).map(r => r.id);
+  localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids));
+  location.reload();
+};
+
 window.initPelaporPage = function initPelaporPage(initialReports) {
   "use strict";
 

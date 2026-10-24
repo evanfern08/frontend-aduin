@@ -183,6 +183,7 @@ const DEFAULT_MENUS = {
     { title: 'Dashboard', link: 'verifikator/index.html', icon: 'home' },
     { title: 'Daftar Laporan', link: 'verifikator/riwayat.html', icon: 'list' },
     { title: 'Statistik', link: 'verifikator/statistik.html', icon: 'chart' },
+    { title: 'Kelola Teknisi', link: 'verifikator/kelola-teknisi.html', icon: 'plus' },
     { title: 'Pengaturan', link: 'pengaturan.html?role=verifikator', icon: 'settings' },
   ],
   Teknisi: [
@@ -392,12 +393,32 @@ async function initPengaturanPage() {
     if (el) el.textContent = val || '–';
   };
 
+
   // ---- LANGKAH 4: RENDER MENU SIDEBAR ----
+  // Satu peta ikon untuk semua role (Font Awesome, berdasarkan judul menu)
+  const MENU_FA_ICONS = {
+    'Dashboard': 'fa-solid fa-border-all',
+    'Buat Laporan': 'fa-solid fa-plus',
+    'Daftar Tugas': 'fa-solid fa-list-check',
+    'Daftar Laporan': 'fa-solid fa-clipboard-list',
+    'Riwayat': 'fa-solid fa-clipboard-list',
+    'Statistik': 'fa-solid fa-chart-simple',
+    'Pengaturan': 'fa-solid fa-gear',
+  };
+
   nav.innerHTML = user.sidebar_menu.map((item) => {
     const isActive = item.title === 'Pengaturan';
-    const iconKey = typeof item.icon === 'string' ? item.icon : 'default';
-    const iconSvg = MENU_ICONS[iconKey] || MENU_ICONS.default;
-    return `<a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}">${iconSvg}<span>${item.title}</span></a>`;
+    const faClass = MENU_FA_ICONS[item.title];
+
+    let iconHtml;
+    if (faClass) {
+      iconHtml = `<i class="${faClass}"></i>`;
+    } else {
+      const iconKey = typeof item.icon === 'string' ? item.icon : 'default';
+      iconHtml = MENU_ICONS[iconKey] || MENU_ICONS.default;
+    }
+
+    return `<a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}">${iconHtml}<span>${item.title}</span></a>`;
   }).join('');
 
   // ---- LANGKAH 5: WARNA AVATAR BERDASARKAN ROLE ----
@@ -567,11 +588,19 @@ function setupRoleSwitcherPills(currentRole) {
 /* ==========================================================================
    9. HALAMAN VERIFIKATOR (dashboard, riwayat, statistik)
    ========================================================================== */
+
+const DEV_MODE = true; // ubah ke false saat demo/presentasi
+
 async function loadVerifikatorData() {
   try {
     const res = await fetch('data.json');
     if (!res.ok) throw new Error('Gagal memuat data.json');
-    return await res.json();
+    const data = await res.json();
+
+    if ((DEV_MODE || !localStorage.getItem('aduin_reports')) && data.laporan_masuk) {
+      localStorage.setItem('aduin_reports', JSON.stringify(data.laporan_masuk));
+    }
+    return data;
   } catch (err) {
     console.warn('loadVerifikatorData gagal:', err);
     return null;
@@ -602,10 +631,29 @@ function renderDashboard(data) {
            <button type="button" class="btn-icon btn-icon-danger" onclick="openRejectModal('${item.id}', '${item.judul}')" title="Reject">✕</button>
          </div>`
       : `<span class="status-pill">${item.status}</span>`;
+
     tr.innerHTML = `
-      <td><div class="cell-reporter"><div class="cell-avatar">${item.pelapor?.inisial || '?'}</div><div><span class="cell-name">${item.pelapor?.nama || '-'}</span><span class="cell-meta">NIM: ${item.pelapor?.nim || '-'}</span></div></div></td>
-      <td><span class="cell-name">${item.lokasi?.kode || '-'}</span><span class="cell-meta">${item.lokasi?.nama || '-'}</span></td>
-      <td><span class="status-pill">${item.kategori || '-'}</span><span class="cell-meta">${item.judul || '-'}</span></td>
+      <td>
+        <div class="cell-reporter">
+          <div class="cell-avatar">${item.pelapor?.inisial || '?'}</div>
+          <div>
+            <span class="cell-name" style="display: block;">${item.pelapor?.nama || '-'}</span>
+            <span class="cell-meta" style="display: block; margin-top: 3px;">NIM: ${item.pelapor?.nim || '-'}</span>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div>
+          <span class="cell-name" style="display: block;">${item.lokasi?.kode || '-'}</span>
+          <span class="cell-meta" style="display: block; margin-top: 3px;">${item.lokasi?.nama || '-'}</span>
+        </div>
+      </td>
+      <td>
+        <div>
+          <span class="status-pill">${item.kategori || '-'}</span>
+          <span class="cell-meta" style="display: block; margin-top: 6px;">${item.judul || '-'}</span>
+        </div>
+      </td>
       <td class="text-center">${fotoCell}</td>
       <td class="text-right">${aksiCell}</td>
     `;
@@ -626,16 +674,31 @@ function renderDashboard(data) {
 function renderRiwayat(data) {
   const list = document.getElementById('riwayatList');
   if (!list || !data) return;
+
+  // Ambil data dari localStorage (biar statusnya up-to-date)
+  let laporan = data.laporan_masuk || [];
+  try {
+    const stored = localStorage.getItem('aduin_reports');
+    if (stored) laporan = JSON.parse(stored);
+  } catch (e) { }
+
   list.innerHTML = '';
-  (data.laporan_masuk || []).forEach((item) => list.appendChild(buildRiwayatCard(item)));
+  laporan.forEach((item) => list.appendChild(buildRiwayatCard(item)));
+
+  // Logika Filter Pills
   document.querySelectorAll('.filter-pill').forEach((pill) => {
-    pill.addEventListener('click', () => {
+    // Hapus event lama biar gak dobel
+    const newPill = pill.cloneNode(true);
+    pill.parentNode.replaceChild(newPill, pill);
+
+    newPill.addEventListener('click', () => {
       document.querySelectorAll('.filter-pill').forEach((p) => p.classList.remove('active'));
-      pill.classList.add('active');
-      const f = pill.getAttribute('data-filter');
+      newPill.classList.add('active');
+      const f = newPill.getAttribute('data-filter');
+
       document.querySelectorAll('.riwayat-card').forEach((card) => {
         const s = card.getAttribute('data-status');
-        card.style.display = f === 'Semua' || s === f ? '' : 'none';
+        card.style.display = (f === 'Semua' || s === f) ? '' : 'none';
       });
     });
   });
@@ -645,35 +708,122 @@ function buildRiwayatCard(item) {
   const card = document.createElement('div');
   card.className = 'glass-card riwayat-card';
   card.setAttribute('data-status', item.status);
-  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Selesai'];
+  card.style.cursor = 'pointer';
+
+  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Diteruskan ke Pusat', 'Selesai'];
   const currentIndex = statusOrder.indexOf(item.status);
   const isRejected = item.status === 'Ditolak';
-  const pillMap = { 'Menunggu Verifikasi': 'status-pill-warning', Disetujui: 'status-pill-info', 'Dalam Perbaikan': 'status-pill-info', Selesai: 'status-pill-success', Ditolak: 'status-pill-danger' };
+
+  // Cek kalau ini dari Pusat
+  const isPusat = item.status === 'Diteruskan ke Pusat' || item.disposition === 'UPA PP Pusat';
+
+  const pillMap = {
+    'Menunggu Verifikasi': 'status-pill-warning',
+    'Disetujui': 'status-pill-info',
+    'Dalam Perbaikan': 'status-pill-info',
+    'Diteruskan ke Pusat': 'status-pill-purple',
+    'Selesai': 'status-pill-success',
+    'Ditolak': 'status-pill-danger'
+  };
   const pillClass = pillMap[item.status] || 'status-pill-neutral';
+
   const nodes = [
     { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
     { label: 'Disetujui', sub: 'Validasi Kajur' },
-    { label: 'Dalam Perbaikan', sub: item.teknisi || 'Teknisi' },
+    { label: isPusat ? 'UPA PP Pusat' : 'Dalam Perbaikan', sub: isPusat ? 'Diserahkan ke Pusat' : (item.teknisi || 'Teknisi') },
     { label: 'Selesai', sub: 'Fasilitas Normal' },
   ];
+
   const timelineHTML = nodes.map((n, i) => {
     let cls = 'timeline-node';
     let dot = i + 1;
+
+    let adjustedIndex = currentIndex;
+    if (item.status === 'Diteruskan ke Pusat') adjustedIndex = 2;
+
     if (!isRejected) {
-      if (i < currentIndex) { cls += ' done'; dot = '✓'; }
-      else if (i === currentIndex) {
+      if (i < adjustedIndex) { cls += ' done'; dot = '✓'; }
+      else if (i === adjustedIndex) {
         if (item.status === 'Selesai') { cls += ' success'; dot = '✓'; }
         else { cls += ' active'; dot = i === 0 ? '✓' : i === 2 ? '⚙' : i + 1; }
       }
     } else if (i === 0) { cls += ' done'; dot = '✓'; }
+
     return `<div class="${cls}"><div class="timeline-dot">${dot}</div><span class="timeline-caption">${n.label}</span><span class="timeline-sub">${n.sub}</span></div>`;
   }).join('');
+
+  // --- TOMBOL DIHAPUS TOTAL ---
+  // Jadi kalau di Pusat, ya udah berhenti di situ. Nggak ada tombol apa-apa.
+
   card.innerHTML = `
-    <div class="riwayat-head"><div><h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3><p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p></div><span class="status-pill ${pillClass}">${item.status}</span></div>
-    <div class="timeline-wrap"><div class="timeline-label">Progress Tracker Timeline</div><div class="timeline">${timelineHTML}</div></div>
+    <div class="riwayat-head">
+      <div>
+        <h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3>
+        <p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <span class="status-pill ${pillClass}">${item.status}</span>
+      </div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="timeline-label">Progress Tracker Timeline</div>
+      <div class="timeline">${timelineHTML}</div>
+    </div>
   `;
+
+  // Klik kartu buka modal detail (ini doang yang jalan)
+  card.addEventListener('click', (e) => {
+    window.bukaModalDetail(item);
+  });
+
   return card;
 }
+
+window.bukaModalDetail = function (item) {
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('detailJudul', item.judul || '-');
+  setText('detailId', '#' + (item.id || '-'));
+  setText('detailPelapor', item.pelapor?.nama || '-');
+  setText('detailLokasi', item.lokasi?.nama || '-');
+  setText('detailKategori', item.kategori || '-');
+  setText('detailStatus', item.status || '-');
+  setText('detailTanggal', `${item.tanggal || '-'} · ${item.waktu || '-'}`);
+  setText('detailDeskripsi', item.deskripsi || '-');
+
+  const footer = document.getElementById('detailFooter');
+  const btn = document.getElementById('btnSelesaiPusat');
+  if (footer && btn) {
+    const isPusat = item.status === 'Diteruskan ke Pusat';
+    footer.style.display = isPusat ? 'block' : 'none';
+    btn.onclick = isPusat ? () => window.tandaiSelesaiPusat(item.id) : null;
+  }
+
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+};
+
+
+window.tandaiSelesaiPusat = function (id) {
+  if (!confirm('Penanganan di UPA PP Pusat sudah selesai? Status akan diubah menjadi Selesai.')) return;
+
+  const reports = getStoredReports();
+  const target = reports.find(r => r.id === id);
+  if (!target) { showToast('Laporan tidak ditemukan.', 'error'); return; }
+
+  target.status = 'Selesai';
+  saveStoredReports(reports);
+  showToast('Status laporan diubah menjadi Selesai!', 'success');
+
+  // Tutup modal
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+  // Render ulang
+  loadVerifikatorData().then(data => {
+    if (data) renderRiwayat({ ...data, laporan_masuk: getStoredReports() });
+  });
+};
 
 function renderStatistik(data) {
   if (!data || !data.statistik) return;
@@ -683,16 +833,24 @@ function renderStatistik(data) {
   setText('statResolusi', s.tingkat_resolusi);
   setText('statRata', s.rata_rata_penanganan);
   setText('statRespon', s.respon_verifikasi);
+
   const tbody = document.getElementById('rankingTableBody');
   if (tbody) {
     tbody.innerHTML = '';
     (s.ranking_lokasi || []).forEach((r) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td><strong>#${r.peringkat}</strong></td><td>${r.lokasi}</td><td>${r.jumlah} Laporan</td>`;
+      // Aku ubah baris ini biar rata kanan dan ada jarak (padding)
+      tr.innerHTML = `
+        <td><strong>#${r.peringkat}</strong></td>
+        <td>${r.lokasi}</td>
+        <td style="text-align: right; padding-right: 24px;">${r.jumlah} Laporan</td>
+      `;
       tbody.appendChild(tr);
     });
   }
+
   if (typeof Chart === 'undefined') return;
+
   const trenEl = document.getElementById('trenChart');
   if (trenEl) {
     new Chart(trenEl, {
@@ -701,6 +859,7 @@ function renderStatistik(data) {
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
     });
   }
+
   const katEl = document.getElementById('kategoriChart');
   if (katEl) {
     new Chart(katEl, {
@@ -723,6 +882,70 @@ async function loadPelaporData() {
   }
   return data;
 }
+
+function createReportCard(report, profileName) {
+  const card = document.createElement("article");
+  card.className = "glass-card riwayat-card";
+  card.style.cursor = "pointer"; // Tambahkan pointer biar bisa diklik
+
+  const heading = document.createElement("div");
+  heading.className = "riwayat-head";
+  const details = document.createElement("div");
+  const title = document.createElement("h3");
+  title.className = "riwayat-title";
+  title.textContent = report.title;
+  const location = document.createElement("p");
+  location.className = "riwayat-meta";
+  location.textContent = `${report.roomLabel} · ${reportDate(report.date)}`;
+  const reporter = document.createElement("p");
+  reporter.className = "riwayat-meta";
+  reporter.textContent = `Pelapor: ${profileName} · ${report.category}`;
+  details.append(title, location, reporter);
+
+  const badge = document.createElement("span");
+  badge.className = `status-pill ${reportStatusClass(report.status)}`;
+  badge.textContent = report.status;
+  heading.append(details, badge);
+  card.append(heading);
+
+  if (report.description) {
+    const description = document.createElement("p");
+    description.className = "card-subtitle";
+    description.textContent = report.description;
+    card.append(description);
+  }
+  if (report.photoName) {
+    const photo = document.createElement("p");
+    photo.className = "text-muted";
+    photo.textContent = `Foto dipilih: ${report.photoName} (belum diunggah ke server)`;
+    card.append(photo);
+  }
+  card.append(progressCard(report.status));
+  card.dataset.status = report.status;
+
+  // ==========================================
+  // TAMBAHKAN EVENT KLIK UNTUK MEMBUKA DETAIL
+  // ==========================================
+  card.addEventListener("click", () => {
+    const modal = document.getElementById("modalDetailPengaduan");
+    if (!modal) return;
+
+    document.getElementById("detailJudul").textContent = report.title || "-";
+    document.getElementById("detailId").textContent = "#" + (report.id || "-");
+    document.getElementById("detailPelapor").textContent = profileName;
+    document.getElementById("detailLokasi").textContent = report.roomLabel || "-";
+    document.getElementById("detailKategori").textContent = report.category || "-";
+    document.getElementById("detailStatus").textContent = report.status || "-";
+    document.getElementById("detailTanggal").textContent = reportDate(report.date) || "-";
+    document.getElementById("detailDeskripsi").textContent = report.description || "-";
+
+    modal.classList.remove("hidden");
+    modal.classList.add("active");
+  });
+
+  return card;
+}
+
 
 /* ==========================================================================
    11. HALAMAN TEKNISI
@@ -873,11 +1096,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Halaman Teknisi
   if (window.location.pathname.toLowerCase().includes('/teknisi/')) {
     try {
-      const data = await loadTeknisiData();
+      const data = await loadTeknisiData(); // Ini harus fetch data.json
       if (typeof window.initTeknisiPage !== 'function') {
         throw new Error('Inisialisasi halaman Teknisi tidak tersedia');
       }
-      window.initTeknisiPage(data);
+      window.initTeknisiPage(data); // Lempar data.json ke teknisi.js
     } catch (err) {
       console.error('Gagal memuat halaman Teknisi:', err);
       showToast('Data Teknisi gagal dimuat. Coba muat ulang halaman.', 'error');
@@ -1078,3 +1301,31 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDataTeknisi();
   }
 });
+
+/* ==========================================================================
+   FUNGSI MODAL DETAIL PENGADUAN (GLOBAL)
+   ========================================================================== */
+function bukaDetail(item) {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (!modal) return; // skip kalau modal tidak ada di halaman ini
+
+  document.getElementById('detailJudul').textContent = item.judul || '-';
+  document.getElementById('detailId').textContent = '#' + (item.id || '-');
+  document.getElementById('detailPelapor').textContent = item.pelapor?.nama || '-';
+  document.getElementById('detailLokasi').textContent = `${item.lokasi?.kode || ''} - ${item.lokasi?.nama || ''}`;
+  document.getElementById('detailKategori').textContent = item.kategori || '-';
+  document.getElementById('detailStatus').textContent = item.status || '-';
+  document.getElementById('detailTanggal').textContent = `${item.tanggal || '-'} · ${item.waktu || '-'}`;
+  document.getElementById('detailDeskripsi').textContent = item.deskripsi || '-';
+
+  modal.classList.remove('hidden');
+  modal.classList.add('active'); // buat kompatibilitas CSS lama
+}
+
+function tutupDetail() {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('active');
+  }
+}

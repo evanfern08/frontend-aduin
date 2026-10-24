@@ -12,8 +12,9 @@
 </head>
 <body class="dashboard-body">
 
-  <div class="dashboard-wrapper">
-    <!-- Sidebar Navigasi Utama -->
+<div class="dashboard-wrapper">
+    
+    <!-- SIDEBAR KIRI -->
     <aside class="sidebar-blue" aria-label="Navigasi teknisi">
       <div class="sidebar-top">
         <a href="index.html" class="sidebar-brand">
@@ -50,14 +51,14 @@
 
       <div class="sidebar-bottom">
         <div class="sidebar-user-card">
-          <span class="user-avatar-sm">BP</span>
+          <span class="user-avatar-sm role-teknisi">BP</span>
           <div class="sidebar-user-info">
             <p class="sidebar-user-name">Budi Prakroso</p>
             <p class="sidebar-user-role">Teknisi</p>
           </div>
         </div>
         <a href="../login.html" class="btn-logout">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
             <path d="m16 17 5-5-5-5M21 12H9"></path>
           </svg>
@@ -66,8 +67,9 @@
       </div>
     </aside>
 
+
     <!-- Main Content Area -->
-    <div class="main-content">
+     <div class="main-content">
       <header class="content-header">
         <div>
           <span class="header-breadcrumb">Teknisi Pemeliharaan / <strong>Daftar Tugas</strong></span>
@@ -76,79 +78,44 @@
       </header>
 
       <main class="content-body">
-        <!-- Tab Filter Status -->
         <section class="glass-card" style="padding: 12px 20px; margin-bottom: 20px;">
-          <div style="display: flex; gap: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
-            <button class="btn btn-ghost active" style="color: #0284c7; border-bottom: 2px solid #0284c7; border-radius: 0; font-weight: 600;">Tugas Baru (3)</button>
-            <button class="btn btn-ghost" style="color: #64748b;">Sedang Dikerjakan (2)</button>
-            <button class="btn btn-ghost" style="color: #64748b;">Selesai (2)</button>
+          <div style="display: flex; gap: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;" id="tab-container">
+            <!-- Tombol tab bakal di-render JS -->
           </div>
         </section>
 
-        <!-- Grid Cards Tugas -->
         <section class="task-section">
-          <div class="task-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-
-            <article class="glass-card task-card">
-              <div class="task-body">
-                <h3 class="card-title">
-                  Proyektor Rusak
-                  <small style="float:right; font-size: 12px; color:#666;">TK-101</small>
-                </h3>
-                <p class="text-muted" style="margin: 10px 0;">
-                  <i class="fa-solid fa-location-dot"></i> LPR1_7B - Lab Pemrograman 1
-                </p>
-                <p class="text-muted">
-                  <i class="fa-regular fa-user"></i> Septya Andhita Pradhana
-                </p>
-                <p class="text-muted" style="margin-bottom: 15px;">
-                  <i class="fa-regular fa-clock"></i> 10 Menit lalu
-                </p>
-                <button class="btn btn-success" style="width: 100%;">Update Status &amp; Upload Bukti</button>
-              </div>
-            </article>
-
-            <article class="glass-card task-card">
-              <div class="task-body">
-                <h3 class="card-title">
-                  AC Tidak Dingin
-                  <small style="float:right; font-size: 12px; color:#666;">TK-102</small>
-                </h3>
-                <p class="text-muted" style="margin: 10px 0;">
-                  <i class="fa-solid fa-location-dot"></i> RT05_5B - Ruang Teori 5
-                </p>
-                <p class="text-muted">
-                  <i class="fa-regular fa-user"></i> Rachmah Nur Chotimah
-                </p>
-                <p class="text-muted" style="margin-bottom: 15px;">
-                  <i class="fa-regular fa-clock"></i> 45 Menit lalu
-                </p>
-                <button class="btn btn-success" style="width: 100%;">Update Status &amp; Upload Bukti</button>
-              </div>
-            </article>
-
-            <article class="glass-card task-card">
-              <div class="task-body">
-                <h3 class="card-title">
-                  Lampu Tidak Menyala
-                  <small style="float:right; font-size: 12px; color:#666;">TK-103</small>
-                </h3>
-                <p class="text-muted" style="margin: 10px 0;">
-                  <i class="fa-solid fa-location-dot"></i> LERP_7T - Lab ERP
-                </p>
-                <p class="text-muted">
-                  <i class="fa-regular fa-user"></i> Alfatitah Alifia Putri
-                </p>
-                <p class="text-muted" style="margin-bottom: 15px;">
-                  <i class="fa-regular fa-clock"></i> 1 Jam lalu
-                </p>
-                <button class="btn btn-success" style="width: 100%;">Update Status &amp; Upload Bukti</button>
-              </div>
-            </article>
-
-          </div>
+          <div class="task-grid" id="task-list-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;"></div>
         </section>
       </main>
+    </div>
+  </div>
+    <!-- MODAL DETAIL PENGADUAN -->
+  <div id="modalDetailPengaduan" class="modal-overlay hidden" onclick="tutupDetail()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="detailJudul">Judul Laporan</h3>
+          <span class="modal-subtitle" id="detailId">#ID</span>
+        </div>
+        <button type="button" class="modal-close" onclick="tutupDetail()">✕</button>
+      </div>
+      
+      <div class="modal-body" style="font-size: 13px;">
+        <p><strong>Lokasi:</strong> <span id="detailLokasi">-</span></p>
+        <p><strong>Pelapor:</strong> <span id="detailPelapor">-</span></p>
+        <p><strong>Status:</strong> <span id="detailStatus">-</span></p>
+        <p><strong>Tanggal:</strong> <span id="detailTanggal">-</span></p>
+        <div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+          <strong>Catatan Teknisi:</strong><br>
+          <span id="detailDeskripsi">-</span>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+        <!-- Tombol Edit ditambahkan di sini -->
+        <button type="button" class="btn btn-success" onclick="editLaporanSelesai()" style="width: 100%;">Edit Catatan & Bukti</button>
+      </div>
     </div>
   </div>
   <script src="js/teknisi.js"></script>
