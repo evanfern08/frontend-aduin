@@ -117,9 +117,43 @@
               <h2 class="card-title">Tabel Verifikasi & Disposisi</h2>
               <p class="card-subtitle">Tinjau data pelapor, lokasi, kategori, dan bukti foto.</p>
             </div>
-            <input type="text" id="tableSearchInput" class="glass-input"
-              placeholder="Cari pelapor, lokasi, kategori..." style="max-width: 280px;" />
           </div>
+
+          <div class="report-filter-grid">
+            <label class="filter-field">
+              <span class="form-label">Cari laporan</span>
+              <input type="search" id="tableSearchInput" class="glass-input"
+                placeholder="Cari pelapor atau laporan..." />
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Kategori</span>
+              <select id="dashboardFilterCategory" class="glass-input">
+                <option value="">Semua kategori</option>
+              </select>
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Dari tanggal</span>
+              <input type="date" id="dashboardFilterFrom" class="glass-input" />
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Sampai tanggal</span>
+              <input type="date" id="dashboardFilterTo" class="glass-input" />
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Ruangan</span>
+              <select id="dashboardFilterRoom" class="glass-input">
+                <option value="">Semua ruangan</option>
+              </select>
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Status</span>
+              <select id="dashboardFilterStatus" class="glass-input">
+                <option value="">Semua status</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-ghost filter-reset" id="dashboardFilterReset">Reset Filter</button>
+          </div>
+          <p class="filter-result" id="dashboardFilterResult" aria-live="polite"></p>
 
           <div class="table-wrapper">
             <table class="data-table">

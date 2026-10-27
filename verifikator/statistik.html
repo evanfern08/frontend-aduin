@@ -144,29 +144,67 @@
           </div>
         </section>
 
-        <!-- 2 GRAFIK -->
-        <section class="chart-grid">
-          <div class="glass-card chart-card">
-            <div class="card-header">
-              <div>
-                <h2 class="card-title">Tren Laporan 7 Hari Terakhir</h2>
-                <p class="card-subtitle">Frekuensi pengaduan per hari</p>
-              </div>
-            </div>
-            <div class="chart-canvas-wrap">
-              <canvas id="trenChart"></canvas>
+        <section class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Filter Laporan & Statistik</h2>
+              <p class="card-subtitle">Pilih kategori, rentang tanggal, ruangan, atau status laporan.</p>
             </div>
           </div>
+          <div class="report-filter-grid">
+            <label class="filter-field">
+              <span class="form-label">Kategori</span>
+              <select id="statFilterCategory" class="glass-input">
+                <option value="">Semua kategori</option>
+              </select>
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Dari tanggal</span>
+              <input type="date" id="statFilterFrom" class="glass-input" />
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Sampai tanggal</span>
+              <input type="date" id="statFilterTo" class="glass-input" />
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Ruangan</span>
+              <select id="statFilterRoom" class="glass-input">
+                <option value="">Semua ruangan</option>
+              </select>
+            </label>
+            <label class="filter-field">
+              <span class="form-label">Status</span>
+              <select id="statFilterStatus" class="glass-input">
+                <option value="">Semua status</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-ghost filter-reset" id="statFilterReset">Reset Filter</button>
+          </div>
+          <p class="filter-result" id="statFilterResult" aria-live="polite"></p>
+        </section>
 
-          <div class="glass-card chart-card">
-            <div class="card-header">
-              <div>
-                <h2 class="card-title">Laporan Berdasarkan Kategori</h2>
-                <p class="card-subtitle">Distribusi jenis fasilitas yang rusak</p>
+        <!-- Tren dan distribusi kategori dalam satu kartu -->
+        <section class="glass-card chart-card combined-chart-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Tren & Kategori Laporan</h2>
+              <p class="card-subtitle">Tren 7 hari terakhir dan distribusi jenis fasilitas yang dilaporkan.</p>
+            </div>
+          </div>
+          <div class="chart-panels">
+            <div class="chart-panel">
+              <h3 class="chart-panel-title">Tren Laporan 7 Hari Terakhir</h3>
+              <p class="card-subtitle">Frekuensi pengaduan per hari</p>
+              <div class="chart-canvas-wrap">
+                <canvas id="trenChart"></canvas>
               </div>
             </div>
-            <div class="chart-canvas-wrap">
-              <canvas id="kategoriChart"></canvas>
+            <div class="chart-panel">
+              <h3 class="chart-panel-title">Laporan Berdasarkan Kategori</h3>
+              <p class="card-subtitle">Distribusi jenis fasilitas yang rusak</p>
+              <div class="chart-canvas-wrap">
+                <canvas id="kategoriChart"></canvas>
+              </div>
             </div>
           </div>
         </section>

@@ -680,6 +680,54 @@ select.glass-input { cursor: pointer; }
   width: 100%;
 }
 
+.report-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
+  gap: 14px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.filter-reset {
+  min-height: 44px;
+  justify-self: start;
+}
+
+.filter-result {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.combined-chart-card { width: 100%; }
+
+.chart-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.chart-panel { min-width: 0; }
+
+.chart-panel + .chart-panel {
+  padding-left: 24px;
+  border-left: 1px solid var(--line);
+}
+
+.chart-panel-title {
+  margin: 0;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 /* --------------------------------------------------------------------------
    14. MODAL
    -------------------------------------------------------------------------- */
@@ -1380,6 +1428,7 @@ select.glass-input { cursor: pointer; }
 
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
   .chart-grid { grid-template-columns: 1fr; }
+  .report-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .settings-grid { grid-template-columns: 1fr; }
 
   .content-header,
@@ -1390,6 +1439,14 @@ select.glass-input { cursor: pointer; }
 
 @media (max-width: 560px) {
   .metric-grid { grid-template-columns: 1fr; }
+  .report-filter-grid,
+  .chart-panels { grid-template-columns: 1fr; }
+  .chart-panel + .chart-panel {
+    padding-left: 0;
+    padding-top: 20px;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
   .glass-card { padding: 20px; border-radius: var(--radius-lg); }
   .header-title, .page-title { font-size: 17px; }
   .metric-value { font-size: 24px; }

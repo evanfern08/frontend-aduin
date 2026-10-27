@@ -591,6 +591,115 @@ function setupRoleSwitcherPills(currentRole) {
 
 const DEV_MODE = true; // ubah ke false saat demo/presentasi
 
+const REPORT_MONTHS = {
+  jan: 0, januari: 0, feb: 1, februari: 1, mar: 2, maret: 2,
+  apr: 3, april: 3, mei: 4, jun: 5, juni: 5, jul: 6, juli: 6,
+  agu: 7, agustus: 7, sep: 8, september: 8, okt: 9, oktober: 9,
+  nov: 10, november: 10, des: 11, desember: 11
+};
+
+function parseReportDate(value) {
+  if (!value) return null;
+  const isoMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) return new Date(Date.UTC(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3])));
+
+  const match = String(value).trim().match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (!match) return null;
+  const month = REPORT_MONTHS[match[2].toLowerCase()];
+  if (month === undefined) return null;
+  return new Date(Date.UTC(Number(match[3]), month, Number(match[1])));
+}
+
+function dateToInputValue(date) {
+  if (!date) return '';
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+}
+
+function getReportLocationKey(report) {
+  return report.lokasi?.kode || report.lokasi?.nama || report.roomCode || report.roomLabel || '';
+}
+
+function getReportLocationLabel(report) {
+  const key = getReportLocationKey(report);
+  const name = report.lokasi?.nama || report.roomLabel || '';
+  return name && key !== name ? `${key} - ${name}` : key;
+}
+
+function populateReportFilter(select, reports, kind) {
+  if (!select) return;
+  const firstOption = select.options[0];
+  const options = new Map();
+  reports.forEach((report) => {
+    let value;
+    let label;
+    if (kind === 'category') {
+      value = report.kategori || report.category || '';
+      label = value;
+    } else if (kind === 'room') {
+      value = getReportLocationKey(report);
+      label = getReportLocationLabel(report);
+    } else {
+      value = report.status || '';
+      label = value;
+    }
+    if (value && !options.has(value)) options.set(value, label);
+  });
+
+  select.replaceChildren(firstOption);
+  [...options.entries()]
+    .sort((a, b) => a[1].localeCompare(b[1], 'id'))
+    .forEach(([value, label]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      select.appendChild(option);
+    });
+}
+
+function readReportFilters(prefix) {
+  return {
+    category: document.getElementById(`${prefix}FilterCategory`)?.value || '',
+    from: document.getElementById(`${prefix}FilterFrom`)?.value || '',
+    to: document.getElementById(`${prefix}FilterTo`)?.value || '',
+    room: document.getElementById(`${prefix}FilterRoom`)?.value || '',
+    status: document.getElementById(`${prefix}FilterStatus`)?.value || ''
+  };
+}
+
+function reportMatchesFilters(report, filters) {
+  if (filters.category && (report.kategori || report.category || '') !== filters.category) return false;
+  if (filters.room && getReportLocationKey(report) !== filters.room) return false;
+  if (filters.status && report.status !== filters.status) return false;
+  const reportDate = parseReportDate(report.tanggal || report.date);
+  if (filters.from && (!reportDate || dateToInputValue(reportDate) < filters.from)) return false;
+  if (filters.to && (!reportDate || dateToInputValue(reportDate) > filters.to)) return false;
+  return true;
+}
+
+function bindReportFilters(prefix, onChange) {
+  const filterIds = [
+    `${prefix}FilterCategory`,
+    `${prefix}FilterFrom`,
+    `${prefix}FilterTo`,
+    `${prefix}FilterRoom`,
+    `${prefix}FilterStatus`
+  ];
+  filterIds.forEach((id) => {
+    const control = document.getElementById(id);
+    if (control) control.addEventListener('change', onChange);
+  });
+  const reset = document.getElementById(`${prefix}FilterReset`);
+  if (reset) {
+    reset.addEventListener('click', () => {
+      filterIds.forEach((id) => {
+        const control = document.getElementById(id);
+        if (control) control.value = '';
+      });
+      onChange();
+    });
+  }
+}
+
 async function loadVerifikatorData() {
   try {
     const res = await fetch('data.json');
@@ -617,11 +726,17 @@ function renderDashboard(data) {
 
   const tbody = document.getElementById('verifikatorTableBody');
   if (!tbody) return;
+  const reports = getStoredReports();
+  const reportItems = Array.isArray(reports) && reports.length ? reports : (data.laporan_masuk || []);
+  populateReportFilter(document.getElementById('dashboardFilterCategory'), reportItems, 'category');
+  populateReportFilter(document.getElementById('dashboardFilterRoom'), reportItems, 'room');
+  populateReportFilter(document.getElementById('dashboardFilterStatus'), reportItems, 'status');
   tbody.innerHTML = '';
 
-  (data.laporan_masuk || []).forEach((item) => {
+  reportItems.forEach((item) => {
     const tr = document.createElement('tr');
     tr.setAttribute('data-row-id', item.id);
+    tr.dataset.status = item.status || '';
     const fotoCell = item.thumb_url
       ? `<button type="button" class="thumb-btn" onclick="openImageModal('${item.foto_url}')"><img src="${item.thumb_url}" alt="Bukti" class="thumb-img"></button>`
       : `<span class="text-muted">Tanpa foto</span>`;
@@ -661,14 +776,23 @@ function renderDashboard(data) {
   });
 
   const searchInput = document.getElementById('tableSearchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      tbody.querySelectorAll('tr').forEach((row) => {
-        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-      });
+  const result = document.getElementById('dashboardFilterResult');
+  const applyFilters = () => {
+    const filters = readReportFilters('dashboard');
+    const query = searchInput?.value.toLowerCase().trim() || '';
+    let visibleCount = 0;
+    tbody.querySelectorAll('tr').forEach((row, index) => {
+      const report = { ...reportItems[index], status: row.dataset.status || reportItems[index].status };
+      const visible = reportMatchesFilters(report, filters) &&
+        row.textContent.toLowerCase().includes(query);
+      row.style.display = visible ? '' : 'none';
+      if (visible) visibleCount += 1;
     });
-  }
+    if (result) result.textContent = `Menampilkan ${visibleCount} dari ${reportItems.length} laporan.`;
+  };
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  bindReportFilters('dashboard', applyFilters);
+  applyFilters();
 }
 
 function renderRiwayat(data) {
@@ -835,39 +959,137 @@ function renderStatistik(data) {
   setText('statRespon', s.respon_verifikasi);
 
   const tbody = document.getElementById('rankingTableBody');
-  if (tbody) {
+  const renderRanking = (ranking) => {
+    if (!tbody) return;
     tbody.innerHTML = '';
-    (s.ranking_lokasi || []).forEach((r) => {
+    ranking.forEach((r, index) => {
       const tr = document.createElement('tr');
-      // Aku ubah baris ini biar rata kanan dan ada jarak (padding)
       tr.innerHTML = `
-        <td><strong>#${r.peringkat}</strong></td>
+        <td><strong>#${r.peringkat || index + 1}</strong></td>
         <td>${r.lokasi}</td>
         <td style="text-align: right; padding-right: 24px;">${r.jumlah} Laporan</td>
       `;
       tbody.appendChild(tr);
     });
-  }
+  };
+  renderRanking(s.ranking_lokasi || []);
 
-  if (typeof Chart === 'undefined') return;
+  const reports = getStoredReports();
+  const reportItems = Array.isArray(reports) && reports.length ? reports : (data.laporan_masuk || []);
+  populateReportFilter(document.getElementById('statFilterCategory'), reportItems, 'category');
+  populateReportFilter(document.getElementById('statFilterRoom'), reportItems, 'room');
+  populateReportFilter(document.getElementById('statFilterStatus'), reportItems, 'status');
+  const filterResult = document.getElementById('statFilterResult');
+  const statTotalNote = document.querySelector('#statTotal')?.parentElement.querySelector('.metric-note');
+  const statResolutionNote = document.querySelector('#statResolusi')?.parentElement.querySelector('.metric-note');
+  const statAverageNote = document.querySelector('#statRata')?.parentElement.querySelector('.metric-note');
+  const statResponseNote = document.querySelector('#statRespon')?.parentElement.querySelector('.metric-note');
 
-  const trenEl = document.getElementById('trenChart');
-  if (trenEl) {
-    new Chart(trenEl, {
-      type: 'line',
-      data: { labels: s.tren_mingguan?.labels || [], datasets: [{ label: 'Jumlah Laporan', data: s.tren_mingguan?.data || [], borderColor: '#226cc6', backgroundColor: 'rgba(48, 175, 254, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#fff', pointBorderColor: '#30affe', pointBorderWidth: 3, pointRadius: 5 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
+  const renderCharts = (trendLabels, trendData, categoryLabels, categoryData) => {
+    if (typeof Chart === 'undefined') return;
+    const trenEl = document.getElementById('trenChart');
+    const katEl = document.getElementById('kategoriChart');
+    if (trenEl) {
+      const existing = Chart.getChart(trenEl);
+      if (existing) existing.destroy();
+      new Chart(trenEl, {
+        type: 'line',
+        data: { labels: trendLabels, datasets: [{ label: 'Jumlah Laporan', data: trendData, borderColor: '#226cc6', backgroundColor: 'rgba(48, 175, 254, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#fff', pointBorderColor: '#30affe', pointBorderWidth: 3, pointRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
+      });
+    }
+
+    if (katEl) {
+      const existing = Chart.getChart(katEl);
+      if (existing) existing.destroy();
+      new Chart(katEl, {
+        type: 'doughnut',
+        data: { labels: categoryLabels, datasets: [{ data: categoryData, backgroundColor: ['#30affe', '#226cc6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, cutout: '65%' },
+      });
+    }
+  };
+
+  const applyFilters = () => {
+    const filters = readReportFilters('stat');
+    const hasFilters = Object.values(filters).some(Boolean);
+    const filteredReports = reportItems.filter((report) => reportMatchesFilters(report, filters));
+    if (filterResult) filterResult.textContent = hasFilters
+      ? `Statistik menampilkan ${filteredReports.length} dari ${reportItems.length} laporan.`
+      : `Menampilkan ringkasan seluruh ${s.total_laporan} laporan.`;
+
+    if (!hasFilters) {
+      setText('statTotal', `${s.total_laporan} Tiket`);
+      setText('statResolusi', s.tingkat_resolusi);
+      setText('statRata', s.rata_rata_penanganan);
+      setText('statRespon', s.respon_verifikasi);
+      if (statTotalNote) statTotalNote.textContent = '↑ +14.2% dari bulan lalu';
+      if (statResolutionNote) statResolutionNote.textContent = 'Target Sarpras tercapai';
+      if (statAverageNote) statAverageNote.textContent = 'Per perbaikan';
+      if (statResponseNote) statResponseNote.textContent = 'Disposisi cepat Kajur';
+      renderRanking(s.ranking_lokasi || []);
+      renderCharts(
+        s.tren_mingguan?.labels || [],
+        s.tren_mingguan?.data || [],
+        s.kategori_distribusi?.labels || [],
+        s.kategori_distribusi?.data || []
+      );
+      return;
+    }
+
+    const resolved = filteredReports.filter((report) => report.status === 'Selesai').length;
+    const resolution = filteredReports.length ? (resolved / filteredReports.length) * 100 : 0;
+    setText('statTotal', `${filteredReports.length} Tiket`);
+    setText('statResolusi', `${resolution.toFixed(1)}%`);
+    setText('statRata', '—');
+    setText('statRespon', '—');
+    if (statTotalNote) statTotalNote.textContent = 'Sesuai filter yang dipilih';
+    if (statResolutionNote) statResolutionNote.textContent = 'Laporan selesai dari hasil filter';
+    if (statAverageNote) statAverageNote.textContent = 'Data durasi tidak tersedia';
+    if (statResponseNote) statResponseNote.textContent = 'Data waktu respon tidak tersedia';
+
+    const categoryCounts = new Map();
+    const roomCounts = new Map();
+    const datedReports = [];
+    filteredReports.forEach((report) => {
+      const category = report.kategori || report.category || 'Tidak berkategori';
+      categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1);
+      const roomLabel = getReportLocationLabel(report) || 'Tidak diketahui';
+      roomCounts.set(roomLabel, (roomCounts.get(roomLabel) || 0) + 1);
+      const date = parseReportDate(report.tanggal || report.date);
+      if (date) datedReports.push(date);
     });
-  }
 
-  const katEl = document.getElementById('kategoriChart');
-  if (katEl) {
-    new Chart(katEl, {
-      type: 'doughnut',
-      data: { labels: s.kategori_distribusi?.labels || [], datasets: [{ data: s.kategori_distribusi?.data || [], backgroundColor: ['#30affe', '#226cc6', '#f59e0b', '#10b981'], borderWidth: 0 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, cutout: '65%' },
+    const ranking = [...roomCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([lokasi, jumlah], index) => ({ peringkat: index + 1, lokasi, jumlah }));
+    renderRanking(ranking);
+
+    let endDate = datedReports.length
+      ? new Date(datedReports.reduce((latest, date) => Math.max(latest, date.getTime()), 0))
+      : null;
+    if (!endDate && filters.to) endDate = parseReportDate(filters.to);
+    if (!endDate) endDate = new Date();
+    const trendDates = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(endDate);
+      date.setUTCDate(date.getUTCDate() - (6 - index));
+      return date;
     });
-  }
+    const trendCounts = trendDates.map((date) => filteredReports.filter((report) => {
+      const reportDate = parseReportDate(report.tanggal || report.date);
+      return reportDate && dateToInputValue(reportDate) === dateToInputValue(date);
+    }).length);
+
+    renderCharts(
+      trendDates.map((date) => date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
+      trendCounts,
+      [...categoryCounts.keys()],
+      [...categoryCounts.values()]
+    );
+  };
+
+  bindReportFilters('stat', applyFilters);
+  applyFilters();
 }
 
 /* ==========================================================================
@@ -1026,10 +1248,12 @@ function bindVerifikatorEvents() {
         }
         const row = document.querySelector(`tr[data-row-id="${code}"]`);
         if (row) {
+          row.dataset.status = disposition === 'UPA PP Pusat' ? 'Diteruskan ke Pusat' : 'Dalam Perbaikan';
           row.style.opacity = '0.55';
           const lastCell = row.querySelector('td:last-child');
           if (lastCell) lastCell.innerHTML = `<span class="status-pill">✓ ${disposition}</span>`;
         }
+        document.getElementById('dashboardFilterStatus')?.dispatchEvent(new Event('change'));
       }
       showToast(`Laporan diverifikasi → ${disposition}.`, 'success');
       window.closeApproveModal();
@@ -1048,10 +1272,12 @@ function bindVerifikatorEvents() {
         if (target) { target.status = 'Ditolak'; target.rejectionReason = reason; saveStoredReports(reports); }
         const row = document.querySelector(`tr[data-row-id="${code}"]`);
         if (row) {
+          row.dataset.status = 'Ditolak';
           row.style.opacity = '0.55';
           const lastCell = row.querySelector('td:last-child');
           if (lastCell) lastCell.innerHTML = `<span class="status-pill status-pill-danger">✕ Ditolak</span>`;
         }
+        document.getElementById('dashboardFilterStatus')?.dispatchEvent(new Event('change'));
       }
       showToast('Laporan ditolak dengan catatan resmi.', 'info');
       window.closeRejectModal();
