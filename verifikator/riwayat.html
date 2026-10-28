@@ -22,7 +22,8 @@
       <div class="sidebar-top">
         <a href="index.html" class="sidebar-brand">
           <div class="sidebar-brand-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01"></path>
             </svg>
           </div>
@@ -124,6 +125,7 @@
             <button type="button" class="filter-pill" data-filter="Disetujui">Disetujui</button>
             <button type="button" class="filter-pill" data-filter="Ditolak">Ditolak</button>
             <button type="button" class="filter-pill" data-filter="Dalam Perbaikan">Dalam Perbaikan</button>
+            <button type="button" class="filter-pill" data-filter="Menunggu Review Hasil">Menunggu Review Hasil</button>
             <button type="button" class="filter-pill" data-filter="Selesai">Selesai</button>
           </div>
         </div>
@@ -155,15 +157,52 @@
           <strong>Deskripsi:</strong><br>
           <span id="detailDeskripsi">-</span>
         </div>
-        <div class="modal-footer" id="detailFooter"
-          style="display:none; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
-          <p style="font-size:12px; color:#64748b; margin-bottom:10px;">
-            Laporan ini ditangani UPA PP Pusat. Ubah status setelah penanganan di pusat selesai.
-          </p>
-          <button type="button" id="btnSelesaiPusat" class="btn btn-success" style="width:100%;">
-            <i class="fa-solid fa-check"></i> Tandai Selesai (UPA PP Pusat)
-          </button>
+        <!-- hasil kerja teknisi -->
+        <div id="detailHasil"
+          style="display:none; margin-top:12px; padding:12px; background:#fffbeb; border-radius:8px;"></div>
+
+        <!-- riwayat perubahan status -->
+        <div style="margin-top:14px;">
+          <strong>Riwayat Perubahan Status</strong>
+          <div id="detailChangeLog" style="margin-top:8px;"></div>
         </div>
+      </div>
+      <div class="modal-footer" id="detailFooter"
+        style="display:none; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+        <p style="font-size:12px; color:#64748b; margin-bottom:10px;">
+          Laporan ini ditangani UPA PP Pusat. Ubah status setelah penanganan di pusat selesai.
+        </p>
+        <button type="button" id="btnSelesaiPusat" class="btn btn-success" style="width:100%;">
+          <i class="fa-solid fa-check"></i> Tandai Selesai (UPA PP Pusat)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL AKSI STATUS -->
+  <div id="modalAksiStatus" class="modal-overlay hidden" onclick="tutupModalAksi()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="aksiTitle">Aksi</h3>
+          <span class="modal-subtitle" id="aksiTarget">#ID</span>
+        </div>
+        <button type="button" class="modal-close" onclick="tutupModalAksi()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-text" id="aksiDesc"></p>
+
+        <div class="form-group">
+          <label class="form-label" id="aksiLabel">Alasan:</label>
+          <textarea id="aksiAlasan" rows="3" class="glass-input"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="tutupModalAksi()">Batal</button>
+        <button type="button" id="btnAksiKonfirmasi" class="btn btn-danger"
+          onclick="konfirmasiAksi()">Konfirmasi</button>
       </div>
     </div>
   </div>

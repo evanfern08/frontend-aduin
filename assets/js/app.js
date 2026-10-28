@@ -586,10 +586,223 @@ function setupRoleSwitcherPills(currentRole) {
 }
 
 /* ==========================================================================
+   ALUR STATUS, CHANGE LOG & SINKRONISASI ANTAR PERAN (revisi #6 & #8) ORANG 3
+   ========================================================================== */
+const SYNC_KEYS = {
+  CHANGELOG: 'aduin_changelog',
+  STATUS_SYNC: 'aduin_status_sync',       // dibaca halaman pelapor
+  Q_TEKNISI: 'aduin_queue_teknisi',       // verifikator -> teknisi
+  Q_VERIFIKATOR: 'aduin_queue_verifikator' // teknisi -> verifikator
+};
+const STATUS_REVIEW = 'Menunggu Review Hasil';
+const VERIFIKATOR_NAME = 'Mungki Astiningrum, S.T., M.Kom.';
+
+const AKSI_LABEL = {
+  SETUJUI_LAPORAN: 'Laporan Disetujui',
+  TOLAK_LAPORAN: 'Laporan Ditolak',
+  TEKNISI_SELESAI: 'Teknisi Menandai Selesai',
+  TERIMA_HASIL: 'Hasil Perbaikan Diterima',
+  TOLAK_HASIL: 'Tolak Hasil Perbaikan',
+  BATAL_TOLAK: 'Batal Penolakan',
+};
+
+function readJSON(key, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; }
+  catch { return fallback; }
+}
+function writeJSON(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); }
+  catch (e) { console.error('writeJSON error:', e); }
+}
+function pushQueue(key, event) {
+  const q = readJSON(key, []);
+  q.push(event);
+  writeJSON(key, q);
+}
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* ---- Change log ---- */
+function getChangeLog(reportId) {
+  const all = readJSON(SYNC_KEYS.CHANGELOG, []);
+  return reportId ? all.filter((l) => l.reportId === reportId) : all;
+}
+function addChangeLog({ reportId, aksi, oleh, dari, ke, alasan }) {
+  const all = readJSON(SYNC_KEYS.CHANGELOG, []);
+  all.unshift({
+    id: 'LOG-' + Date.now(),
+    reportId, aksi, oleh, dari, ke,
+    alasan: alasan || '-',
+    waktu: new Date().toISOString(),
+  });
+  writeJSON(SYNC_KEYS.CHANGELOG, all);
+}
+
+/* ---- Status yang dilihat pelapor ---- */
+function toPelaporStatus(status) {
+  if (status === 'Menunggu Verifikasi' || status === 'Selesai') return status;
+  if (status === 'Ditolak') return 'Dikembalikan ke Pelapor';
+  return 'Diproses'; // Disetujui, Dalam Perbaikan, Menunggu Review Hasil, Diteruskan ke Pusat
+}
+
+/* ---- SATU-SATUNYA pintu untuk mengubah status laporan ---- */
+function updateReportStatus(id, newStatus, opts = {}) {
+  const { oleh = VERIFIKATOR_NAME, aksi, alasan, extra = {}, notePelapor = '' } = opts;
+  const reports = getStoredReports();
+  const target = reports.find((r) => r.id === id || r.roomCode === id);
+  if (!target) return null;
+
+  const dari = target.status;
+  target.status = newStatus;
+  Object.assign(target, extra);
+  saveStoredReports(reports);
+
+  addChangeLog({ reportId: target.id, aksi, oleh, dari, ke: newStatus, alasan });
+
+  const sync = readJSON(SYNC_KEYS.STATUS_SYNC, {});
+  sync[target.id] = {
+    status: toPelaporStatus(newStatus),
+    note: notePelapor,
+    updatedAt: new Date().toISOString(),
+  };
+  writeJSON(SYNC_KEYS.STATUS_SYNC, sync);
+  return target;
+}
+
+/* ---- #6: Teknisi menandai selesai -> masuk antrean review Kajur ---- */
+function consumeVerifikatorQueue() {
+  const queue = readJSON(SYNC_KEYS.Q_VERIFIKATOR, []);
+  if (!queue.length) return;
+  queue.forEach((ev) => {
+    if (ev.type !== 'HASIL_SELESAI') return;
+    updateReportStatus(ev.reportId, STATUS_REVIEW, {
+      oleh: `${ev.teknisi || 'Teknisi'} (Teknisi)`,
+      aksi: 'TEKNISI_SELESAI',
+      alasan: ev.catatan,
+      extra: { hasilCatatan: ev.catatan, hasilFotoSesudah: ev.fotoSesudah || '' },
+      notePelapor: 'Perbaikan selesai dikerjakan, menunggu pemeriksaan hasil oleh Kajur.',
+    });
+  });
+  writeJSON(SYNC_KEYS.Q_VERIFIKATOR, []);
+}
+
+/* ---- #6: Kajur menerima / menolak hasil ---- */
+window.terimaHasilPerbaikan = function (id) {
+  if (!confirm('Terima hasil perbaikan? Status laporan menjadi Selesai (final).')) return;
+  updateReportStatus(id, 'Selesai', {
+    aksi: 'TERIMA_HASIL',
+    alasan: 'Hasil perbaikan diterima.',
+    notePelapor: 'Perbaikan selesai dan sudah diverifikasi Kajur.',
+  });
+  pushQueue(SYNC_KEYS.Q_TEKNISI, { type: 'DITERIMA', reportId: id, waktu: new Date().toISOString() });
+  showToast('Hasil perbaikan diterima. Laporan Selesai.', 'success');
+  refreshRiwayat();
+};
+
+window.tolakHasilPerbaikan = function (id, alasan) {
+  const cur = getStoredReports().find((r) => r.id === id);
+  if (!cur) return;
+  const revisiKe = (cur.revisi_ke || 0) + 1;
+  updateReportStatus(id, 'Dalam Perbaikan', {
+    aksi: 'TOLAK_HASIL',
+    alasan,
+    extra: { revisi_ke: revisiKe, catatan_revisi: alasan },
+    notePelapor: 'Hasil perbaikan belum memenuhi standar, teknisi mengerjakan ulang.',
+  });
+  pushQueue(SYNC_KEYS.Q_TEKNISI, {
+    type: 'REVISI', reportId: id, alasan,
+    oleh: VERIFIKATOR_NAME, waktu: new Date().toISOString(),
+  });
+  showToast('Hasil ditolak. Laporan kembali ke teknisi.', 'info');
+};
+
+/* ---- #8: Batal penolakan ---- */
+window.batalkanPenolakan = function (id, alasan) {
+  updateReportStatus(id, 'Menunggu Verifikasi', {
+    aksi: 'BATAL_TOLAK',
+    alasan,
+    extra: { rejectionReason: '' },
+    notePelapor: 'Penolakan dibatalkan, laporan ditinjau ulang oleh Kajur.',
+  });
+  showToast('Penolakan dibatalkan. Laporan kembali ke antrean verifikasi.', 'success');
+};
+
+/* ---- Modal aksi (dipakai riwayat.html) ---- */
+let aksiAktif = null;
+const AKSI_CONFIG = {
+  'tolak-hasil': {
+    title: 'Tolak Hasil Perbaikan',
+    desc: 'Laporan kembali ke "Dalam Perbaikan" dan muncul lagi di tab "Sedang Dikerjakan" milik teknisi.',
+    label: 'Alasan penolakan (jadi catatan revisi teknisi)',
+    placeholder: 'Contoh: AC masih bocor, foto sesudah tidak jelas.',
+    btn: 'Tolak Hasil Perbaikan', cls: 'btn btn-danger',
+  },
+  'batal-tolak': {
+    title: 'Batalkan Penolakan',
+    desc: 'Status laporan kembali ke "Menunggu Verifikasi" sehingga bisa diputuskan ulang. Pembatalan dicatat di change log.',
+    label: 'Alasan pembatalan',
+    placeholder: 'Contoh: Salah menekan tombol tolak.',
+    btn: 'Kembalikan ke Antrean', cls: 'btn btn-success',
+  },
+};
+
+window.bukaModalAksi = function (jenis, item) {
+  const cfg = AKSI_CONFIG[jenis];
+  const modal = document.getElementById('modalAksiStatus');
+  if (!cfg || !modal) return;
+  aksiAktif = { jenis, id: item.id };
+  document.getElementById('aksiTitle').textContent = cfg.title;
+  document.getElementById('aksiTarget').textContent = `#${item.id} - ${item.judul}`;
+  document.getElementById('aksiDesc').textContent = cfg.desc;
+  document.getElementById('aksiLabel').textContent = cfg.label;
+  const ta = document.getElementById('aksiAlasan');
+  ta.value = ''; ta.placeholder = cfg.placeholder;
+  const btn = document.getElementById('btnAksiKonfirmasi');
+  btn.textContent = cfg.btn; btn.className = cfg.cls;
+  modal.classList.remove('hidden');
+};
+window.tutupModalAksi = function () {
+  document.getElementById('modalAksiStatus')?.classList.add('hidden');
+  aksiAktif = null;
+};
+window.konfirmasiAksi = function () {
+  if (!aksiAktif) return;
+  const alasan = document.getElementById('aksiAlasan').value.trim();
+  if (!alasan) { showToast('Alasan wajib diisi.', 'error'); return; }
+  if (aksiAktif.jenis === 'tolak-hasil') window.tolakHasilPerbaikan(aksiAktif.id, alasan);
+  else window.batalkanPenolakan(aksiAktif.id, alasan);
+  window.tutupModalAksi();
+  refreshRiwayat();
+};
+
+function refreshRiwayat() {
+  renderRiwayat({ laporan_masuk: getStoredReports() });
+  document.querySelector('.filter-pill.active')?.click(); // pertahankan filter aktif
+}
+
+/* ---- Tampilan change log di modal detail ---- */
+function renderChangeLogHTML(reportId) {
+  const logs = getChangeLog(reportId);
+  if (!logs.length) return '<p class="text-muted" style="font-size:12px;">Belum ada perubahan status.</p>';
+  return logs.map((l) => {
+    const waktu = new Date(l.waktu).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' });
+    return `
+      <div style="border-left:3px solid #cbd5e1; padding:4px 0 4px 10px; margin-bottom:10px; font-size:12px;">
+        <strong>${escapeHtml(AKSI_LABEL[l.aksi] || l.aksi)}</strong>
+        <span style="color:#94a3b8;"> · ${waktu} WIB</span><br>
+        <span>Oleh: ${escapeHtml(l.oleh)}</span><br>
+        <span>${escapeHtml(l.dari)} → <strong>${escapeHtml(l.ke)}</strong></span><br>
+        <span style="color:#475569;">Alasan: ${escapeHtml(l.alasan)}</span>
+      </div>`;
+  }).join('');
+}
+
+/* ==========================================================================
    9. HALAMAN VERIFIKATOR (dashboard, riwayat, statistik)
    ========================================================================== */
 
-const DEV_MODE = true; // ubah ke false saat demo/presentasi
+const DEV_MODE = false; // ubah ke false saat demo/presentasi
 
 const REPORT_MONTHS = {
   jan: 0, januari: 0, feb: 1, februari: 1, mar: 2, maret: 2,
@@ -709,11 +922,13 @@ async function loadVerifikatorData() {
     if ((DEV_MODE || !localStorage.getItem('aduin_reports')) && data.laporan_masuk) {
       localStorage.setItem('aduin_reports', JSON.stringify(data.laporan_masuk));
     }
+    consumeVerifikatorQueue();
     return data;
   } catch (err) {
     console.warn('loadVerifikatorData gagal:', err);
     return null;
   }
+  
 }
 
 function renderDashboard(data) {
@@ -834,50 +1049,70 @@ function buildRiwayatCard(item) {
   card.setAttribute('data-status', item.status);
   card.style.cursor = 'pointer';
 
-  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Diteruskan ke Pusat', 'Selesai'];
-  const currentIndex = statusOrder.indexOf(item.status);
   const isRejected = item.status === 'Ditolak';
-
-  // Cek kalau ini dari Pusat
+  const isReview = item.status === STATUS_REVIEW;
   const isPusat = item.status === 'Diteruskan ke Pusat' || item.disposition === 'UPA PP Pusat';
+
+  const stepMap = {
+    'Menunggu Verifikasi': 0, 'Disetujui': 1, 'Dalam Perbaikan': 2,
+    'Diteruskan ke Pusat': 2, [STATUS_REVIEW]: 3, 'Selesai': 3,
+  };
+  const currentIndex = stepMap[item.status] ?? 0;
 
   const pillMap = {
     'Menunggu Verifikasi': 'status-pill-warning',
     'Disetujui': 'status-pill-info',
     'Dalam Perbaikan': 'status-pill-info',
+    [STATUS_REVIEW]: 'status-pill-warning',
     'Diteruskan ke Pusat': 'status-pill-purple',
     'Selesai': 'status-pill-success',
-    'Ditolak': 'status-pill-danger'
+    'Ditolak': 'status-pill-danger',
   };
   const pillClass = pillMap[item.status] || 'status-pill-neutral';
+
+  const subProses = isPusat ? 'Diserahkan ke Pusat'
+    : isReview ? 'Menunggu review Kajur'
+    : item.revisi_ke ? `Revisi ke-${item.revisi_ke} · ${item.teknisi || 'Teknisi'}`
+    : (item.teknisi || 'Teknisi');
 
   const nodes = [
     { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
     { label: 'Disetujui', sub: 'Validasi Kajur' },
-    { label: isPusat ? 'UPA PP Pusat' : 'Dalam Perbaikan', sub: isPusat ? 'Diserahkan ke Pusat' : (item.teknisi || 'Teknisi') },
+    { label: isPusat ? 'UPA PP Pusat' : 'Dalam Perbaikan', sub: subProses },
+    { label: 'Menunggu Review Hasil', sub: 'Pemeriksaan hasil oleh Kajur' },
     { label: 'Selesai', sub: 'Fasilitas Normal' },
   ];
 
   const timelineHTML = nodes.map((n, i) => {
     let cls = 'timeline-node';
     let dot = i + 1;
-
-    let adjustedIndex = currentIndex;
-    if (item.status === 'Diteruskan ke Pusat') adjustedIndex = 2;
-
     if (!isRejected) {
-      if (i < adjustedIndex) { cls += ' done'; dot = '✓'; }
-      else if (i === adjustedIndex) {
+      if (i < currentIndex) { cls += ' done'; dot = '✓'; }
+      else if (i === currentIndex) {
         if (item.status === 'Selesai') { cls += ' success'; dot = '✓'; }
         else { cls += ' active'; dot = i === 0 ? '✓' : i === 2 ? '⚙' : i + 1; }
       }
     } else if (i === 0) { cls += ' done'; dot = '✓'; }
-
     return `<div class="${cls}"><div class="timeline-dot">${dot}</div><span class="timeline-caption">${n.label}</span><span class="timeline-sub">${n.sub}</span></div>`;
   }).join('');
 
-  // --- TOMBOL DIHAPUS TOTAL ---
-  // Jadi kalau di Pusat, ya udah berhenti di situ. Nggak ada tombol apa-apa.
+  // Tombol aksi
+  let actionHTML = '';
+  if (isReview) {
+    actionHTML = `
+      <button type="button" class="btn btn-success" data-act="terima-hasil">✓ Terima Hasil</button>
+      <button type="button" class="btn btn-danger" data-act="tolak-hasil">Tolak Hasil Perbaikan</button>`;
+  } else if (isRejected) {
+    actionHTML = `<button type="button" class="btn btn-ghost" data-act="batal-tolak" style="border:1px solid #cbd5e1;">↺ Batal Penolakan</button>`;
+  }
+
+  // Catatan kontekstual
+  let noteHTML = '';
+  if (isRejected && item.rejectionReason) {
+    noteHTML = `<p style="font-size:12px;color:#b91c1c;margin-top:10px;">Alasan penolakan: ${escapeHtml(item.rejectionReason)}</p>`;
+  } else if (item.status === 'Dalam Perbaikan' && item.catatan_revisi) {
+    noteHTML = `<p style="font-size:12px;color:#b45309;margin-top:10px;">Catatan revisi dikirim ke teknisi: ${escapeHtml(item.catatan_revisi)}</p>`;
+  }
 
   card.innerHTML = `
     <div class="riwayat-head">
@@ -885,24 +1120,30 @@ function buildRiwayatCard(item) {
         <h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3>
         <p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p>
       </div>
-      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
         <span class="status-pill ${pillClass}">${item.status}</span>
       </div>
     </div>
-
+    ${noteHTML}
     <div class="timeline-wrap">
       <div class="timeline-label">Progress Tracker Timeline</div>
       <div class="timeline">${timelineHTML}</div>
     </div>
+    ${actionHTML ? `<div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">${actionHTML}</div>` : ''}
   `;
 
-  // Klik kartu buka modal detail (ini doang yang jalan)
-  card.addEventListener('click', (e) => {
-    window.bukaModalDetail(item);
+  card.querySelectorAll('[data-act]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // jangan buka modal detail
+      if (btn.dataset.act === 'terima-hasil') window.terimaHasilPerbaikan(item.id);
+      else window.bukaModalAksi(btn.dataset.act, item);
+    });
   });
 
+  card.addEventListener('click', () => window.bukaModalDetail(item));
   return card;
 }
+  
 
 window.bukaModalDetail = function (item) {
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -915,6 +1156,19 @@ window.bukaModalDetail = function (item) {
   setText('detailTanggal', `${item.tanggal || '-'} · ${item.waktu || '-'}`);
   setText('detailDeskripsi', item.deskripsi || '-');
 
+  const logEl = document.getElementById('detailChangeLog');
+  if (logEl) logEl.innerHTML = renderChangeLogHTML(item.id);
+
+  const hasilEl = document.getElementById('detailHasil');
+  if (hasilEl) {
+    if (item.hasilCatatan) {
+      hasilEl.style.display = 'block';
+      hasilEl.innerHTML = `<strong>Hasil kerja teknisi:</strong><br>${escapeHtml(item.hasilCatatan)}` +
+        (item.hasilFotoSesudah ? `<img src="${item.hasilFotoSesudah}" alt="Foto sesudah" style="max-width:100%;border-radius:8px;margin-top:8px;">` : '');
+    } else {
+      hasilEl.style.display = 'none';
+    }
+  }
   const footer = document.getElementById('detailFooter');
   const btn = document.getElementById('btnSelesaiPusat');
   if (footer && btn) {
@@ -1238,15 +1492,17 @@ function bindVerifikatorEvents() {
       const tech = document.getElementById('assignedTechnician')?.value || 'Pak Joko';
       const code = activeReportForAction?.code;
       if (code) {
-        const reports = getStoredReports();
-        const target = reports.find((r) => r.id === code || r.roomCode === code);
-        if (target) {
-          target.disposition = disposition;
-          target.verified_at = new Date().toISOString();
-          if (disposition === 'UPA PP Pusat') { target.status = 'Diteruskan ke Pusat'; target.technician = 'UPA PP Pusat'; }
-          else { target.status = 'Dalam Perbaikan'; target.technician = tech; }
-          saveStoredReports(reports);
-        }
+        const isPusat = disposition === 'UPA PP Pusat';
+        updateReportStatus(code, isPusat ? 'Diteruskan ke Pusat' : 'Dalam Perbaikan', {
+          aksi: 'SETUJUI_LAPORAN',
+          alasan: `Disposisi: ${disposition}${isPusat ? '' : ' - ' + tech}`,
+          extra: {
+            disposition,
+            verified_at: new Date().toISOString(),
+            technician: isPusat ? 'UPA PP Pusat' : tech,
+          },
+          notePelapor: 'Laporan sudah diverifikasi dan diteruskan.',
+        });
         const row = document.querySelector(`tr[data-row-id="${code}"]`);
         if (row) {
           row.dataset.status = disposition === 'UPA PP Pusat' ? 'Diteruskan ke Pusat' : 'Dalam Perbaikan';
