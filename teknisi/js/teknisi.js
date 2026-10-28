@@ -1,7 +1,6 @@
 /**
  * ============================================================
- * ADUIN - MODUL TEKNISI / EKSEKUTOR PEMELIHARAAN
- * File: teknisi.js
+ * ADUIN - MODUL TEKNISI / EKSEKUTOR PEMELIHARAAN (FINAL)
  * ============================================================
  */
 
@@ -15,7 +14,7 @@
     let globalHistory = [];
 
     // ============================================================
-    // 1. FUNGSI GET & SET DATA
+    // 1. STORAGE
     // ============================================================
     function initTeknisiStorage(initialData) {
         const savedTasks = localStorage.getItem(STORAGE_KEY_TASKS);
@@ -49,7 +48,7 @@
     }
 
     // ============================================================
-    // 2. TOAST & MODAL UPDATE
+    // 2. TOAST
     // ============================================================
     function showTeknisiToast(pesan, tipe = 'success') {
         let toastContainer = document.getElementById('teknisiToastContainer');
@@ -67,6 +66,9 @@
         setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3200);
     }
 
+    // ============================================================
+    // 3. MODAL UPDATE TUGAS
+    // ============================================================
     let activeModalTaskId = null;
 
     function ensureModalExists() {
@@ -152,12 +154,13 @@
             const taskIndex = tasks.findIndex(t => t.id === activeModalTaskId);
             const historyIndex = history.findIndex(h => h.id === activeModalTaskId);
 
+            const previewBefore = document.getElementById('imgPreviewFotoSebelum')?.src;
+            const previewAfter = document.getElementById('imgPreviewFotoSesudah')?.src;
+
             if (historyIndex !== -1) {
                 const currentHistory = history[historyIndex];
                 currentHistory.status = newStatus;
                 if (notes) currentHistory.catatan = notes;
-                const previewBefore = document.getElementById('imgPreviewFotoSebelum')?.src;
-                const previewAfter = document.getElementById('imgPreviewFotoSesudah')?.src;
                 if (previewBefore && previewBefore.startsWith('data:image')) currentHistory.fotoSebelum = previewBefore;
                 if (previewAfter && previewAfter.startsWith('data:image')) currentHistory.fotoSesudah = previewAfter;
                 saveHistory(history);
@@ -166,8 +169,6 @@
                 const currentTask = tasks[taskIndex];
                 currentTask.status = newStatus;
                 if (notes) currentTask.catatan = notes;
-                const previewBefore = document.getElementById('imgPreviewFotoSebelum')?.src;
-                const previewAfter = document.getElementById('imgPreviewFotoSesudah')?.src;
                 if (previewBefore && previewBefore.startsWith('data:image')) currentTask.fotoSebelum = previewBefore;
                 if (previewAfter && previewAfter.startsWith('data:image')) currentTask.fotoSesudah = previewAfter;
 
@@ -192,7 +193,6 @@
             }
 
             closeModal();
-            // Render ulang tanpa reload
             updateDashboardMetrics();
             renderDashboard();
             renderDaftarTugas();
@@ -222,13 +222,12 @@
     }
 
     // ============================================================
-    // 3. FUNGSI RENDER DASHBOARD (Hanya yg BELUM Selesai)
+    // 4. RENDER DASHBOARD
     // ============================================================
     function renderDashboard() {
         const container = document.getElementById('dashboard-task-container');
         if (!container) return;
 
-        // Ambil tugas yang statusnya BUKAN 'Selesai'
         const activeTasks = getTasks().filter(t => t.status !== 'Selesai');
         
         container.innerHTML = '';
@@ -254,7 +253,7 @@
     }
 
     // ============================================================
-    // 4. FUNGSI RENDER DAFTAR TUGAS (Tampil semua)
+    // 5. RENDER DAFTAR TUGAS
     // ============================================================
     function renderDaftarTugas() {
         const container = document.getElementById('task-list-container');
@@ -292,9 +291,6 @@
         });
     }
 
-    // ============================================================
-    // 5. INISIALISASI DASHBOARD & METRIK
-    // ============================================================
     function updateDashboardMetrics() {
         const tasks = getTasks();
         const history = getHistory();
@@ -303,13 +299,9 @@
         const countProses = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
         const countSelesai = history.length + tasks.filter(t => t.status === 'Selesai').length;
 
-        const elBaru = document.getElementById('metric-baru');
-        const elProses = document.getElementById('metric-proses');
-        const elSelesai = document.getElementById('metric-selesai');
-
-        if (elBaru) elBaru.textContent = countBaru;
-        if (elProses) elProses.textContent = countProses;
-        if (elSelesai) elSelesai.textContent = countSelesai;
+        if (document.getElementById('metric-baru')) document.getElementById('metric-baru').textContent = countBaru;
+        if (document.getElementById('metric-proses')) document.getElementById('metric-proses').textContent = countProses;
+        if (document.getElementById('metric-selesai')) document.getElementById('metric-selesai').textContent = countSelesai;
     }
 
     function initDaftarTugasTabs() {
@@ -367,65 +359,23 @@
     }
 
     // ============================================================
-    // 6. FUNGSI RIWAYAT & DETAIL
+    // 6. RENDER RIWAYAT & FILTER
     // ============================================================
-    function isHistoryInPeriod(item, period) {
-        if (period === 'Semua') return true;
-        if (item.periode === period) return true;
-
-        const completedAt = item.tanggalSelesai === 'Hari ini'
-            ? new Date()
-            : new Date(item.tanggalSelesai);
-        if (Number.isNaN(completedAt.getTime())) return false;
-
-        const now = new Date();
-        if (completedAt > now) return false;
-        if (period === 'Bulan Ini') {
-            return completedAt.getFullYear() === now.getFullYear()
-                && completedAt.getMonth() === now.getMonth();
-        }
-
-        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const daysSinceMonday = (startOfWeek.getDay() + 6) % 7;
-        startOfWeek.setDate(startOfWeek.getDate() - daysSinceMonday);
-        return completedAt >= startOfWeek;
-    }
-
-    function initRiwayatFilters() {
-        const filterContainer = document.getElementById('history-filters');
-        if (!filterContainer) return;
-
-        filterContainer.querySelectorAll('[data-history-filter]').forEach(button => {
-            button.addEventListener('click', () => {
-                const period = button.dataset.historyFilter;
-                filterContainer.querySelectorAll('[data-history-filter]').forEach(filterButton => {
-                    const isActive = filterButton === button;
-                    filterButton.classList.toggle('btn-success', isActive);
-                    filterButton.classList.toggle('btn-ghost', !isActive);
-                    filterButton.setAttribute('aria-pressed', String(isActive));
-                });
-                renderRiwayat(period);
-            });
-        });
-    }
-
-    function renderRiwayat(period = 'Semua') {
+    function renderRiwayat() {
         const container = document.getElementById('history-list');
         if (!container) return;
 
-        const history = getHistory().filter(item => isHistoryInPeriod(item, period));
+        const history = getHistory();
         container.innerHTML = '';
+        
         if (history.length === 0) {
-            const emptyMessage = period === 'Semua'
-                ? 'Belum ada riwayat perbaikan.'
-                : `Belum ada riwayat perbaikan untuk ${period.toLowerCase()}.`;
-            container.innerHTML = `<p class="text-muted">${emptyMessage}</p>`;
+            container.innerHTML = `<p class="text-muted">Belum ada riwayat perbaikan.</p>`;
             return;
         }
 
         history.forEach(item => {
             const card = document.createElement('article');
-            card.className = 'glass-card';
+            card.className = 'glass-card riwayat-card';
             card.style.cursor = 'pointer';
             card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
@@ -447,8 +397,50 @@
             card.addEventListener('click', () => window.lihatDetailRiwayat(item.id));
             container.appendChild(card);
         });
+
+        // --- BINDING TOMBOL FILTER ---
+        const filterBtns = document.querySelectorAll('.filter-btn-riwayat');
+        filterBtns.forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Reset semua tombol jadi abu-abu
+                document.querySelectorAll('.filter-btn-riwayat').forEach(b => {
+                    b.className = 'btn btn-ghost filter-btn-riwayat';
+                    b.style.border = '1px solid #d1d5db';
+                });
+                
+                // Bikin tombol yang diklik jadi hijau
+                newBtn.className = 'btn btn-success filter-btn-riwayat';
+                newBtn.style.border = 'none';
+
+                const filterVal = newBtn.textContent.trim().toLowerCase();
+                const cards = document.querySelectorAll('.riwayat-card');
+
+                cards.forEach(card => {
+                    card.style.display = 'none';
+                    const text = card.textContent.toLowerCase();
+
+                    if (filterVal === 'semua') {
+                        card.style.display = '';
+                    } else if (filterVal === 'minggu ini') {
+                        if (text.includes('hari ini') || text.includes('minggu ini')) {
+                            card.style.display = '';
+                        }
+                    } else if (filterVal === 'bulan ini') {
+                        card.style.display = ''; 
+                    }
+                });
+            });
+        });
     }
 
+    // ============================================================
+    // 7. DETAIL MODAL & GLOBAL FUNCTIONS
+    // ============================================================
     let currentDetailId = null;
 
     window.lihatDetailRiwayat = function(id) {
@@ -472,12 +464,6 @@
         modal.classList.add('active');
     };
 
-    window.editLaporanSelesai = function() {
-        if (!currentDetailId) return;
-        window.tutupDetail();
-        window.openModalForTask(currentDetailId, 'Edit Laporan Selesai');
-    };
-
     window.tutupDetail = function() {
         const modal = document.getElementById('modalDetailPengaduan');
         if (modal) { modal.classList.add('hidden'); modal.classList.remove('active'); }
@@ -486,7 +472,7 @@
     window.openModalForTask = openModalForTask;
 
     // ============================================================
-    // 7. BOOT
+    // 8. BOOT
     // ============================================================
     window.initTeknisiPage = function (initialData) {
         initTeknisiStorage(initialData);
@@ -496,7 +482,6 @@
         renderDaftarTugas();
         initDaftarTugasTabs();
         renderRiwayat();
-        initRiwayatFilters();
     };
 
 })();

@@ -124,19 +124,46 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
     }).format(new Date(date));
   }
 
-  function progressCard(status) {
-    const activeIndex = status === "Menunggu Verifikasi" ? 0 : status === "Selesai" ? 2 : 1;
+     function progressCard(report) {
+    const status = report.status;
+    const activeIndex = status === "Menunggu Verifikasi" ? 0 : status === "Selesai" ? 3 : 1;
     const returned = status === "Dikembalikan ke Pelapor";
+    
+    // Fungsi buat nge-format tanggal dari string bebas (ISO atau "05 Okt 2026")
+    const formatDate = (dateString) => {
+      if (!dateString || dateString === "-") return "-";
+      // Kalau formatnya udah cantik (ada huruf), langsung balikin aja
+      if (isNaN(new Date(dateString).getTime())) return dateString; 
+      return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(dateString));
+    };
+
+    // 1. Ambil tanggal kirim (prioritas: created_at -> tanggal)
+    const tglDikirim = report.created_at 
+      ? formatDate(report.created_at) 
+      : `${report.tanggal || '-'}`;
+
+    // 2. Ambil tanggal verifikasi (prioritas: verified_at)
+    const tglVerif = report.verified_at 
+      ? formatDate(report.verified_at) 
+      : (status !== 'Menunggu Verifikasi' ? report.tanggal : '-');
+
+    // 3. Ambil tanggal selesai (prioritas: completed_at)
+    const tglSelesai = report.completed_at 
+      ? formatDate(report.completed_at) 
+      : (status === 'Selesai' ? report.tanggal : '-');
+
     const steps = [
-      { label: "Dikirim", state: "Menunggu verifikasi" },
-      { label: returned ? "Dikembalikan" : "Diproses", state: returned ? "Dikembalikan ke Pelapor" : "Diproses" },
-      { label: "Selesai", state: "Selesai" },
+      { label: "Dikirim", sub: tglDikirim },
+      { label: "Diverifikasi", sub: tglVerif },
+      { label: returned ? "Dikembalikan" : "Diproses", sub: returned ? "Dikembalikan ke Pelapor" : "Ditangani Teknisi" },
+      { label: "Selesai", sub: tglSelesai },
     ];
+
     const container = document.createElement("div");
     container.className = "timeline-wrap";
     const caption = document.createElement("p");
     caption.className = "timeline-label";
-    caption.textContent = "Progres laporan";
+    caption.textContent = "PROGRES LAPORAN";
     const timeline = document.createElement("div");
     timeline.className = "timeline";
 
@@ -145,13 +172,20 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
       const reached = status === "Selesai" || index < activeIndex;
       const current = index === activeIndex && status !== "Selesai";
       step.className = `timeline-node${status === "Selesai" ? " success" : reached ? " done" : current ? " active" : ""}`;
+      
       const marker = document.createElement("div");
       marker.className = "timeline-dot";
       marker.textContent = reached ? "✓" : String(index + 1);
+      
       const text = document.createElement("span");
       text.className = "timeline-caption";
       text.textContent = label.label;
-      step.append(marker, text);
+      
+      const sub = document.createElement("span");
+      sub.className = "timeline-sub";
+      sub.textContent = label.sub;
+
+      step.append(marker, text, sub);
       timeline.append(step);
     });
     container.append(caption, timeline);
@@ -200,7 +234,7 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
       photo.textContent = `Foto dipilih: ${report.photoName} (belum diunggah ke server)`;
       card.append(photo);
     }
-    card.append(progressCard(report.status));
+    card.append(progressCard(report));
     card.dataset.status = report.status;
     return card;
   }
@@ -335,11 +369,28 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
       event.preventDefault();
       const feedback = document.getElementById("report-feedback");
       if (!form.reportValidity()) return;
+      
       const data = new FormData(form);
       const room = data.get("room");
       const roomOption = form.elements.room.selectedOptions[0];
       const category = data.get("category");
       const description = String(data.get("description")).trim();
+      
+      // ============================================================
+      // SIMULASI SERVER TIMESTAMP
+      // ============================================================
+      // 1. Ambil waktu saat ini secara paksa (seperti NOW() di database)
+      const now = new Date(); 
+      
+      // 2. Format ISO untuk disimpan sebagai timestamp presisi tinggi
+      const serverTimestamp = now.toISOString(); 
+      
+      // 3. Format tanggal yang enak dibaca (untuk ditampilkan di UI)
+      const displayDate = new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+      }).format(now) + " WIB";
+
       const report = {
         id: `report-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         title: `${category}: ${description.split(/[.!?]/)[0].slice(0, 55) || category}`,
@@ -347,9 +398,13 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
         roomLabel: roomOption.textContent.trim(),
         category,
         description,
-        date: new Date().toISOString(),
+        
+        // --- GANTI BAGIAN INI ---
+        date: displayDate,             // Tampilan untuk user
+        created_at: serverTimestamp,   // Simulasi Timestamp Database (NOW())
         status: "Menunggu Verifikasi",
       };
+      
       if (selectedPhoto) report.photoName = selectedPhoto.name;
       const reports = getReports();
       if (!writeStorage(REPORTS_KEY, [report, ...reports])) {

@@ -1242,6 +1242,7 @@ function bindVerifikatorEvents() {
         const target = reports.find((r) => r.id === code || r.roomCode === code);
         if (target) {
           target.disposition = disposition;
+          target.verified_at = new Date().toISOString();
           if (disposition === 'UPA PP Pusat') { target.status = 'Diteruskan ke Pusat'; target.technician = 'UPA PP Pusat'; }
           else { target.status = 'Dalam Perbaikan'; target.technician = tech; }
           saveStoredReports(reports);
