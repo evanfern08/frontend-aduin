@@ -917,19 +917,38 @@ async function loadVerifikatorData() {
   try {
     const res = await fetch('data.json');
     if (!res.ok) throw new Error('Gagal memuat data.json');
-    const data = await res.json();
 
-    if ((DEV_MODE || !localStorage.getItem('aduin_reports')) && data.laporan_masuk) {
-      localStorage.setItem('aduin_reports', JSON.stringify(data.laporan_masuk));
-    }
-    consumeVerifikatorQueue();
+    const data = await res.json();
+    const storedReports = getStoredReports();
+
+    // Gabungkan status terbaru dari localStorage ke data laporan
+    data.laporan_masuk = (data.laporan_masuk || []).map((item) => {
+      const saved = storedReports.find(
+        (r) => String(r.id) === String(item.id) ||
+          String(r.roomCode) === String(item.id)
+      );
+
+      if (!saved) return item;
+
+      return {
+        ...item,
+        status: saved.status || item.status,
+        technician: saved.technician || item.technician,
+        disposition: saved.disposition || item.disposition,
+        rejectionReason: saved.rejectionReason || item.rejectionReason,
+        catatan: saved.catatan || item.catatan,
+        fotoSebelum: saved.fotoSebelum || item.fotoSebelum,
+        fotoSesudah: saved.fotoSesudah || item.fotoSesudah
+      };
+    });
+
     return data;
   } catch (err) {
     console.warn('loadVerifikatorData gagal:', err);
     return null;
   }
-  
 }
+
 
 function renderDashboard(data) {
   if (!data) return;
@@ -1058,6 +1077,8 @@ function buildRiwayatCard(item) {
     'Diteruskan ke Pusat': 2, [STATUS_REVIEW]: 3, 'Selesai': 4,
   };
   const currentIndex = stepMap[item.status] ?? 0;
+  console.log('Status laporan:', item.status);
+  console.log('Index progress:', currentIndex);
 
   const pillMap = {
     'Menunggu Verifikasi': 'status-pill-warning',
@@ -1066,21 +1087,21 @@ function buildRiwayatCard(item) {
     [STATUS_REVIEW]: 'status-pill-warning',
     'Diteruskan ke Pusat': 'status-pill-purple',
     'Selesai': 'status-pill-success',
-    'Ditolak': 'status-pill-danger',
+    'Ditolak': 'status-pill-danger'
   };
   const pillClass = pillMap[item.status] || 'status-pill-neutral';
 
   const subProses = isPusat ? 'Diserahkan ke Pusat'
     : isReview ? 'Menunggu review Kajur'
-    : item.revisi_ke ? `Revisi ke-${item.revisi_ke} · ${item.teknisi || 'Teknisi'}`
-    : (item.teknisi || 'Teknisi');
+      : item.revisi_ke ? `Revisi ke-${item.revisi_ke} · ${item.teknisi || 'Teknisi'}`
+        : (item.teknisi || 'Teknisi');
 
   const nodes = [
     { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
     { label: 'Disetujui', sub: 'Validasi Kajur' },
-    { label: isPusat ? 'UPA PP Pusat' : 'Dalam Perbaikan', sub: subProses },
-    { label: 'Menunggu Review Hasil', sub: 'Pemeriksaan hasil oleh Kajur' },
-    { label: 'Selesai', sub: 'Fasilitas Normal' },
+    { label: 'Dalam Perbaikan', sub: item.teknisi || 'Teknisi' },
+    { label: 'Menunggu Review Hasil', sub: 'Menunggu verifikasi hasil' },
+    { label: 'Selesai', sub: 'Fasilitas Normal' }
   ];
 
   const timelineHTML = nodes.map((n, i) => {
@@ -1143,7 +1164,7 @@ function buildRiwayatCard(item) {
   card.addEventListener('click', () => window.bukaModalDetail(item));
   return card;
 }
-  
+
 
 window.bukaModalDetail = function (item) {
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
