@@ -639,6 +639,64 @@ function addChangeLog({ reportId, aksi, oleh, dari, ke, alasan }) {
   writeJSON(SYNC_KEYS.CHANGELOG, all);
 }
 
+
+// Batal penolakan
+function batalPenolakan(reportId) {
+  const session = getSession();
+
+  if (
+    !session ||
+    String(session.role || '').toLowerCase() !== 'verifikator'
+  ) {
+    showToast('Akses hanya untuk verifikator.', 'error');
+    return;
+  }
+
+  const reason = prompt('Masukkan alasan pembatalan penolakan:');
+
+  if (reason === null) return;
+
+  if (!reason.trim()) {
+    showToast('Alasan pembatalan wajib diisi.', 'error');
+    return;
+  }
+
+  const reports = getStoredReports();
+
+  const target = reports.find(
+    (report) => String(report.id) === String(reportId)
+  );
+
+  if (!target || target.status !== 'Ditolak') {
+    showToast('Laporan tidak ditemukan atau bukan berstatus Ditolak.', 'error');
+    return;
+  }
+
+  const statusSebelum = target.status;
+  target.status = 'Menunggu Verifikasi';
+
+  // simpan status laporan
+  saveStoredReports(reports);
+
+  // catat perubahan menggunakan fungsi change log yang sudah ada
+  addChangeLog({
+    reportId: target.id,
+    aksi: 'Batal Penolakan',
+    oleh: session.nama || 'Verifikator',
+    dari: statusSebelum,
+    ke: target.status,
+    alasan: reason.trim()
+  });
+
+  showToast('Penolakan dibatalkan. Laporan kembali ke antrean verifikasi.', 'success');
+
+  // muat ulang dashboard
+  loadVerifikatorData().then((data) => {
+    if (data) renderDashboard(data);
+  });
+}
+
+
 /* ---- Status yang dilihat pelapor ---- */
 function toPelaporStatus(status) {
   if (status === 'Menunggu Verifikasi' || status === 'Selesai') return status;
@@ -976,10 +1034,22 @@ function renderDashboard(data) {
       : `<span class="text-muted">Tanpa foto</span>`;
     const aksiCell = item.status === 'Menunggu Verifikasi'
       ? `<div class="action-group">
-           <button type="button" class="btn-icon btn-icon-success" onclick="openApproveModal('${item.id}', '${item.judul}')" title="Approve">✓</button>
-           <button type="button" class="btn-icon btn-icon-danger" onclick="openRejectModal('${item.id}', '${item.judul}')" title="Reject">✕</button>
-         </div>`
-      : `<span class="status-pill">${item.status}</span>`;
+       <button type="button" class="btn-icon btn-icon-success"
+         onclick="openApproveModal('${item.id}', '${item.judul}')"
+         title="Approve">✓</button>
+       <button type="button" class="btn-icon btn-icon-danger"
+         onclick="openRejectModal('${item.id}', '${item.judul}')"
+         title="Reject">✕</button>
+     </div>`
+      : item.status === 'Ditolak'
+        ? `<div class="action-group">
+         <span class="status-pill status-pill-danger">Ditolak</span>
+         <button type="button" class="btn-icon"
+           onclick="batalPenolakan('${item.id}')"
+           title="Batal Penolakan">↩</button>
+       </div>`
+        : `<span class="status-pill">${item.status}</span>`;
+
 
     tr.innerHTML = `
       <td>
