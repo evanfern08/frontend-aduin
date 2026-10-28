@@ -1055,7 +1055,7 @@ function buildRiwayatCard(item) {
 
   const stepMap = {
     'Menunggu Verifikasi': 0, 'Disetujui': 1, 'Dalam Perbaikan': 2,
-    'Diteruskan ke Pusat': 2, [STATUS_REVIEW]: 3, 'Selesai': 3,
+    'Diteruskan ke Pusat': 2, [STATUS_REVIEW]: 3, 'Selesai': 4,
   };
   const currentIndex = stepMap[item.status] ?? 0;
 
