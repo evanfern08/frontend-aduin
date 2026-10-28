@@ -124,39 +124,33 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
     }).format(new Date(date));
   }
 
-     function progressCard(report) {
+  function progressCard(report) {
     const status = report.status;
     const activeIndex = status === "Menunggu Verifikasi" ? 0 : status === "Selesai" ? 3 : 1;
     const returned = status === "Dikembalikan ke Pelapor";
     
-    // Fungsi buat nge-format tanggal dari string bebas (ISO atau "05 Okt 2026")
-    const formatDate = (dateString) => {
-      if (!dateString || dateString === "-") return "-";
-      // Kalau formatnya udah cantik (ada huruf), langsung balikin aja
-      if (isNaN(new Date(dateString).getTime())) return dateString; 
-      return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(dateString));
+    // 1. Ambil tanggal dari field apapun yang tersedia
+    // Kalau di JSON namanya 'date', atau 'tanggal', atau 'created_at'
+    const rawDate = report.tanggal || report.created_at || report.date || "-";
+    
+    // 2. Format tanggal biar cantik (kalau formatnya ISO)
+    const formatDate = (str) => {
+      if (!str || str === "-") return "-";
+      // Cek kalau dia string ISO (ada huruf T)
+      if (str.includes('T')) {
+        return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(str));
+      }
+      return str; // Kalau udah "05 Okt 2026" ya biarin aja
     };
 
-    // 1. Ambil tanggal kirim (prioritas: created_at -> tanggal)
-    const tglDikirim = report.created_at 
-      ? formatDate(report.created_at) 
-      : `${report.tanggal || '-'}`;
-
-    // 2. Ambil tanggal verifikasi (prioritas: verified_at)
-    const tglVerif = report.verified_at 
-      ? formatDate(report.verified_at) 
-      : (status !== 'Menunggu Verifikasi' ? report.tanggal : '-');
-
-    // 3. Ambil tanggal selesai (prioritas: completed_at)
-    const tglSelesai = report.completed_at 
-      ? formatDate(report.completed_at) 
-      : (status === 'Selesai' ? report.tanggal : '-');
+    const tglDikirim = formatDate(rawDate);
 
     const steps = [
       { label: "Dikirim", sub: tglDikirim },
-      { label: "Diverifikasi", sub: tglVerif },
+      // Paksa munculin tanggal yang sama buat demo biar gak strip
+      { label: "Diverifikasi", sub: status !== "Menunggu Verifikasi" ? tglDikirim : "-" },
       { label: returned ? "Dikembalikan" : "Diproses", sub: returned ? "Dikembalikan ke Pelapor" : "Ditangani Teknisi" },
-      { label: "Selesai", sub: tglSelesai },
+      { label: "Selesai", sub: status === "Selesai" ? tglDikirim : "-" },
     ];
 
     const container = document.createElement("div");
