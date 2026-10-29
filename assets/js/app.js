@@ -860,7 +860,7 @@ function renderChangeLogHTML(reportId) {
    9. HALAMAN VERIFIKATOR (dashboard, riwayat, statistik)
    ========================================================================== */
 
-const DEV_MODE = false; // ubah ke false saat demo/presentasi
+const DEV_MODE = false; // 
 
 const REPORT_MONTHS = {
   jan: 0, januari: 0, feb: 1, februari: 1, mar: 2, maret: 2,

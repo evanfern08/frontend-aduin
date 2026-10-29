@@ -172,6 +172,7 @@
                 if (previewBefore && previewBefore.startsWith('data:image')) currentTask.fotoSebelum = previewBefore;
                 if (previewAfter && previewAfter.startsWith('data:image')) currentTask.fotoSesudah = previewAfter;
 
+                // status teknisi
                 if (newStatus === 'Selesai') {
                     const reportKey = 'aduin_reports';
                     const reports = JSON.parse(localStorage.getItem(reportKey) || '[]');
