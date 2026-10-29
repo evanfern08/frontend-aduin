@@ -1,5 +1,5 @@
 /**
- * app.js - ADUIN Client-Side Script (FINAL GABUNGAN)
+ * app.js - ADUIN Client-Side Script (GLOBAL CORE)
  * Multi-Role: Pelapor, Verifikator, Teknisi
  * Frontend only: localStorage + fetch users.json / data.json
  * ==========================================================================
@@ -42,6 +42,9 @@ function clearSession() {
   localStorage.removeItem(STORAGE_KEYS.SESSION);
 }
 
+/* ==========================================================================
+   2. RESPONSIVE SIDEBAR (HAMBURGER)
+   ========================================================================== */
 function initResponsiveSidebar() {
   const sidebar = document.querySelector('.sidebar-blue');
   const mainContent = document.querySelector('.main-content');
@@ -96,7 +99,7 @@ function initResponsiveSidebar() {
 }
 
 /* ==========================================================================
-   2. TOAST NOTIFICATION COMPONENT
+   3. TOAST NOTIFICATION
    ========================================================================== */
 function showToast(message, type = 'success') {
   let container = document.querySelector('.toast-container');
@@ -107,12 +110,9 @@ function showToast(message, type = 'success') {
   }
 
   const toast = document.createElement('div');
-  toast.className =
-    'toast' +
-    (type === 'error' ? ' toast-error' : type === 'info' ? ' toast-info' : '');
+  toast.className = 'toast' + (type === 'error' ? ' toast-error' : type === 'info' ? ' toast-info' : '');
 
-  const icon =
-    type === 'error'
+  const icon = type === 'error'
       ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
       : type === 'info'
         ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
@@ -129,7 +129,7 @@ function showToast(message, type = 'success') {
 }
 
 /* ==========================================================================
-   3. GLOBAL: TOGGLE SHOW/HIDE PASSWORD
+   4. GLOBAL: TOGGLE PASSWORD
    ========================================================================== */
 function initPasswordToggles() {
   document.querySelectorAll('.toggle-password-btn').forEach((btn) => {
@@ -159,7 +159,7 @@ function initPasswordToggles() {
 }
 
 /* ==========================================================================
-   4. MASTER DATA PENGGUNA & MENU CONFIG
+   5. MASTER DATA & KONFIGURASI MENU
    ========================================================================== */
 const USERS_JSON_PATH = 'users.json';
 
@@ -237,10 +237,9 @@ const MOCK_USERS_BY_ROLE = {
 };
 
 /* ==========================================================================
-   5. AUTH: REGISTER & LOGIN
+   6. AUTH: REGISTER & LOGIN
    ========================================================================== */
 function initAuthForms() {
-  // --- Register ---
   const registerForm = document.getElementById('registerForm');
   if (registerForm) {
     registerForm.addEventListener('submit', (e) => {
@@ -270,7 +269,6 @@ function initAuthForms() {
     });
   }
 
-  // --- Login ---
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
@@ -305,7 +303,7 @@ function initAuthForms() {
 }
 
 /* ==========================================================================
-   6. HALAMAN PENGATURAN — initPengaturanPage()
+   7. HALAMAN PENGATURAN
    ========================================================================== */
 async function initPengaturanPage() {
   const nav = document.getElementById('sidebarNav');
@@ -313,15 +311,11 @@ async function initPengaturanPage() {
 
   initPasswordToggles();
 
-  // ---- LANGKAH 1: TENTUKAN ROLE AKTIF ----
   const params = new URLSearchParams(window.location.search);
   const roleFromUrl = (params.get('role') || '').toLowerCase();
   const session = getSession();
 
-  const roleInternal =
-    ROLE_URL_MAP[roleFromUrl] ||
-    session?.role ||
-    'Pelapor';
+  const roleInternal = ROLE_URL_MAP[roleFromUrl] || session?.role || 'Pelapor';
   const dashboardLinks = {
     Pelapor: 'pelapor/index.html',
     Verifikator: 'verifikator/index.html',
@@ -330,7 +324,6 @@ async function initPengaturanPage() {
   const brandLink = document.querySelector('.sidebar-brand');
   if (brandLink) brandLink.href = dashboardLinks[roleInternal] || dashboardLinks.Pelapor;
 
-  // ---- LANGKAH 2: FETCH users.json ----
   let usersData = null;
   try {
     const res = await fetch(USERS_JSON_PATH);
@@ -339,50 +332,20 @@ async function initPengaturanPage() {
     console.warn('[initPengaturanPage] users.json tidak dapat dimuat:', err);
   }
 
-  // ---- LANGKAH 3: AMBIL USER SESUAI ROLE (IF-ELSE EKSPLISIT) ----
   let user = null;
-
   if (roleInternal === 'Pelapor') {
-    // --- PENGATURAN PELAPOR ---
-    if (usersData?.users) {
-      user = usersData.users.find((u) => u.role_utama === 'Pelapor');
-    }
-    if (!user) {
-      user = { ...MOCK_USERS_BY_ROLE.Pelapor };
-    }
+    user = usersData?.users?.find((u) => u.role_utama === 'Pelapor') || { ...MOCK_USERS_BY_ROLE.Pelapor };
     user.role_utama = 'Pelapor';
-    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
-      user.sidebar_menu = DEFAULT_MENUS.Pelapor;
-    }
-
+    user.sidebar_menu = DEFAULT_MENUS.Pelapor;
   } else if (roleInternal === 'Verifikator') {
-    // --- PENGATURAN VERIFIKATOR ---
-    if (usersData?.users) {
-      user = usersData.users.find((u) => u.role_utama === 'Verifikator');
-    }
-    if (!user) {
-      user = { ...MOCK_USERS_BY_ROLE.Verifikator };
-    }
+    user = usersData?.users?.find((u) => u.role_utama === 'Verifikator') || { ...MOCK_USERS_BY_ROLE.Verifikator };
     user.role_utama = 'Verifikator';
-    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
-      user.sidebar_menu = DEFAULT_MENUS.Verifikator;
-    }
-
+    user.sidebar_menu = DEFAULT_MENUS.Verifikator;
   } else if (roleInternal === 'Teknisi') {
-    // --- PENGATURAN TEKNISI ---
-    if (usersData?.users) {
-      user = usersData.users.find((u) => u.role_utama === 'Teknisi');
-    }
-    if (!user) {
-      user = { ...MOCK_USERS_BY_ROLE.Teknisi };
-    }
+    user = usersData?.users?.find((u) => u.role_utama === 'Teknisi') || { ...MOCK_USERS_BY_ROLE.Teknisi };
     user.role_utama = 'Teknisi';
-    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
-      user.sidebar_menu = DEFAULT_MENUS.Teknisi;
-    }
-
+    user.sidebar_menu = DEFAULT_MENUS.Teknisi;
   } else {
-    // --- FALLBACK (role tidak dikenali) → Pelapor ---
     user = { ...MOCK_USERS_BY_ROLE.Pelapor };
     user.role_utama = 'Pelapor';
     user.sidebar_menu = DEFAULT_MENUS.Pelapor;
@@ -393,9 +356,6 @@ async function initPengaturanPage() {
     if (el) el.textContent = val || '–';
   };
 
-
-  // ---- LANGKAH 4: RENDER MENU SIDEBAR ----
-  // Satu peta ikon untuk semua role (Font Awesome, berdasarkan judul menu)
   const MENU_FA_ICONS = {
     'Dashboard': 'fa-solid fa-border-all',
     'Buat Laporan': 'fa-solid fa-plus',
@@ -404,24 +364,16 @@ async function initPengaturanPage() {
     'Riwayat': 'fa-solid fa-clipboard-list',
     'Statistik': 'fa-solid fa-chart-simple',
     'Pengaturan': 'fa-solid fa-gear',
+    'Kelola Teknisi': 'fa-solid fa-users',
   };
 
   nav.innerHTML = user.sidebar_menu.map((item) => {
     const isActive = item.title === 'Pengaturan';
     const faClass = MENU_FA_ICONS[item.title];
-
-    let iconHtml;
-    if (faClass) {
-      iconHtml = `<i class="${faClass}"></i>`;
-    } else {
-      const iconKey = typeof item.icon === 'string' ? item.icon : 'default';
-      iconHtml = MENU_ICONS[iconKey] || MENU_ICONS.default;
-    }
-
+    let iconHtml = faClass ? `<i class="${faClass}"></i>` : (MENU_ICONS[item.icon] || MENU_ICONS.default);
     return `<a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}">${iconHtml}<span>${item.title}</span></a>`;
   }).join('');
 
-  // ---- LANGKAH 5: WARNA AVATAR BERDASARKAN ROLE ----
   const roleClassMap = { Pelapor: 'role-pelapor', Verifikator: 'role-verifikator', Teknisi: 'role-teknisi' };
   const applyRoleClass = (el) => {
     if (!el) return;
@@ -431,19 +383,12 @@ async function initPengaturanPage() {
   };
 
   const sidebarAvatarEl = document.getElementById('sidebarAvatar');
-  if (sidebarAvatarEl) {
-    sidebarAvatarEl.textContent = user.avatar;
-    applyRoleClass(sidebarAvatarEl);
-  }
+  if (sidebarAvatarEl) { sidebarAvatarEl.textContent = user.avatar; applyRoleClass(sidebarAvatarEl); }
   setText('sidebarName', user.nama);
   setText('sidebarRole', user.jabatan || user.role_utama);
 
-  // ---- LANGKAH 6: KARTU PROFIL ----
   const profileAvatarEl = document.getElementById('profileAvatar');
-  if (profileAvatarEl) {
-    profileAvatarEl.textContent = user.avatar;
-    applyRoleClass(profileAvatarEl);
-  }
+  if (profileAvatarEl) { profileAvatarEl.textContent = user.avatar; applyRoleClass(profileAvatarEl); }
   setText('profileName', user.nama);
 
   const idPrefix = user.role_utama === 'Pelapor' ? 'NIM ' : user.role_utama === 'Teknisi' ? 'ID ' : 'NIP ';
@@ -452,10 +397,8 @@ async function initPengaturanPage() {
   setText('profileEmail', user.email);
   setText('breadcrumbRole', user.role_utama);
 
-  // ---- LANGKAH 7: UPLOAD FOTO PROFIL ----
   const avatarStorageKey = STORAGE_KEYS.AVATAR_PREFIX + user.id;
   const savedAvatar = localStorage.getItem(avatarStorageKey);
-
   if (savedAvatar) {
     if (profileAvatarEl) profileAvatarEl.innerHTML = `<img src="${savedAvatar}" alt="${user.nama}">`;
     if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = `<img src="${savedAvatar}" alt="${user.nama}">`;
@@ -482,7 +425,6 @@ async function initPengaturanPage() {
     });
   }
 
-  // ---- LANGKAH 8: LOGOUT ----
   const btnLogout = document.getElementById('btnLogout');
   if (btnLogout && !btnLogout.dataset.bound) {
     btnLogout.dataset.bound = 'true';
@@ -494,16 +436,10 @@ async function initPengaturanPage() {
     });
   }
 
-  // ---- LANGKAH 9: FORM UBAH PASSWORD ----
   setupFormUbahPassword(user);
-
-  // ---- LANGKAH 10: ROLE SWITCHER PILLS ----
   setupRoleSwitcherPills(user.role_utama);
 }
 
-/* ==========================================================================
-   7. LOGIKA FORM UBAH PASSWORD (UNIVERSAL)
-   ========================================================================== */
 function setupFormUbahPassword(userAktif) {
   const form = document.getElementById('formUbahPassword');
   if (!form || form.dataset.bound === 'true') return;
@@ -534,20 +470,10 @@ function setupFormUbahPassword(userAktif) {
     let account = users.find((u) => u.id === userAktif.id);
 
     if (account) {
-      if (account.password && account.password !== oldPass) {
-        showAlert('Kata sandi lama tidak cocok / salah.', false);
-        return;
-      }
+      if (account.password && account.password !== oldPass) { showAlert('Kata sandi lama tidak cocok / salah.', false); return; }
       account.password = newPass;
     } else {
-      users.push({
-        id: userAktif.id,
-        email: userAktif.email,
-        password: newPass,
-        role: userAktif.role_utama,
-        nama: userAktif.nama,
-        avatar: userAktif.avatar,
-      });
+      users.push({ id: userAktif.id, email: userAktif.email, password: newPass, role: userAktif.role_utama, nama: userAktif.nama, avatar: userAktif.avatar });
     }
 
     saveStoredUsers(users);
@@ -557,9 +483,6 @@ function setupFormUbahPassword(userAktif) {
   });
 }
 
-/* ==========================================================================
-   8. ROLE SWITCHER INTERAKTIF
-   ========================================================================== */
 function setupRoleSwitcherPills(currentRole) {
   const switcherBtns = document.querySelectorAll('.role-switcher-btn');
   switcherBtns.forEach((btn) => {
@@ -569,7 +492,6 @@ function setupRoleSwitcherPills(currentRole) {
     } else {
       btn.classList.remove('active');
     }
-
     if (btn.dataset.bound === 'true') return;
     btn.dataset.bound = 'true';
 
@@ -586,6 +508,9 @@ function setupRoleSwitcherPills(currentRole) {
 }
 
 /* ==========================================================================
+<<<<<<< HEAD
+   8. HALAMAN PELAPOR
+=======
    ALUR STATUS, CHANGE LOG & SINKRONISASI ANTAR PERAN (revisi #6 & #8) ORANG 3
    ========================================================================== */
 const SYNC_KEYS = {
@@ -1439,6 +1364,7 @@ function renderStatistik(data) {
 
 /* ==========================================================================
    10. HALAMAN PELAPOR
+>>>>>>> c5fdc4e12cde6aeaa16248d6735d52c71b007111
    ========================================================================== */
 async function loadPelaporData() {
   const res = await fetch('data.json');
@@ -1453,7 +1379,7 @@ async function loadPelaporData() {
 function createReportCard(report, profileName) {
   const card = document.createElement("article");
   card.className = "glass-card riwayat-card";
-  card.style.cursor = "pointer"; // Tambahkan pointer biar bisa diklik
+  card.style.cursor = "pointer";
 
   const heading = document.createElement("div");
   heading.className = "riwayat-head";
@@ -1487,16 +1413,12 @@ function createReportCard(report, profileName) {
     photo.textContent = `Foto dipilih: ${report.photoName} (belum diunggah ke server)`;
     card.append(photo);
   }
-  card.append(progressCard(report.status));
+  card.append(progressCard(report));
   card.dataset.status = report.status;
 
-  // ==========================================
-  // TAMBAHKAN EVENT KLIK UNTUK MEMBUKA DETAIL
-  // ==========================================
   card.addEventListener("click", () => {
     const modal = document.getElementById("modalDetailPengaduan");
     if (!modal) return;
-
     document.getElementById("detailJudul").textContent = report.title || "-";
     document.getElementById("detailId").textContent = "#" + (report.id || "-");
     document.getElementById("detailPelapor").textContent = profileName;
@@ -1505,7 +1427,6 @@ function createReportCard(report, profileName) {
     document.getElementById("detailStatus").textContent = report.status || "-";
     document.getElementById("detailTanggal").textContent = reportDate(report.date) || "-";
     document.getElementById("detailDeskripsi").textContent = report.description || "-";
-
     modal.classList.remove("hidden");
     modal.classList.add("active");
   });
@@ -1513,9 +1434,8 @@ function createReportCard(report, profileName) {
   return card;
 }
 
-
 /* ==========================================================================
-   11. HALAMAN TEKNISI
+   9. HALAMAN TEKNISI
    ========================================================================== */
 async function loadTeknisiData() {
   const res = await fetch('data.json');
@@ -1528,7 +1448,7 @@ async function loadTeknisiData() {
 }
 
 /* ==========================================================================
-   12. MODAL HELPERS (GLOBAL)
+   10. MODAL HELPERS (GLOBAL)
    ========================================================================== */
 let activeReportForAction = null;
 
@@ -1634,7 +1554,7 @@ function bindVerifikatorEvents() {
 }
 
 /* ==========================================================================
-   13. AUTO INIT
+   11. AUTO INIT (GLOBAL)
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', async () => {
   initResponsiveSidebar();
@@ -1656,9 +1576,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isPelaporPage) {
     try {
       const data = await loadPelaporData();
-      if (typeof window.initPelaporPage !== 'function') {
-        throw new Error('Inisialisasi halaman Pelapor tidak tersedia');
-      }
+      if (typeof window.initPelaporPage !== 'function') throw new Error('Inisialisasi halaman Pelapor tidak tersedia');
       window.initPelaporPage(data.laporan_masuk);
     } catch (err) {
       console.error('Gagal memuat halaman Pelapor:', err);
@@ -1670,11 +1588,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Halaman Teknisi
   if (window.location.pathname.toLowerCase().includes('/teknisi/')) {
     try {
-      const data = await loadTeknisiData(); // Ini harus fetch data.json
-      if (typeof window.initTeknisiPage !== 'function') {
-        throw new Error('Inisialisasi halaman Teknisi tidak tersedia');
-      }
-      window.initTeknisiPage(data); // Lempar data.json ke teknisi.js
+      const data = await loadTeknisiData();
+      if (typeof window.initTeknisiPage !== 'function') throw new Error('Inisialisasi halaman Teknisi tidak tersedia');
+      window.initTeknisiPage(data);
     } catch (err) {
       console.error('Gagal memuat halaman Teknisi:', err);
       showToast('Data Teknisi gagal dimuat. Coba muat ulang halaman.', 'error');
@@ -1695,211 +1611,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isStatistik) renderStatistik(data);
   }
 });
-
-/* ==========================================================================
-   MODUL: KELOLA TEKNISI (verifikator/kelola_teknisi.html)
-   ========================================================================== */
-
-// State array teknisi
-let daftarTeknisi = [];
-
-// Ambil data teknisi dari data.json
-async function loadDataTeknisi() {
-  try {
-    const res = await fetch('../data.json');   // sesuaikan path kalau perlu
-    if (!res.ok) throw new Error('Gagal fetch data.json');
-    const json = await res.json();
-    daftarTeknisi = json.teknisi || [];
-  } catch (err) {
-    console.warn('[loadDataTeknisi] gagal:', err);
-    // fallback lokal kalau fetch gagal
-    daftarTeknisi = [
-      { id: 'T001', nama: 'Pak Joko', nip: 'E0010', spesialisasi: 'AC / Pendingin', status: 'Aktif', tugas_berjalan: 2 },
-      { id: 'T002', nama: 'Pak Agus', nip: 'E0011', spesialisasi: 'Kelistrikan', status: 'Aktif', tugas_berjalan: 1 },
-      { id: 'T003', nama: 'Pak Doni', nip: 'E0012', spesialisasi: 'Furnitur', status: 'Cuti', tugas_berjalan: 0 },
-    ];
-  }
-  renderTabelTeknisi();
-}
-
-// Render tabel teknisi
-function renderTabelTeknisi() {
-  const tbody = document.getElementById('tabelTeknisiBody');
-  if (!tbody) return;
-
-  tbody.innerHTML = '';
-
-  if (daftarTeknisi.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 32px; color: var(--muted);">Belum ada data teknisi.</td></tr>`;
-    return;
-  }
-
-  daftarTeknisi.forEach((t, index) => {
-    const tr = document.createElement('tr');
-
-    // Badge warna status
-    const statusClass = t.status === 'Aktif'
-      ? 'status-pill status-pill-success'
-      : t.status === 'Cuti'
-        ? 'status-pill status-pill-warning'
-        : 'status-pill status-pill-danger';
-
-    // Badge tugas berjalan
-    const tugasClass = t.tugas_berjalan > 0 ? 'status-pill status-pill-info' : 'status-pill status-pill-neutral';
-
-    tr.innerHTML = `
-  <td class="text-center" style="color: var(--muted); font-weight: 700;">${index + 1}</td>
-  <td>
-    <div class="cell-reporter">
-      <div class="avatar-circle">
-        ${t.nama.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase()}
-      </div>
-      <div>
-        <span class="cell-name">${t.nama}</span>
-      </div>
-    </div>
-  </td>
-  <td><span class="cell-name">${t.nip}</span></td>
-  <td><span class="status-pill status-pill-info">${t.spesialisasi}</span></td>
-  <td><span class="${statusClass}">${t.status}</span></td>
-  <td>
-    <!-- Hapus class text-center di sini biar rata kiri -->
-    <span class="${tugasClass}">${t.tugas_berjalan} tugas</span>
-  </td>
-  <td class="text-right">
-    <div class="action-group" style="justify-content: flex-end;">
-      <button type="button" class="btn-icon" title="Edit" onclick="bukaModalTeknisi('${t.id}')"
-        style="color: var(--blue-dark); border-color: #bfdbfe; background: #eff6ff;">✎</button>
-      <button type="button" class="btn-icon btn-icon-danger" title="Hapus" onclick="hapusTeknisi('${t.id}')">🗑</button>
-    </div>
-  </td>
-`;
-
-    tbody.appendChild(tr);
-  });
-}
-
-// Buka modal (tambah / edit)
-function bukaModalTeknisi(id = null) {
-  const modal = document.getElementById('modalTeknisi');
-  const title = document.getElementById('modalTeknisiTitle');
-  const form = document.getElementById('formTeknisi');
-  if (!modal) return;
-
-  form.reset();
-  document.getElementById('teknisiId').value = '';
-
-  if (id) {
-    // Mode Edit
-    const t = daftarTeknisi.find((x) => x.id === id);
-    if (!t) return;
-
-    title.textContent = 'Edit Data Teknisi';
-    document.getElementById('teknisiId').value = t.id;
-    document.getElementById('namaTeknisi').value = t.nama;
-    document.getElementById('nipTeknisi').value = t.nip;
-    document.getElementById('spesialisasiTeknisi').value = t.spesialisasi;
-    document.getElementById('statusTeknisi').value = t.status;
-  } else {
-    // Mode Tambah
-    title.textContent = 'Tambah Teknisi Baru';
-  }
-
-  modal.classList.remove('hidden');
-}
-
-// Tutup modal
-function tutupModalTeknisi() {
-  const modal = document.getElementById('modalTeknisi');
-  if (modal) modal.classList.add('hidden');
-}
-
-// Simpan (tambah / update)
-function simpanTeknisi(event) {
-  event.preventDefault();
-
-  const id = document.getElementById('teknisiId').value;
-  const nama = document.getElementById('namaTeknisi').value.trim();
-  const nip = document.getElementById('nipTeknisi').value.trim();
-  const spesialisasi = document.getElementById('spesialisasiTeknisi').value;
-  const status = document.getElementById('statusTeknisi').value;
-
-  if (!nama || !nip || !spesialisasi || !status) {
-    alert('Semua kolom wajib diisi!');
-    return;
-  }
-
-  if (id) {
-    // Update
-    const t = daftarTeknisi.find((x) => x.id === id);
-    if (t) {
-      t.nama = nama;
-      t.nip = nip;
-      t.spesialisasi = spesialisasi;
-      t.status = status;
-    }
-    showToast('Data teknisi berhasil diperbarui.', 'success');
-  } else {
-    // Tambah baru
-    const newId = 'T' + String(Date.now()).slice(-4);
-    daftarTeknisi.push({
-      id: newId,
-      nama: nama,
-      nip: nip,
-      spesialisasi: spesialisasi,
-      status: status,
-      tugas_berjalan: 0,
-    });
-    showToast('Teknisi baru berhasil ditambahkan.', 'success');
-  }
-
-  tutupModalTeknisi();
-  renderTabelTeknisi();
-}
-
-// Hapus
-function hapusTeknisi(id) {
-  const t = daftarTeknisi.find((x) => x.id === id);
-  if (!t) return;
-
-  if (!confirm(`Yakin ingin menghapus teknisi "${t.nama}"?`)) return;
-
-  daftarTeknisi = daftarTeknisi.filter((x) => x.id !== id);
-  showToast(`Teknisi "${t.nama}" telah dihapus.`, 'info');
-  renderTabelTeknisi();
-}
-
-// Auto-init kalau di halaman kelola_teknisi
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('tabelTeknisiBody')) {
-    loadDataTeknisi();
-  }
-});
-
-/* ==========================================================================
-   FUNGSI MODAL DETAIL PENGADUAN (GLOBAL)
-   ========================================================================== */
-function bukaDetail(item) {
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (!modal) return; // skip kalau modal tidak ada di halaman ini
-
-  document.getElementById('detailJudul').textContent = item.judul || '-';
-  document.getElementById('detailId').textContent = '#' + (item.id || '-');
-  document.getElementById('detailPelapor').textContent = item.pelapor?.nama || '-';
-  document.getElementById('detailLokasi').textContent = `${item.lokasi?.kode || ''} - ${item.lokasi?.nama || ''}`;
-  document.getElementById('detailKategori').textContent = item.kategori || '-';
-  document.getElementById('detailStatus').textContent = item.status || '-';
-  document.getElementById('detailTanggal').textContent = `${item.tanggal || '-'} · ${item.waktu || '-'}`;
-  document.getElementById('detailDeskripsi').textContent = item.deskripsi || '-';
-
-  modal.classList.remove('hidden');
-  modal.classList.add('active'); // buat kompatibilitas CSS lama
-}
-
-function tutupDetail() {
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('active');
-  }
-}
