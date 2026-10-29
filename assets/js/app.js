@@ -1,5 +1,5 @@
 /**
- * app.js - ADUIN Client-Side Script (FINAL GABUNGAN)
+ * app.js - ADUIN Client-Side Script (GLOBAL CORE)
  * Multi-Role: Pelapor, Verifikator, Teknisi
  * Frontend only: localStorage + fetch users.json / data.json
  * ==========================================================================
@@ -42,6 +42,9 @@ function clearSession() {
   localStorage.removeItem(STORAGE_KEYS.SESSION);
 }
 
+/* ==========================================================================
+   2. RESPONSIVE SIDEBAR (HAMBURGER)
+   ========================================================================== */
 function initResponsiveSidebar() {
   const sidebar = document.querySelector('.sidebar-blue');
   const mainContent = document.querySelector('.main-content');
@@ -96,7 +99,7 @@ function initResponsiveSidebar() {
 }
 
 /* ==========================================================================
-   2. TOAST NOTIFICATION COMPONENT
+   3. TOAST NOTIFICATION
    ========================================================================== */
 function showToast(message, type = 'success') {
   let container = document.querySelector('.toast-container');
@@ -107,12 +110,9 @@ function showToast(message, type = 'success') {
   }
 
   const toast = document.createElement('div');
-  toast.className =
-    'toast' +
-    (type === 'error' ? ' toast-error' : type === 'info' ? ' toast-info' : '');
+  toast.className = 'toast' + (type === 'error' ? ' toast-error' : type === 'info' ? ' toast-info' : '');
 
-  const icon =
-    type === 'error'
+  const icon = type === 'error'
       ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
       : type === 'info'
         ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
@@ -129,7 +129,7 @@ function showToast(message, type = 'success') {
 }
 
 /* ==========================================================================
-   3. GLOBAL: TOGGLE SHOW/HIDE PASSWORD
+   4. GLOBAL: TOGGLE PASSWORD
    ========================================================================== */
 function initPasswordToggles() {
   document.querySelectorAll('.toggle-password-btn').forEach((btn) => {
@@ -159,7 +159,7 @@ function initPasswordToggles() {
 }
 
 /* ==========================================================================
-   4. MASTER DATA PENGGUNA & MENU CONFIG
+   5. MASTER DATA & KONFIGURASI MENU
    ========================================================================== */
 const USERS_JSON_PATH = 'users.json';
 
@@ -237,10 +237,9 @@ const MOCK_USERS_BY_ROLE = {
 };
 
 /* ==========================================================================
-   5. AUTH: REGISTER & LOGIN
+   6. AUTH: REGISTER & LOGIN
    ========================================================================== */
 function initAuthForms() {
-  // --- Register ---
   const registerForm = document.getElementById('registerForm');
   if (registerForm) {
     registerForm.addEventListener('submit', (e) => {
@@ -270,7 +269,6 @@ function initAuthForms() {
     });
   }
 
-  // --- Login ---
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
@@ -305,7 +303,7 @@ function initAuthForms() {
 }
 
 /* ==========================================================================
-   6. HALAMAN PENGATURAN — initPengaturanPage()
+   7. HALAMAN PENGATURAN
    ========================================================================== */
 async function initPengaturanPage() {
   const nav = document.getElementById('sidebarNav');
@@ -313,15 +311,11 @@ async function initPengaturanPage() {
 
   initPasswordToggles();
 
-  // ---- LANGKAH 1: TENTUKAN ROLE AKTIF ----
   const params = new URLSearchParams(window.location.search);
   const roleFromUrl = (params.get('role') || '').toLowerCase();
   const session = getSession();
 
-  const roleInternal =
-    ROLE_URL_MAP[roleFromUrl] ||
-    session?.role ||
-    'Pelapor';
+  const roleInternal = ROLE_URL_MAP[roleFromUrl] || session?.role || 'Pelapor';
   const dashboardLinks = {
     Pelapor: 'pelapor/index.html',
     Verifikator: 'verifikator/index.html',
@@ -330,7 +324,6 @@ async function initPengaturanPage() {
   const brandLink = document.querySelector('.sidebar-brand');
   if (brandLink) brandLink.href = dashboardLinks[roleInternal] || dashboardLinks.Pelapor;
 
-  // ---- LANGKAH 2: FETCH users.json ----
   let usersData = null;
   try {
     const res = await fetch(USERS_JSON_PATH);
@@ -339,50 +332,20 @@ async function initPengaturanPage() {
     console.warn('[initPengaturanPage] users.json tidak dapat dimuat:', err);
   }
 
-  // ---- LANGKAH 3: AMBIL USER SESUAI ROLE (IF-ELSE EKSPLISIT) ----
   let user = null;
-
   if (roleInternal === 'Pelapor') {
-    // --- PENGATURAN PELAPOR ---
-    if (usersData?.users) {
-      user = usersData.users.find((u) => u.role_utama === 'Pelapor');
-    }
-    if (!user) {
-      user = { ...MOCK_USERS_BY_ROLE.Pelapor };
-    }
+    user = usersData?.users?.find((u) => u.role_utama === 'Pelapor') || { ...MOCK_USERS_BY_ROLE.Pelapor };
     user.role_utama = 'Pelapor';
-    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
-      user.sidebar_menu = DEFAULT_MENUS.Pelapor;
-    }
-
+    user.sidebar_menu = DEFAULT_MENUS.Pelapor;
   } else if (roleInternal === 'Verifikator') {
-    // --- PENGATURAN VERIFIKATOR ---
-    if (usersData?.users) {
-      user = usersData.users.find((u) => u.role_utama === 'Verifikator');
-    }
-    if (!user) {
-      user = { ...MOCK_USERS_BY_ROLE.Verifikator };
-    }
+    user = usersData?.users?.find((u) => u.role_utama === 'Verifikator') || { ...MOCK_USERS_BY_ROLE.Verifikator };
     user.role_utama = 'Verifikator';
-    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
-      user.sidebar_menu = DEFAULT_MENUS.Verifikator;
-    }
-
+    user.sidebar_menu = DEFAULT_MENUS.Verifikator;
   } else if (roleInternal === 'Teknisi') {
-    // --- PENGATURAN TEKNISI ---
-    if (usersData?.users) {
-      user = usersData.users.find((u) => u.role_utama === 'Teknisi');
-    }
-    if (!user) {
-      user = { ...MOCK_USERS_BY_ROLE.Teknisi };
-    }
+    user = usersData?.users?.find((u) => u.role_utama === 'Teknisi') || { ...MOCK_USERS_BY_ROLE.Teknisi };
     user.role_utama = 'Teknisi';
-    if (!user.sidebar_menu || user.sidebar_menu.length === 0) {
-      user.sidebar_menu = DEFAULT_MENUS.Teknisi;
-    }
-
+    user.sidebar_menu = DEFAULT_MENUS.Teknisi;
   } else {
-    // --- FALLBACK (role tidak dikenali) → Pelapor ---
     user = { ...MOCK_USERS_BY_ROLE.Pelapor };
     user.role_utama = 'Pelapor';
     user.sidebar_menu = DEFAULT_MENUS.Pelapor;
@@ -393,9 +356,6 @@ async function initPengaturanPage() {
     if (el) el.textContent = val || '–';
   };
 
-
-  // ---- LANGKAH 4: RENDER MENU SIDEBAR ----
-  // Satu peta ikon untuk semua role (Font Awesome, berdasarkan judul menu)
   const MENU_FA_ICONS = {
     'Dashboard': 'fa-solid fa-border-all',
     'Buat Laporan': 'fa-solid fa-plus',
@@ -404,24 +364,16 @@ async function initPengaturanPage() {
     'Riwayat': 'fa-solid fa-clipboard-list',
     'Statistik': 'fa-solid fa-chart-simple',
     'Pengaturan': 'fa-solid fa-gear',
+    'Kelola Teknisi': 'fa-solid fa-users',
   };
 
   nav.innerHTML = user.sidebar_menu.map((item) => {
     const isActive = item.title === 'Pengaturan';
     const faClass = MENU_FA_ICONS[item.title];
-
-    let iconHtml;
-    if (faClass) {
-      iconHtml = `<i class="${faClass}"></i>`;
-    } else {
-      const iconKey = typeof item.icon === 'string' ? item.icon : 'default';
-      iconHtml = MENU_ICONS[iconKey] || MENU_ICONS.default;
-    }
-
+    let iconHtml = faClass ? `<i class="${faClass}"></i>` : (MENU_ICONS[item.icon] || MENU_ICONS.default);
     return `<a href="${item.link}" class="nav-link ${isActive ? 'active' : ''}">${iconHtml}<span>${item.title}</span></a>`;
   }).join('');
 
-  // ---- LANGKAH 5: WARNA AVATAR BERDASARKAN ROLE ----
   const roleClassMap = { Pelapor: 'role-pelapor', Verifikator: 'role-verifikator', Teknisi: 'role-teknisi' };
   const applyRoleClass = (el) => {
     if (!el) return;
@@ -431,19 +383,12 @@ async function initPengaturanPage() {
   };
 
   const sidebarAvatarEl = document.getElementById('sidebarAvatar');
-  if (sidebarAvatarEl) {
-    sidebarAvatarEl.textContent = user.avatar;
-    applyRoleClass(sidebarAvatarEl);
-  }
+  if (sidebarAvatarEl) { sidebarAvatarEl.textContent = user.avatar; applyRoleClass(sidebarAvatarEl); }
   setText('sidebarName', user.nama);
   setText('sidebarRole', user.jabatan || user.role_utama);
 
-  // ---- LANGKAH 6: KARTU PROFIL ----
   const profileAvatarEl = document.getElementById('profileAvatar');
-  if (profileAvatarEl) {
-    profileAvatarEl.textContent = user.avatar;
-    applyRoleClass(profileAvatarEl);
-  }
+  if (profileAvatarEl) { profileAvatarEl.textContent = user.avatar; applyRoleClass(profileAvatarEl); }
   setText('profileName', user.nama);
 
   const idPrefix = user.role_utama === 'Pelapor' ? 'NIM ' : user.role_utama === 'Teknisi' ? 'ID ' : 'NIP ';
@@ -452,10 +397,8 @@ async function initPengaturanPage() {
   setText('profileEmail', user.email);
   setText('breadcrumbRole', user.role_utama);
 
-  // ---- LANGKAH 7: UPLOAD FOTO PROFIL ----
   const avatarStorageKey = STORAGE_KEYS.AVATAR_PREFIX + user.id;
   const savedAvatar = localStorage.getItem(avatarStorageKey);
-
   if (savedAvatar) {
     if (profileAvatarEl) profileAvatarEl.innerHTML = `<img src="${savedAvatar}" alt="${user.nama}">`;
     if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = `<img src="${savedAvatar}" alt="${user.nama}">`;
@@ -482,7 +425,6 @@ async function initPengaturanPage() {
     });
   }
 
-  // ---- LANGKAH 8: LOGOUT ----
   const btnLogout = document.getElementById('btnLogout');
   if (btnLogout && !btnLogout.dataset.bound) {
     btnLogout.dataset.bound = 'true';
@@ -494,16 +436,10 @@ async function initPengaturanPage() {
     });
   }
 
-  // ---- LANGKAH 9: FORM UBAH PASSWORD ----
   setupFormUbahPassword(user);
-
-  // ---- LANGKAH 10: ROLE SWITCHER PILLS ----
   setupRoleSwitcherPills(user.role_utama);
 }
 
-/* ==========================================================================
-   7. LOGIKA FORM UBAH PASSWORD (UNIVERSAL)
-   ========================================================================== */
 function setupFormUbahPassword(userAktif) {
   const form = document.getElementById('formUbahPassword');
   if (!form || form.dataset.bound === 'true') return;
@@ -534,20 +470,10 @@ function setupFormUbahPassword(userAktif) {
     let account = users.find((u) => u.id === userAktif.id);
 
     if (account) {
-      if (account.password && account.password !== oldPass) {
-        showAlert('Kata sandi lama tidak cocok / salah.', false);
-        return;
-      }
+      if (account.password && account.password !== oldPass) { showAlert('Kata sandi lama tidak cocok / salah.', false); return; }
       account.password = newPass;
     } else {
-      users.push({
-        id: userAktif.id,
-        email: userAktif.email,
-        password: newPass,
-        role: userAktif.role_utama,
-        nama: userAktif.nama,
-        avatar: userAktif.avatar,
-      });
+      users.push({ id: userAktif.id, email: userAktif.email, password: newPass, role: userAktif.role_utama, nama: userAktif.nama, avatar: userAktif.avatar });
     }
 
     saveStoredUsers(users);
@@ -557,9 +483,6 @@ function setupFormUbahPassword(userAktif) {
   });
 }
 
-/* ==========================================================================
-   8. ROLE SWITCHER INTERAKTIF
-   ========================================================================== */
 function setupRoleSwitcherPills(currentRole) {
   const switcherBtns = document.querySelectorAll('.role-switcher-btn');
   switcherBtns.forEach((btn) => {
@@ -569,7 +492,6 @@ function setupRoleSwitcherPills(currentRole) {
     } else {
       btn.classList.remove('active');
     }
-
     if (btn.dataset.bound === 'true') return;
     btn.dataset.bound = 'true';
 
@@ -586,514 +508,7 @@ function setupRoleSwitcherPills(currentRole) {
 }
 
 /* ==========================================================================
-   9. HALAMAN VERIFIKATOR (dashboard, riwayat, statistik)
-   ========================================================================== */
-
-const DEV_MODE = true; // ubah ke false saat demo/presentasi
-
-const REPORT_MONTHS = {
-  jan: 0, januari: 0, feb: 1, februari: 1, mar: 2, maret: 2,
-  apr: 3, april: 3, mei: 4, jun: 5, juni: 5, jul: 6, juli: 6,
-  agu: 7, agustus: 7, sep: 8, september: 8, okt: 9, oktober: 9,
-  nov: 10, november: 10, des: 11, desember: 11
-};
-
-function parseReportDate(value) {
-  if (!value) return null;
-  const isoMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (isoMatch) return new Date(Date.UTC(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3])));
-
-  const match = String(value).trim().match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
-  if (!match) return null;
-  const month = REPORT_MONTHS[match[2].toLowerCase()];
-  if (month === undefined) return null;
-  return new Date(Date.UTC(Number(match[3]), month, Number(match[1])));
-}
-
-function dateToInputValue(date) {
-  if (!date) return '';
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-}
-
-function getReportLocationKey(report) {
-  return report.lokasi?.kode || report.lokasi?.nama || report.roomCode || report.roomLabel || '';
-}
-
-function getReportLocationLabel(report) {
-  const key = getReportLocationKey(report);
-  const name = report.lokasi?.nama || report.roomLabel || '';
-  return name && key !== name ? `${key} - ${name}` : key;
-}
-
-function populateReportFilter(select, reports, kind) {
-  if (!select) return;
-  const firstOption = select.options[0];
-  const options = new Map();
-  reports.forEach((report) => {
-    let value;
-    let label;
-    if (kind === 'category') {
-      value = report.kategori || report.category || '';
-      label = value;
-    } else if (kind === 'room') {
-      value = getReportLocationKey(report);
-      label = getReportLocationLabel(report);
-    } else {
-      value = report.status || '';
-      label = value;
-    }
-    if (value && !options.has(value)) options.set(value, label);
-  });
-
-  select.replaceChildren(firstOption);
-  [...options.entries()]
-    .sort((a, b) => a[1].localeCompare(b[1], 'id'))
-    .forEach(([value, label]) => {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = label;
-      select.appendChild(option);
-    });
-}
-
-function readReportFilters(prefix) {
-  return {
-    category: document.getElementById(`${prefix}FilterCategory`)?.value || '',
-    from: document.getElementById(`${prefix}FilterFrom`)?.value || '',
-    to: document.getElementById(`${prefix}FilterTo`)?.value || '',
-    room: document.getElementById(`${prefix}FilterRoom`)?.value || '',
-    status: document.getElementById(`${prefix}FilterStatus`)?.value || ''
-  };
-}
-
-function reportMatchesFilters(report, filters) {
-  if (filters.category && (report.kategori || report.category || '') !== filters.category) return false;
-  if (filters.room && getReportLocationKey(report) !== filters.room) return false;
-  if (filters.status && report.status !== filters.status) return false;
-  const reportDate = parseReportDate(report.tanggal || report.date);
-  if (filters.from && (!reportDate || dateToInputValue(reportDate) < filters.from)) return false;
-  if (filters.to && (!reportDate || dateToInputValue(reportDate) > filters.to)) return false;
-  return true;
-}
-
-function bindReportFilters(prefix, onChange) {
-  const filterIds = [
-    `${prefix}FilterCategory`,
-    `${prefix}FilterFrom`,
-    `${prefix}FilterTo`,
-    `${prefix}FilterRoom`,
-    `${prefix}FilterStatus`
-  ];
-  filterIds.forEach((id) => {
-    const control = document.getElementById(id);
-    if (control) control.addEventListener('change', onChange);
-  });
-  const reset = document.getElementById(`${prefix}FilterReset`);
-  if (reset) {
-    reset.addEventListener('click', () => {
-      filterIds.forEach((id) => {
-        const control = document.getElementById(id);
-        if (control) control.value = '';
-      });
-      onChange();
-    });
-  }
-}
-
-async function loadVerifikatorData() {
-  try {
-    const res = await fetch('data.json');
-    if (!res.ok) throw new Error('Gagal memuat data.json');
-    const data = await res.json();
-
-    if ((DEV_MODE || !localStorage.getItem('aduin_reports')) && data.laporan_masuk) {
-      localStorage.setItem('aduin_reports', JSON.stringify(data.laporan_masuk));
-    }
-    return data;
-  } catch (err) {
-    console.warn('loadVerifikatorData gagal:', err);
-    return null;
-  }
-}
-
-function renderDashboard(data) {
-  if (!data) return;
-  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setText('metricMenunggu', data.summary_dashboard?.menunggu_verifikasi ?? '–');
-  setText('metricDiproses', data.summary_dashboard?.diproses ?? '–');
-  setText('metricSelesai', data.summary_dashboard?.selesai ?? '–');
-  setText('metricDitolak', data.summary_dashboard?.ditolak ?? '–');
-
-  const tbody = document.getElementById('verifikatorTableBody');
-  if (!tbody) return;
-  const reports = getStoredReports();
-  const reportItems = Array.isArray(reports) && reports.length ? reports : (data.laporan_masuk || []);
-  populateReportFilter(document.getElementById('dashboardFilterCategory'), reportItems, 'category');
-  populateReportFilter(document.getElementById('dashboardFilterRoom'), reportItems, 'room');
-  populateReportFilter(document.getElementById('dashboardFilterStatus'), reportItems, 'status');
-  tbody.innerHTML = '';
-
-  reportItems.forEach((item) => {
-    const tr = document.createElement('tr');
-    tr.setAttribute('data-row-id', item.id);
-    tr.dataset.status = item.status || '';
-    const fotoCell = item.thumb_url
-      ? `<button type="button" class="thumb-btn" onclick="openImageModal('${item.foto_url}')"><img src="${item.thumb_url}" alt="Bukti" class="thumb-img"></button>`
-      : `<span class="text-muted">Tanpa foto</span>`;
-    const aksiCell = item.status === 'Menunggu Verifikasi'
-      ? `<div class="action-group">
-           <button type="button" class="btn-icon btn-icon-success" onclick="openApproveModal('${item.id}', '${item.judul}')" title="Approve">✓</button>
-           <button type="button" class="btn-icon btn-icon-danger" onclick="openRejectModal('${item.id}', '${item.judul}')" title="Reject">✕</button>
-         </div>`
-      : `<span class="status-pill">${item.status}</span>`;
-
-    tr.innerHTML = `
-      <td>
-        <div class="cell-reporter">
-          <div class="cell-avatar">${item.pelapor?.inisial || '?'}</div>
-          <div>
-            <span class="cell-name" style="display: block;">${item.pelapor?.nama || '-'}</span>
-            <span class="cell-meta" style="display: block; margin-top: 3px;">NIM: ${item.pelapor?.nim || '-'}</span>
-          </div>
-        </div>
-      </td>
-      <td>
-        <div>
-          <span class="cell-name" style="display: block;">${item.lokasi?.kode || '-'}</span>
-          <span class="cell-meta" style="display: block; margin-top: 3px;">${item.lokasi?.nama || '-'}</span>
-        </div>
-      </td>
-      <td>
-        <div>
-          <span class="status-pill">${item.kategori || '-'}</span>
-          <span class="cell-meta" style="display: block; margin-top: 6px;">${item.judul || '-'}</span>
-        </div>
-      </td>
-      <td class="text-center">${fotoCell}</td>
-      <td class="text-right">${aksiCell}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  const searchInput = document.getElementById('tableSearchInput');
-  const result = document.getElementById('dashboardFilterResult');
-  const applyFilters = () => {
-    const filters = readReportFilters('dashboard');
-    const query = searchInput?.value.toLowerCase().trim() || '';
-    let visibleCount = 0;
-    tbody.querySelectorAll('tr').forEach((row, index) => {
-      const report = { ...reportItems[index], status: row.dataset.status || reportItems[index].status };
-      const visible = reportMatchesFilters(report, filters) &&
-        row.textContent.toLowerCase().includes(query);
-      row.style.display = visible ? '' : 'none';
-      if (visible) visibleCount += 1;
-    });
-    if (result) result.textContent = `Menampilkan ${visibleCount} dari ${reportItems.length} laporan.`;
-  };
-  if (searchInput) searchInput.addEventListener('input', applyFilters);
-  bindReportFilters('dashboard', applyFilters);
-  applyFilters();
-}
-
-function renderRiwayat(data) {
-  const list = document.getElementById('riwayatList');
-  if (!list || !data) return;
-
-  // Ambil data dari localStorage (biar statusnya up-to-date)
-  let laporan = data.laporan_masuk || [];
-  try {
-    const stored = localStorage.getItem('aduin_reports');
-    if (stored) laporan = JSON.parse(stored);
-  } catch (e) { }
-
-  list.innerHTML = '';
-  laporan.forEach((item) => list.appendChild(buildRiwayatCard(item)));
-
-  // Logika Filter Pills
-  document.querySelectorAll('.filter-pill').forEach((pill) => {
-    // Hapus event lama biar gak dobel
-    const newPill = pill.cloneNode(true);
-    pill.parentNode.replaceChild(newPill, pill);
-
-    newPill.addEventListener('click', () => {
-      document.querySelectorAll('.filter-pill').forEach((p) => p.classList.remove('active'));
-      newPill.classList.add('active');
-      const f = newPill.getAttribute('data-filter');
-
-      document.querySelectorAll('.riwayat-card').forEach((card) => {
-        const s = card.getAttribute('data-status');
-        card.style.display = (f === 'Semua' || s === f) ? '' : 'none';
-      });
-    });
-  });
-}
-
-function buildRiwayatCard(item) {
-  const card = document.createElement('div');
-  card.className = 'glass-card riwayat-card';
-  card.setAttribute('data-status', item.status);
-  card.style.cursor = 'pointer';
-
-  const statusOrder = ['Menunggu Verifikasi', 'Disetujui', 'Dalam Perbaikan', 'Diteruskan ke Pusat', 'Selesai'];
-  const currentIndex = statusOrder.indexOf(item.status);
-  const isRejected = item.status === 'Ditolak';
-
-  // Cek kalau ini dari Pusat
-  const isPusat = item.status === 'Diteruskan ke Pusat' || item.disposition === 'UPA PP Pusat';
-
-  const pillMap = {
-    'Menunggu Verifikasi': 'status-pill-warning',
-    'Disetujui': 'status-pill-info',
-    'Dalam Perbaikan': 'status-pill-info',
-    'Diteruskan ke Pusat': 'status-pill-purple',
-    'Selesai': 'status-pill-success',
-    'Ditolak': 'status-pill-danger'
-  };
-  const pillClass = pillMap[item.status] || 'status-pill-neutral';
-
-  const nodes = [
-    { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
-    { label: 'Disetujui', sub: 'Validasi Kajur' },
-    { label: isPusat ? 'UPA PP Pusat' : 'Dalam Perbaikan', sub: isPusat ? 'Diserahkan ke Pusat' : (item.teknisi || 'Teknisi') },
-    { label: 'Selesai', sub: 'Fasilitas Normal' },
-  ];
-
-  const timelineHTML = nodes.map((n, i) => {
-    let cls = 'timeline-node';
-    let dot = i + 1;
-
-    let adjustedIndex = currentIndex;
-    if (item.status === 'Diteruskan ke Pusat') adjustedIndex = 2;
-
-    if (!isRejected) {
-      if (i < adjustedIndex) { cls += ' done'; dot = '✓'; }
-      else if (i === adjustedIndex) {
-        if (item.status === 'Selesai') { cls += ' success'; dot = '✓'; }
-        else { cls += ' active'; dot = i === 0 ? '✓' : i === 2 ? '⚙' : i + 1; }
-      }
-    } else if (i === 0) { cls += ' done'; dot = '✓'; }
-
-    return `<div class="${cls}"><div class="timeline-dot">${dot}</div><span class="timeline-caption">${n.label}</span><span class="timeline-sub">${n.sub}</span></div>`;
-  }).join('');
-
-  // --- TOMBOL DIHAPUS TOTAL ---
-  // Jadi kalau di Pusat, ya udah berhenti di situ. Nggak ada tombol apa-apa.
-
-  card.innerHTML = `
-    <div class="riwayat-head">
-      <div>
-        <h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3>
-        <p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p>
-      </div>
-      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-        <span class="status-pill ${pillClass}">${item.status}</span>
-      </div>
-    </div>
-
-    <div class="timeline-wrap">
-      <div class="timeline-label">Progress Tracker Timeline</div>
-      <div class="timeline">${timelineHTML}</div>
-    </div>
-  `;
-
-  // Klik kartu buka modal detail (ini doang yang jalan)
-  card.addEventListener('click', (e) => {
-    window.bukaModalDetail(item);
-  });
-
-  return card;
-}
-
-window.bukaModalDetail = function (item) {
-  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setText('detailJudul', item.judul || '-');
-  setText('detailId', '#' + (item.id || '-'));
-  setText('detailPelapor', item.pelapor?.nama || '-');
-  setText('detailLokasi', item.lokasi?.nama || '-');
-  setText('detailKategori', item.kategori || '-');
-  setText('detailStatus', item.status || '-');
-  setText('detailTanggal', `${item.tanggal || '-'} · ${item.waktu || '-'}`);
-  setText('detailDeskripsi', item.deskripsi || '-');
-
-  const footer = document.getElementById('detailFooter');
-  const btn = document.getElementById('btnSelesaiPusat');
-  if (footer && btn) {
-    const isPusat = item.status === 'Diteruskan ke Pusat';
-    footer.style.display = isPusat ? 'block' : 'none';
-    btn.onclick = isPusat ? () => window.tandaiSelesaiPusat(item.id) : null;
-  }
-
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-};
-
-
-window.tandaiSelesaiPusat = function (id) {
-  if (!confirm('Penanganan di UPA PP Pusat sudah selesai? Status akan diubah menjadi Selesai.')) return;
-
-  const reports = getStoredReports();
-  const target = reports.find(r => r.id === id);
-  if (!target) { showToast('Laporan tidak ditemukan.', 'error'); return; }
-
-  target.status = 'Selesai';
-  saveStoredReports(reports);
-  showToast('Status laporan diubah menjadi Selesai!', 'success');
-
-  // Tutup modal
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-
-  // Render ulang
-  loadVerifikatorData().then(data => {
-    if (data) renderRiwayat({ ...data, laporan_masuk: getStoredReports() });
-  });
-};
-
-function renderStatistik(data) {
-  if (!data || !data.statistik) return;
-  const s = data.statistik;
-  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setText('statTotal', s.total_laporan + ' Tiket');
-  setText('statResolusi', s.tingkat_resolusi);
-  setText('statRata', s.rata_rata_penanganan);
-  setText('statRespon', s.respon_verifikasi);
-
-  const tbody = document.getElementById('rankingTableBody');
-  const renderRanking = (ranking) => {
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    ranking.forEach((r, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>#${r.peringkat || index + 1}</strong></td>
-        <td>${r.lokasi}</td>
-        <td style="text-align: right; padding-right: 24px;">${r.jumlah} Laporan</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  };
-  renderRanking(s.ranking_lokasi || []);
-
-  const reports = getStoredReports();
-  const reportItems = Array.isArray(reports) && reports.length ? reports : (data.laporan_masuk || []);
-  populateReportFilter(document.getElementById('statFilterCategory'), reportItems, 'category');
-  populateReportFilter(document.getElementById('statFilterRoom'), reportItems, 'room');
-  populateReportFilter(document.getElementById('statFilterStatus'), reportItems, 'status');
-  const filterResult = document.getElementById('statFilterResult');
-  const statTotalNote = document.querySelector('#statTotal')?.parentElement.querySelector('.metric-note');
-  const statResolutionNote = document.querySelector('#statResolusi')?.parentElement.querySelector('.metric-note');
-  const statAverageNote = document.querySelector('#statRata')?.parentElement.querySelector('.metric-note');
-  const statResponseNote = document.querySelector('#statRespon')?.parentElement.querySelector('.metric-note');
-
-  const renderCharts = (trendLabels, trendData, categoryLabels, categoryData) => {
-    if (typeof Chart === 'undefined') return;
-    const trenEl = document.getElementById('trenChart');
-    const katEl = document.getElementById('kategoriChart');
-    if (trenEl) {
-      const existing = Chart.getChart(trenEl);
-      if (existing) existing.destroy();
-      new Chart(trenEl, {
-        type: 'line',
-        data: { labels: trendLabels, datasets: [{ label: 'Jumlah Laporan', data: trendData, borderColor: '#226cc6', backgroundColor: 'rgba(48, 175, 254, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#fff', pointBorderColor: '#30affe', pointBorderWidth: 3, pointRadius: 5 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
-      });
-    }
-
-    if (katEl) {
-      const existing = Chart.getChart(katEl);
-      if (existing) existing.destroy();
-      new Chart(katEl, {
-        type: 'doughnut',
-        data: { labels: categoryLabels, datasets: [{ data: categoryData, backgroundColor: ['#30affe', '#226cc6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'], borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, cutout: '65%' },
-      });
-    }
-  };
-
-  const applyFilters = () => {
-    const filters = readReportFilters('stat');
-    const hasFilters = Object.values(filters).some(Boolean);
-    const filteredReports = reportItems.filter((report) => reportMatchesFilters(report, filters));
-    if (filterResult) filterResult.textContent = hasFilters
-      ? `Statistik menampilkan ${filteredReports.length} dari ${reportItems.length} laporan.`
-      : `Menampilkan ringkasan seluruh ${s.total_laporan} laporan.`;
-
-    if (!hasFilters) {
-      setText('statTotal', `${s.total_laporan} Tiket`);
-      setText('statResolusi', s.tingkat_resolusi);
-      setText('statRata', s.rata_rata_penanganan);
-      setText('statRespon', s.respon_verifikasi);
-      if (statTotalNote) statTotalNote.textContent = '↑ +14.2% dari bulan lalu';
-      if (statResolutionNote) statResolutionNote.textContent = 'Target Sarpras tercapai';
-      if (statAverageNote) statAverageNote.textContent = 'Per perbaikan';
-      if (statResponseNote) statResponseNote.textContent = 'Disposisi cepat Kajur';
-      renderRanking(s.ranking_lokasi || []);
-      renderCharts(
-        s.tren_mingguan?.labels || [],
-        s.tren_mingguan?.data || [],
-        s.kategori_distribusi?.labels || [],
-        s.kategori_distribusi?.data || []
-      );
-      return;
-    }
-
-    const resolved = filteredReports.filter((report) => report.status === 'Selesai').length;
-    const resolution = filteredReports.length ? (resolved / filteredReports.length) * 100 : 0;
-    setText('statTotal', `${filteredReports.length} Tiket`);
-    setText('statResolusi', `${resolution.toFixed(1)}%`);
-    setText('statRata', '—');
-    setText('statRespon', '—');
-    if (statTotalNote) statTotalNote.textContent = 'Sesuai filter yang dipilih';
-    if (statResolutionNote) statResolutionNote.textContent = 'Laporan selesai dari hasil filter';
-    if (statAverageNote) statAverageNote.textContent = 'Data durasi tidak tersedia';
-    if (statResponseNote) statResponseNote.textContent = 'Data waktu respon tidak tersedia';
-
-    const categoryCounts = new Map();
-    const roomCounts = new Map();
-    const datedReports = [];
-    filteredReports.forEach((report) => {
-      const category = report.kategori || report.category || 'Tidak berkategori';
-      categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1);
-      const roomLabel = getReportLocationLabel(report) || 'Tidak diketahui';
-      roomCounts.set(roomLabel, (roomCounts.get(roomLabel) || 0) + 1);
-      const date = parseReportDate(report.tanggal || report.date);
-      if (date) datedReports.push(date);
-    });
-
-    const ranking = [...roomCounts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([lokasi, jumlah], index) => ({ peringkat: index + 1, lokasi, jumlah }));
-    renderRanking(ranking);
-
-    let endDate = datedReports.length
-      ? new Date(datedReports.reduce((latest, date) => Math.max(latest, date.getTime()), 0))
-      : null;
-    if (!endDate && filters.to) endDate = parseReportDate(filters.to);
-    if (!endDate) endDate = new Date();
-    const trendDates = Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(endDate);
-      date.setUTCDate(date.getUTCDate() - (6 - index));
-      return date;
-    });
-    const trendCounts = trendDates.map((date) => filteredReports.filter((report) => {
-      const reportDate = parseReportDate(report.tanggal || report.date);
-      return reportDate && dateToInputValue(reportDate) === dateToInputValue(date);
-    }).length);
-
-    renderCharts(
-      trendDates.map((date) => date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
-      trendCounts,
-      [...categoryCounts.keys()],
-      [...categoryCounts.values()]
-    );
-  };
-
-  bindReportFilters('stat', applyFilters);
-  applyFilters();
-}
-
-/* ==========================================================================
-   10. HALAMAN PELAPOR
+   8. HALAMAN PELAPOR
    ========================================================================== */
 async function loadPelaporData() {
   const res = await fetch('data.json');
@@ -1108,7 +523,7 @@ async function loadPelaporData() {
 function createReportCard(report, profileName) {
   const card = document.createElement("article");
   card.className = "glass-card riwayat-card";
-  card.style.cursor = "pointer"; // Tambahkan pointer biar bisa diklik
+  card.style.cursor = "pointer";
 
   const heading = document.createElement("div");
   heading.className = "riwayat-head";
@@ -1142,16 +557,12 @@ function createReportCard(report, profileName) {
     photo.textContent = `Foto dipilih: ${report.photoName} (belum diunggah ke server)`;
     card.append(photo);
   }
-  card.append(progressCard(report.status));
+  card.append(progressCard(report));
   card.dataset.status = report.status;
 
-  // ==========================================
-  // TAMBAHKAN EVENT KLIK UNTUK MEMBUKA DETAIL
-  // ==========================================
   card.addEventListener("click", () => {
     const modal = document.getElementById("modalDetailPengaduan");
     if (!modal) return;
-
     document.getElementById("detailJudul").textContent = report.title || "-";
     document.getElementById("detailId").textContent = "#" + (report.id || "-");
     document.getElementById("detailPelapor").textContent = profileName;
@@ -1160,7 +571,6 @@ function createReportCard(report, profileName) {
     document.getElementById("detailStatus").textContent = report.status || "-";
     document.getElementById("detailTanggal").textContent = reportDate(report.date) || "-";
     document.getElementById("detailDeskripsi").textContent = report.description || "-";
-
     modal.classList.remove("hidden");
     modal.classList.add("active");
   });
@@ -1168,9 +578,8 @@ function createReportCard(report, profileName) {
   return card;
 }
 
-
 /* ==========================================================================
-   11. HALAMAN TEKNISI
+   9. HALAMAN TEKNISI
    ========================================================================== */
 async function loadTeknisiData() {
   const res = await fetch('data.json');
@@ -1183,7 +592,7 @@ async function loadTeknisiData() {
 }
 
 /* ==========================================================================
-   12. MODAL HELPERS (GLOBAL)
+   10. MODAL HELPERS (GLOBAL)
    ========================================================================== */
 let activeReportForAction = null;
 
@@ -1287,7 +696,7 @@ function bindVerifikatorEvents() {
 }
 
 /* ==========================================================================
-   13. AUTO INIT
+   11. AUTO INIT (GLOBAL)
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', async () => {
   initResponsiveSidebar();
@@ -1309,9 +718,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isPelaporPage) {
     try {
       const data = await loadPelaporData();
-      if (typeof window.initPelaporPage !== 'function') {
-        throw new Error('Inisialisasi halaman Pelapor tidak tersedia');
-      }
+      if (typeof window.initPelaporPage !== 'function') throw new Error('Inisialisasi halaman Pelapor tidak tersedia');
       window.initPelaporPage(data.laporan_masuk);
     } catch (err) {
       console.error('Gagal memuat halaman Pelapor:', err);
@@ -1323,11 +730,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Halaman Teknisi
   if (window.location.pathname.toLowerCase().includes('/teknisi/')) {
     try {
-      const data = await loadTeknisiData(); // Ini harus fetch data.json
-      if (typeof window.initTeknisiPage !== 'function') {
-        throw new Error('Inisialisasi halaman Teknisi tidak tersedia');
-      }
-      window.initTeknisiPage(data); // Lempar data.json ke teknisi.js
+      const data = await loadTeknisiData();
+      if (typeof window.initTeknisiPage !== 'function') throw new Error('Inisialisasi halaman Teknisi tidak tersedia');
+      window.initTeknisiPage(data);
     } catch (err) {
       console.error('Gagal memuat halaman Teknisi:', err);
       showToast('Data Teknisi gagal dimuat. Coba muat ulang halaman.', 'error');
@@ -1348,211 +753,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isStatistik) renderStatistik(data);
   }
 });
-
-/* ==========================================================================
-   MODUL: KELOLA TEKNISI (verifikator/kelola_teknisi.html)
-   ========================================================================== */
-
-// State array teknisi
-let daftarTeknisi = [];
-
-// Ambil data teknisi dari data.json
-async function loadDataTeknisi() {
-  try {
-    const res = await fetch('../data.json');   // sesuaikan path kalau perlu
-    if (!res.ok) throw new Error('Gagal fetch data.json');
-    const json = await res.json();
-    daftarTeknisi = json.teknisi || [];
-  } catch (err) {
-    console.warn('[loadDataTeknisi] gagal:', err);
-    // fallback lokal kalau fetch gagal
-    daftarTeknisi = [
-      { id: 'T001', nama: 'Pak Joko', nip: 'E0010', spesialisasi: 'AC / Pendingin', status: 'Aktif', tugas_berjalan: 2 },
-      { id: 'T002', nama: 'Pak Agus', nip: 'E0011', spesialisasi: 'Kelistrikan', status: 'Aktif', tugas_berjalan: 1 },
-      { id: 'T003', nama: 'Pak Doni', nip: 'E0012', spesialisasi: 'Furnitur', status: 'Cuti', tugas_berjalan: 0 },
-    ];
-  }
-  renderTabelTeknisi();
-}
-
-// Render tabel teknisi
-function renderTabelTeknisi() {
-  const tbody = document.getElementById('tabelTeknisiBody');
-  if (!tbody) return;
-
-  tbody.innerHTML = '';
-
-  if (daftarTeknisi.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 32px; color: var(--muted);">Belum ada data teknisi.</td></tr>`;
-    return;
-  }
-
-  daftarTeknisi.forEach((t, index) => {
-    const tr = document.createElement('tr');
-
-    // Badge warna status
-    const statusClass = t.status === 'Aktif'
-      ? 'status-pill status-pill-success'
-      : t.status === 'Cuti'
-        ? 'status-pill status-pill-warning'
-        : 'status-pill status-pill-danger';
-
-    // Badge tugas berjalan
-    const tugasClass = t.tugas_berjalan > 0 ? 'status-pill status-pill-info' : 'status-pill status-pill-neutral';
-
-    tr.innerHTML = `
-  <td class="text-center" style="color: var(--muted); font-weight: 700;">${index + 1}</td>
-  <td>
-    <div class="cell-reporter">
-      <div class="avatar-circle">
-        ${t.nama.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase()}
-      </div>
-      <div>
-        <span class="cell-name">${t.nama}</span>
-      </div>
-    </div>
-  </td>
-  <td><span class="cell-name">${t.nip}</span></td>
-  <td><span class="status-pill status-pill-info">${t.spesialisasi}</span></td>
-  <td><span class="${statusClass}">${t.status}</span></td>
-  <td>
-    <!-- Hapus class text-center di sini biar rata kiri -->
-    <span class="${tugasClass}">${t.tugas_berjalan} tugas</span>
-  </td>
-  <td class="text-right">
-    <div class="action-group" style="justify-content: flex-end;">
-      <button type="button" class="btn-icon" title="Edit" onclick="bukaModalTeknisi('${t.id}')"
-        style="color: var(--blue-dark); border-color: #bfdbfe; background: #eff6ff;">✎</button>
-      <button type="button" class="btn-icon btn-icon-danger" title="Hapus" onclick="hapusTeknisi('${t.id}')">🗑</button>
-    </div>
-  </td>
-`;
-
-    tbody.appendChild(tr);
-  });
-}
-
-// Buka modal (tambah / edit)
-function bukaModalTeknisi(id = null) {
-  const modal = document.getElementById('modalTeknisi');
-  const title = document.getElementById('modalTeknisiTitle');
-  const form = document.getElementById('formTeknisi');
-  if (!modal) return;
-
-  form.reset();
-  document.getElementById('teknisiId').value = '';
-
-  if (id) {
-    // Mode Edit
-    const t = daftarTeknisi.find((x) => x.id === id);
-    if (!t) return;
-
-    title.textContent = 'Edit Data Teknisi';
-    document.getElementById('teknisiId').value = t.id;
-    document.getElementById('namaTeknisi').value = t.nama;
-    document.getElementById('nipTeknisi').value = t.nip;
-    document.getElementById('spesialisasiTeknisi').value = t.spesialisasi;
-    document.getElementById('statusTeknisi').value = t.status;
-  } else {
-    // Mode Tambah
-    title.textContent = 'Tambah Teknisi Baru';
-  }
-
-  modal.classList.remove('hidden');
-}
-
-// Tutup modal
-function tutupModalTeknisi() {
-  const modal = document.getElementById('modalTeknisi');
-  if (modal) modal.classList.add('hidden');
-}
-
-// Simpan (tambah / update)
-function simpanTeknisi(event) {
-  event.preventDefault();
-
-  const id = document.getElementById('teknisiId').value;
-  const nama = document.getElementById('namaTeknisi').value.trim();
-  const nip = document.getElementById('nipTeknisi').value.trim();
-  const spesialisasi = document.getElementById('spesialisasiTeknisi').value;
-  const status = document.getElementById('statusTeknisi').value;
-
-  if (!nama || !nip || !spesialisasi || !status) {
-    alert('Semua kolom wajib diisi!');
-    return;
-  }
-
-  if (id) {
-    // Update
-    const t = daftarTeknisi.find((x) => x.id === id);
-    if (t) {
-      t.nama = nama;
-      t.nip = nip;
-      t.spesialisasi = spesialisasi;
-      t.status = status;
-    }
-    showToast('Data teknisi berhasil diperbarui.', 'success');
-  } else {
-    // Tambah baru
-    const newId = 'T' + String(Date.now()).slice(-4);
-    daftarTeknisi.push({
-      id: newId,
-      nama: nama,
-      nip: nip,
-      spesialisasi: spesialisasi,
-      status: status,
-      tugas_berjalan: 0,
-    });
-    showToast('Teknisi baru berhasil ditambahkan.', 'success');
-  }
-
-  tutupModalTeknisi();
-  renderTabelTeknisi();
-}
-
-// Hapus
-function hapusTeknisi(id) {
-  const t = daftarTeknisi.find((x) => x.id === id);
-  if (!t) return;
-
-  if (!confirm(`Yakin ingin menghapus teknisi "${t.nama}"?`)) return;
-
-  daftarTeknisi = daftarTeknisi.filter((x) => x.id !== id);
-  showToast(`Teknisi "${t.nama}" telah dihapus.`, 'info');
-  renderTabelTeknisi();
-}
-
-// Auto-init kalau di halaman kelola_teknisi
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('tabelTeknisiBody')) {
-    loadDataTeknisi();
-  }
-});
-
-/* ==========================================================================
-   FUNGSI MODAL DETAIL PENGADUAN (GLOBAL)
-   ========================================================================== */
-function bukaDetail(item) {
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (!modal) return; // skip kalau modal tidak ada di halaman ini
-
-  document.getElementById('detailJudul').textContent = item.judul || '-';
-  document.getElementById('detailId').textContent = '#' + (item.id || '-');
-  document.getElementById('detailPelapor').textContent = item.pelapor?.nama || '-';
-  document.getElementById('detailLokasi').textContent = `${item.lokasi?.kode || ''} - ${item.lokasi?.nama || ''}`;
-  document.getElementById('detailKategori').textContent = item.kategori || '-';
-  document.getElementById('detailStatus').textContent = item.status || '-';
-  document.getElementById('detailTanggal').textContent = `${item.tanggal || '-'} · ${item.waktu || '-'}`;
-  document.getElementById('detailDeskripsi').textContent = item.deskripsi || '-';
-
-  modal.classList.remove('hidden');
-  modal.classList.add('active'); // buat kompatibilitas CSS lama
-}
-
-function tutupDetail() {
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('active');
-  }
-}
