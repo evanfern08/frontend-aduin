@@ -329,7 +329,20 @@ window.bukaModalDetail = function (item) {
   }
 
   const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+  if (modal) { 
+    modal.classList.remove('hidden'); 
+    modal.classList.add('flex'); 
+    modal.classList.add('active'); // Tambahin active
+  }
+};
+
+window.tutupDetail = function() {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) { 
+    modal.classList.add('hidden'); 
+    modal.classList.remove('flex'); 
+    modal.classList.remove('active'); 
+  }
 };
 
 window.tandaiSelesaiPusat = function (id) {
@@ -344,7 +357,11 @@ window.tandaiSelesaiPusat = function (id) {
   showToast('Status laporan diubah menjadi Selesai!', 'success');
 
   const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+  if (modal) { 
+    modal.classList.add('hidden'); 
+    modal.classList.remove('flex'); 
+    modal.classList.remove('active'); 
+  }
 
   loadVerifikatorData().then(data => {
     if (data) renderRiwayat({ ...data, laporan_masuk: getStoredReports() });
