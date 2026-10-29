@@ -36,15 +36,15 @@
     }
 
     function getTasks() { return globalTasks; }
-    function saveTasks(tasks) { 
-        globalTasks = tasks; 
-        localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks)); 
+    function saveTasks(tasks) {
+        globalTasks = tasks;
+        localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
     }
 
     function getHistory() { return globalHistory; }
-    function saveHistory(history) { 
-        globalHistory = history; 
-        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history)); 
+    function saveHistory(history) {
+        globalHistory = history;
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
     }
 
     // ============================================================
@@ -150,7 +150,7 @@
             const notes = document.getElementById('textareaCatatanPerbaikan').value.trim();
             const tasks = getTasks();
             const history = getHistory();
-            
+
             const taskIndex = tasks.findIndex(t => t.id === activeModalTaskId);
             const historyIndex = history.findIndex(h => h.id === activeModalTaskId);
 
@@ -173,6 +173,26 @@
                 if (previewAfter && previewAfter.startsWith('data:image')) currentTask.fotoSesudah = previewAfter;
 
                 if (newStatus === 'Selesai') {
+                    const reportKey = 'aduin_reports';
+                    const reports = JSON.parse(localStorage.getItem(reportKey) || '[]');
+
+                    const reportIndex = reports.findIndex((report) =>
+                        String(report.id) === String(currentTask.id) ||
+                        String(report.roomCode) === String(currentTask.roomCode)
+                    );
+
+                    if (reportIndex !== -1) {
+                        reports[reportIndex].status = 'Menunggu Review Hasil';
+                        reports[reportIndex].catatan = currentTask.catatan || notes || '';
+                        reports[reportIndex].fotoSebelum = currentTask.fotoSebelum || '';
+                        reports[reportIndex].fotoSesudah = currentTask.fotoSesudah || '';
+
+                        localStorage.setItem(reportKey, JSON.stringify(reports));
+                    } else {
+                        console.warn('Laporan utama tidak ditemukan:', currentTask.id);
+                    }
+
+                    // simpan riwayat pekerjaan teknisi
                     history.unshift({
                         id: currentTask.id,
                         judul: currentTask.judul,
@@ -185,61 +205,61 @@
                         fotoSebelum: currentTask.fotoSebelum,
                         fotoSesudah: currentTask.fotoSesudah
                     });
-                    saveHistory(history);
-                    tasks.splice(taskIndex, 1); 
-                }
                 saveTasks(tasks);
                 showTeknisiToast(`Tugas ${activeModalTaskId} diperbarui ke "${newStatus}"!`);
             }
+            saveTasks(tasks);
+            showTeknisiToast(`Tugas ${activeModalTaskId} diperbarui ke "${newStatus}"!`);
+        }
 
-            closeModal();
-            updateDashboardMetrics();
-            renderDashboard();
-            renderDaftarTugas();
-            initDaftarTugasTabs(); 
-        });
-    }
+        closeModal();
+        updateDashboardMetrics();
+        renderDashboard();
+        renderDaftarTugas();
+        initDaftarTugasTabs();
+    });
+}
 
     function openModalForTask(taskId, taskJudul) {
-        ensureModalExists();
-        activeModalTaskId = taskId;
+    ensureModalExists();
+    activeModalTaskId = taskId;
 
-        const modal = document.getElementById('modalTeknisiUpdate');
-        if (document.getElementById('modalTaskCode')) document.getElementById('modalTaskCode').textContent = taskId;
-        if (document.getElementById('modalTaskTitle')) document.getElementById('modalTaskTitle').textContent = taskJudul;
+    const modal = document.getElementById('modalTeknisiUpdate');
+    if (document.getElementById('modalTaskCode')) document.getElementById('modalTaskCode').textContent = taskId;
+    if (document.getElementById('modalTaskTitle')) document.getElementById('modalTaskTitle').textContent = taskJudul;
 
-        const task = getTasks().find(t => t.id === taskId);
-        const history = getHistory().find(h => h.id === taskId);
-        const data = task || history;
+    const task = getTasks().find(t => t.id === taskId);
+    const history = getHistory().find(h => h.id === taskId);
+    const data = task || history;
 
-        if (data) {
-            if (document.getElementById('selectStatusTugas')) document.getElementById('selectStatusTugas').value = data.status || 'Tugas Baru';
-            if (document.getElementById('textareaCatatanPerbaikan')) document.getElementById('textareaCatatanPerbaikan').value = data.catatan || '';
-        }
-        if (document.getElementById('previewFotoSebelumWrap')) document.getElementById('previewFotoSebelumWrap').style.display = 'none';
-        if (document.getElementById('previewFotoSesudahWrap')) document.getElementById('previewFotoSesudahWrap').style.display = 'none';
-        if (modal) modal.style.display = 'flex';
+    if (data) {
+        if (document.getElementById('selectStatusTugas')) document.getElementById('selectStatusTugas').value = data.status || 'Tugas Baru';
+        if (document.getElementById('textareaCatatanPerbaikan')) document.getElementById('textareaCatatanPerbaikan').value = data.catatan || '';
+    }
+    if (document.getElementById('previewFotoSebelumWrap')) document.getElementById('previewFotoSebelumWrap').style.display = 'none';
+    if (document.getElementById('previewFotoSesudahWrap')) document.getElementById('previewFotoSesudahWrap').style.display = 'none';
+    if (modal) modal.style.display = 'flex';
+}
+
+// ============================================================
+// 4. RENDER DASHBOARD
+// ============================================================
+function renderDashboard() {
+    const container = document.getElementById('dashboard-task-container');
+    if (!container) return;
+
+    const activeTasks = getTasks().filter(t => t.status !== 'Selesai');
+
+    container.innerHTML = '';
+    if (activeTasks.length === 0) {
+        container.innerHTML = `<p class="text-muted">Tidak ada tugas aktif saat ini.</p>`;
+        return;
     }
 
-    // ============================================================
-    // 4. RENDER DASHBOARD
-    // ============================================================
-    function renderDashboard() {
-        const container = document.getElementById('dashboard-task-container');
-        if (!container) return;
-
-        const activeTasks = getTasks().filter(t => t.status !== 'Selesai');
-        
-        container.innerHTML = '';
-        if (activeTasks.length === 0) {
-            container.innerHTML = `<p class="text-muted">Tidak ada tugas aktif saat ini.</p>`;
-            return;
-        }
-
-        activeTasks.forEach(task => {
-            const card = document.createElement('article');
-            card.className = 'glass-card task-card';
-            card.innerHTML = `
+    activeTasks.forEach(task => {
+        const card = document.createElement('article');
+        card.className = 'glass-card task-card';
+        card.innerHTML = `
                 <div class="task-body">
                     <h3 class="card-title">${task.judul || 'Perbaikan Fasilitas'} <small style="float:right; font-size: 12px; color:#666;">${task.id}</small></h3>
                     <p class="text-muted" style="margin: 10px 0;"><i class="fa-solid fa-location-dot"></i> ${task.lokasiKode || 'Lokasi'} - ${task.lokasiNama || 'Kampus'}</p>
@@ -248,37 +268,37 @@
                     <button class="btn btn-success" style="width: 100%;" onclick="openModalForTask('${task.id}', '${task.judul || 'Perbaikan'}')">Update Status &amp; Upload Bukti</button>
                 </div>
             `;
-            container.appendChild(card);
-        });
+        container.appendChild(card);
+    });
+}
+
+// ============================================================
+// 5. RENDER DAFTAR TUGAS
+// ============================================================
+function renderDaftarTugas() {
+    const container = document.getElementById('task-list-container');
+    if (!container) return;
+
+    const activeTasks = getTasks().map(t => ({ ...t, type: 'active' }));
+    const historyTasks = getHistory().map(h => ({ ...h, type: 'history', status: 'Selesai' }));
+    const allData = [...activeTasks, ...historyTasks];
+
+    container.innerHTML = '';
+    if (allData.length === 0) {
+        container.innerHTML = `<p class="text-muted" style="grid-column: 1/-1;">Belum ada data tugas.</p>`;
+        return;
     }
 
-    // ============================================================
-    // 5. RENDER DAFTAR TUGAS
-    // ============================================================
-    function renderDaftarTugas() {
-        const container = document.getElementById('task-list-container');
-        if (!container) return;
+    allData.forEach(item => {
+        const isHistory = item.type === 'history';
+        const card = document.createElement('article');
+        card.className = 'glass-card task-card';
 
-        const activeTasks = getTasks().map(t => ({ ...t, type: 'active' }));
-        const historyTasks = getHistory().map(h => ({ ...h, type: 'history', status: 'Selesai' }));
-        const allData = [...activeTasks, ...historyTasks];
-        
-        container.innerHTML = '';
-        if (allData.length === 0) {
-            container.innerHTML = `<p class="text-muted" style="grid-column: 1/-1;">Belum ada data tugas.</p>`;
-            return;
-        }
+        const btnHTML = isHistory
+            ? `<button class="btn btn-ghost" style="width: 100%; border: 1px solid #cbd5e1;" onclick="lihatDetailRiwayat('${item.id}')">Lihat Detail Pengerjaan</button>`
+            : `<button class="btn btn-success" style="width: 100%;" onclick="openModalForTask('${item.id}', '${item.judul || 'Perbaikan Fasilitas'}')">Update Status &amp; Upload Bukti</button>`;
 
-        allData.forEach(item => {
-            const isHistory = item.type === 'history';
-            const card = document.createElement('article');
-            card.className = 'glass-card task-card';
-            
-            const btnHTML = isHistory 
-                ? `<button class="btn btn-ghost" style="width: 100%; border: 1px solid #cbd5e1;" onclick="lihatDetailRiwayat('${item.id}')">Lihat Detail Pengerjaan</button>`
-                : `<button class="btn btn-success" style="width: 100%;" onclick="openModalForTask('${item.id}', '${item.judul || 'Perbaikan Fasilitas'}')">Update Status &amp; Upload Bukti</button>`;
-
-            card.innerHTML = `
+        card.innerHTML = `
                 <div class="task-body">
                     <h3 class="card-title">${item.judul || 'Perbaikan Fasilitas'} <small style="float:right; font-size: 12px; color:#666;">${item.id}</small></h3>
                     <p class="text-muted" style="margin: 10px 0;"><i class="fa-solid fa-location-dot"></i> ${item.lokasiKode ? `${item.lokasiKode} - ${item.lokasiNama}` : item.lokasi}</p>
@@ -287,97 +307,97 @@
                     ${btnHTML}
                 </div>
             `;
-            container.appendChild(card);
-        });
-    }
+        container.appendChild(card);
+    });
+}
 
-    function updateDashboardMetrics() {
-        const tasks = getTasks();
-        const history = getHistory();
-        
-        const countBaru = tasks.filter(t => t.status === 'Tugas Baru').length;
-        const countProses = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
-        const countSelesai = history.length + tasks.filter(t => t.status === 'Selesai').length;
+function updateDashboardMetrics() {
+    const tasks = getTasks();
+    const history = getHistory();
 
-        if (document.getElementById('metric-baru')) document.getElementById('metric-baru').textContent = countBaru;
-        if (document.getElementById('metric-proses')) document.getElementById('metric-proses').textContent = countProses;
-        if (document.getElementById('metric-selesai')) document.getElementById('metric-selesai').textContent = countSelesai;
-    }
+    const countBaru = tasks.filter(t => t.status === 'Tugas Baru').length;
+    const countProses = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
+    const countSelesai = history.length + tasks.filter(t => t.status === 'Selesai').length;
 
-    function initDaftarTugasTabs() {
-        const tabContainer = document.getElementById('tab-container');
-        if (!tabContainer) return;
+    if (document.getElementById('metric-baru')) document.getElementById('metric-baru').textContent = countBaru;
+    if (document.getElementById('metric-proses')) document.getElementById('metric-proses').textContent = countProses;
+    if (document.getElementById('metric-selesai')) document.getElementById('metric-selesai').textContent = countSelesai;
+}
 
-        const tasks = getTasks();
-        const history = getHistory();
-        
-        const countBaru = tasks.filter(t => t.status === 'Tugas Baru').length;
-        const countProses = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
-        const countSelesai = tasks.filter(t => t.status === 'Selesai').length + history.length;
+function initDaftarTugasTabs() {
+    const tabContainer = document.getElementById('tab-container');
+    if (!tabContainer) return;
 
-        tabContainer.innerHTML = `
+    const tasks = getTasks();
+    const history = getHistory();
+
+    const countBaru = tasks.filter(t => t.status === 'Tugas Baru').length;
+    const countProses = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
+    const countSelesai = tasks.filter(t => t.status === 'Selesai').length + history.length;
+
+    tabContainer.innerHTML = `
             <button class="btn btn-ghost active" data-filter="tugas baru" style="color: #0284c7; border-bottom: 2px solid #0284c7; border-radius: 0; font-weight: 600;">Tugas Baru (${countBaru})</button>
             <button class="btn btn-ghost" data-filter="sedang dikerjakan" style="color: #64748b;">Sedang Dikerjakan (${countProses})</button>
             <button class="btn btn-ghost" data-filter="selesai" style="color: #64748b;">Selesai (${countSelesai})</button>
         `;
 
-        const tabButtons = tabContainer.querySelectorAll('button');
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                tabButtons.forEach(b => { b.classList.remove('active'); b.style.color = '#64748b'; b.style.borderBottom = 'none'; b.style.fontWeight = 'normal'; });
-                btn.classList.add('active'); btn.style.color = '#0284c7'; btn.style.borderBottom = '2px solid #0284c7'; btn.style.fontWeight = '600';
-                filterTaskCards(btn.dataset.filter);
-            });
+    const tabButtons = tabContainer.querySelectorAll('button');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            tabButtons.forEach(b => { b.classList.remove('active'); b.style.color = '#64748b'; b.style.borderBottom = 'none'; b.style.fontWeight = 'normal'; });
+            btn.classList.add('active'); btn.style.color = '#0284c7'; btn.style.borderBottom = '2px solid #0284c7'; btn.style.fontWeight = '600';
+            filterTaskCards(btn.dataset.filter);
         });
-        if (tabButtons[0]) tabButtons[0].click();
+    });
+    if (tabButtons[0]) tabButtons[0].click();
+}
+
+function filterTaskCards(statusKey) {
+    const cards = document.querySelectorAll('.task-card');
+    const tasks = getTasks();
+    const history = getHistory();
+
+    cards.forEach((card, idx) => {
+        const codeEl = card.querySelector('.card-title small');
+        const taskId = codeEl ? codeEl.textContent.trim() : '';
+
+        const task = tasks.find(t => t.id === taskId);
+        const historyItem = history.find(item => item.id === taskId);
+
+        if (statusKey === 'semua') { card.style.display = ''; return; }
+
+        const isTaskBaru = task && task.status === 'Tugas Baru';
+        const isProses = task && task.status === 'Sedang Dikerjakan';
+        const isSelesai = historyItem || (task && task.status === 'Selesai');
+
+        if (statusKey === 'tugas baru' && isTaskBaru) card.style.display = '';
+        else if (statusKey === 'sedang dikerjakan' && isProses) card.style.display = '';
+        else if (statusKey === 'selesai' && isSelesai) card.style.display = '';
+        else card.style.display = 'none';
+    });
+}
+
+// ============================================================
+// 6. RENDER RIWAYAT & FILTER
+// ============================================================
+function renderRiwayat() {
+    const container = document.getElementById('history-list');
+    if (!container) return;
+
+    const history = getHistory();
+    container.innerHTML = '';
+
+    if (history.length === 0) {
+        container.innerHTML = `<p class="text-muted">Belum ada riwayat perbaikan.</p>`;
+        return;
     }
 
-    function filterTaskCards(statusKey) {
-        const cards = document.querySelectorAll('.task-card');
-        const tasks = getTasks();
-        const history = getHistory();
-
-        cards.forEach((card, idx) => {
-            const codeEl = card.querySelector('.card-title small');
-            const taskId = codeEl ? codeEl.textContent.trim() : '';
-            
-            const task = tasks.find(t => t.id === taskId);
-            const historyItem = history.find(item => item.id === taskId);
-
-            if (statusKey === 'semua') { card.style.display = ''; return; }
-
-            const isTaskBaru = task && task.status === 'Tugas Baru';
-            const isProses = task && task.status === 'Sedang Dikerjakan';
-            const isSelesai = historyItem || (task && task.status === 'Selesai');
-
-            if (statusKey === 'tugas baru' && isTaskBaru) card.style.display = '';
-            else if (statusKey === 'sedang dikerjakan' && isProses) card.style.display = '';
-            else if (statusKey === 'selesai' && isSelesai) card.style.display = '';
-            else card.style.display = 'none';
-        });
-    }
-
-    // ============================================================
-    // 6. RENDER RIWAYAT & FILTER
-    // ============================================================
-    function renderRiwayat() {
-        const container = document.getElementById('history-list');
-        if (!container) return;
-
-        const history = getHistory();
-        container.innerHTML = '';
-        
-        if (history.length === 0) {
-            container.innerHTML = `<p class="text-muted">Belum ada riwayat perbaikan.</p>`;
-            return;
-        }
-
-        history.forEach(item => {
-            const card = document.createElement('article');
-            card.className = 'glass-card riwayat-card';
-            card.style.cursor = 'pointer';
-            card.innerHTML = `
+    history.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'glass-card riwayat-card';
+        card.style.cursor = 'pointer';
+        card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                     <div>
                         <h3 class="card-title" style="margin: 0;">${item.judul || 'Perbaikan'}</h3>
@@ -394,94 +414,94 @@
                     <p style="margin-top: 4px; font-size: 14px; color: #334155;">${item.catatan || '-'}</p>
                 </div>
             `;
-            card.addEventListener('click', () => window.lihatDetailRiwayat(item.id));
-            container.appendChild(card);
-        });
+        card.addEventListener('click', () => window.lihatDetailRiwayat(item.id));
+        container.appendChild(card);
+    });
 
-        // --- BINDING TOMBOL FILTER ---
-        const filterBtns = document.querySelectorAll('.filter-btn-riwayat');
-        filterBtns.forEach(btn => {
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
+    // --- BINDING TOMBOL FILTER ---
+    const filterBtns = document.querySelectorAll('.filter-btn-riwayat');
+    filterBtns.forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
 
-            newBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Reset semua tombol jadi abu-abu
-                document.querySelectorAll('.filter-btn-riwayat').forEach(b => {
-                    b.className = 'btn btn-ghost filter-btn-riwayat';
-                    b.style.border = '1px solid #d1d5db';
-                });
-                
-                // Bikin tombol yang diklik jadi hijau
-                newBtn.className = 'btn btn-success filter-btn-riwayat';
-                newBtn.style.border = 'none';
+        newBtn.addEventListener('click', (e) => {
+            e.preventDefault();
 
-                const filterVal = newBtn.textContent.trim().toLowerCase();
-                const cards = document.querySelectorAll('.riwayat-card');
+            // Reset semua tombol jadi abu-abu
+            document.querySelectorAll('.filter-btn-riwayat').forEach(b => {
+                b.className = 'btn btn-ghost filter-btn-riwayat';
+                b.style.border = '1px solid #d1d5db';
+            });
 
-                cards.forEach(card => {
-                    card.style.display = 'none';
-                    const text = card.textContent.toLowerCase();
+            // Bikin tombol yang diklik jadi hijau
+            newBtn.className = 'btn btn-success filter-btn-riwayat';
+            newBtn.style.border = 'none';
 
-                    if (filterVal === 'semua') {
+            const filterVal = newBtn.textContent.trim().toLowerCase();
+            const cards = document.querySelectorAll('.riwayat-card');
+
+            cards.forEach(card => {
+                card.style.display = 'none';
+                const text = card.textContent.toLowerCase();
+
+                if (filterVal === 'semua') {
+                    card.style.display = '';
+                } else if (filterVal === 'minggu ini') {
+                    if (text.includes('hari ini') || text.includes('minggu ini')) {
                         card.style.display = '';
-                    } else if (filterVal === 'minggu ini') {
-                        if (text.includes('hari ini') || text.includes('minggu ini')) {
-                            card.style.display = '';
-                        }
-                    } else if (filterVal === 'bulan ini') {
-                        card.style.display = ''; 
                     }
-                });
+                } else if (filterVal === 'bulan ini') {
+                    card.style.display = '';
+                }
             });
         });
-    }
+    });
+}
 
-    // ============================================================
-    // 7. DETAIL MODAL & GLOBAL FUNCTIONS
-    // ============================================================
-    let currentDetailId = null;
+// ============================================================
+// 7. DETAIL MODAL & GLOBAL FUNCTIONS
+// ============================================================
+let currentDetailId = null;
 
-    window.lihatDetailRiwayat = function(id) {
-        const history = getHistory();
-        const item = history.find(h => h.id === id);
-        if (!item) return;
+window.lihatDetailRiwayat = function (id) {
+    const history = getHistory();
+    const item = history.find(h => h.id === id);
+    if (!item) return;
 
-        currentDetailId = id;
-        const modal = document.getElementById('modalDetailPengaduan');
-        if (!modal) return;
+    currentDetailId = id;
+    const modal = document.getElementById('modalDetailPengaduan');
+    if (!modal) return;
 
-        if (document.getElementById('detailJudul')) document.getElementById('detailJudul').textContent = item.judul || '-';
-        if (document.getElementById('detailId')) document.getElementById('detailId').textContent = '#' + (item.id || '-');
-        if (document.getElementById('detailLokasi')) document.getElementById('detailLokasi').textContent = item.lokasi || '-';
-        if (document.getElementById('detailPelapor')) document.getElementById('detailPelapor').textContent = item.pelapor || '-';
-        if (document.getElementById('detailStatus')) document.getElementById('detailStatus').textContent = item.status || 'Selesai';
-        if (document.getElementById('detailTanggal')) document.getElementById('detailTanggal').textContent = item.tanggalSelesai || '-';
-        if (document.getElementById('detailDeskripsi')) document.getElementById('detailDeskripsi').textContent = item.catatan || '-';
+    if (document.getElementById('detailJudul')) document.getElementById('detailJudul').textContent = item.judul || '-';
+    if (document.getElementById('detailId')) document.getElementById('detailId').textContent = '#' + (item.id || '-');
+    if (document.getElementById('detailLokasi')) document.getElementById('detailLokasi').textContent = item.lokasi || '-';
+    if (document.getElementById('detailPelapor')) document.getElementById('detailPelapor').textContent = item.pelapor || '-';
+    if (document.getElementById('detailStatus')) document.getElementById('detailStatus').textContent = item.status || 'Selesai';
+    if (document.getElementById('detailTanggal')) document.getElementById('detailTanggal').textContent = item.tanggalSelesai || '-';
+    if (document.getElementById('detailDeskripsi')) document.getElementById('detailDeskripsi').textContent = item.catatan || '-';
 
-        modal.classList.remove('hidden');
-        modal.classList.add('active');
-    };
+    modal.classList.remove('hidden');
+    modal.classList.add('active');
+};
 
-    window.tutupDetail = function() {
-        const modal = document.getElementById('modalDetailPengaduan');
-        if (modal) { modal.classList.add('hidden'); modal.classList.remove('active'); }
-    };
+window.tutupDetail = function () {
+    const modal = document.getElementById('modalDetailPengaduan');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('active'); }
+};
 
-    window.openModalForTask = openModalForTask;
+window.openModalForTask = openModalForTask;
 
-    // ============================================================
-    // 8. BOOT
-    // ============================================================
-    window.initTeknisiPage = function (initialData) {
-        initTeknisiStorage(initialData);
-        
-        updateDashboardMetrics();
-        renderDashboard();
-        renderDaftarTugas();
-        initDaftarTugasTabs();
-        renderRiwayat();
-    };
+// ============================================================
+// 8. BOOT
+// ============================================================
+window.initTeknisiPage = function (initialData) {
+    initTeknisiStorage(initialData);
 
-})();
+    updateDashboardMetrics();
+    renderDashboard();
+    renderDaftarTugas();
+    initDaftarTugasTabs();
+    renderRiwayat();
+};
+
+}) ();

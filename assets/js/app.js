@@ -508,7 +508,863 @@ function setupRoleSwitcherPills(currentRole) {
 }
 
 /* ==========================================================================
+<<<<<<< HEAD
    8. HALAMAN PELAPOR
+=======
+   ALUR STATUS, CHANGE LOG & SINKRONISASI ANTAR PERAN (revisi #6 & #8) ORANG 3
+   ========================================================================== */
+const SYNC_KEYS = {
+  CHANGELOG: 'aduin_changelog',
+  STATUS_SYNC: 'aduin_status_sync',       // dibaca halaman pelapor
+  Q_TEKNISI: 'aduin_queue_teknisi',       // verifikator -> teknisi
+  Q_VERIFIKATOR: 'aduin_queue_verifikator' // teknisi -> verifikator
+};
+const STATUS_REVIEW = 'Menunggu Review Hasil';
+const VERIFIKATOR_NAME = 'Mungki Astiningrum, S.T., M.Kom.';
+
+const AKSI_LABEL = {
+  SETUJUI_LAPORAN: 'Laporan Disetujui',
+  TOLAK_LAPORAN: 'Laporan Ditolak',
+  TEKNISI_SELESAI: 'Teknisi Menandai Selesai',
+  TERIMA_HASIL: 'Hasil Perbaikan Diterima',
+  TOLAK_HASIL: 'Tolak Hasil Perbaikan',
+  BATAL_TOLAK: 'Batal Penolakan',
+};
+
+function readJSON(key, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; }
+  catch { return fallback; }
+}
+function writeJSON(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); }
+  catch (e) { console.error('writeJSON error:', e); }
+}
+function pushQueue(key, event) {
+  const q = readJSON(key, []);
+  q.push(event);
+  writeJSON(key, q);
+}
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* ---- Change log ---- */
+function getChangeLog(reportId) {
+  const all = readJSON(SYNC_KEYS.CHANGELOG, []);
+  return reportId ? all.filter((l) => l.reportId === reportId) : all;
+}
+function addChangeLog({ reportId, aksi, oleh, dari, ke, alasan }) {
+  const all = readJSON(SYNC_KEYS.CHANGELOG, []);
+  all.unshift({
+    id: 'LOG-' + Date.now(),
+    reportId, aksi, oleh, dari, ke,
+    alasan: alasan || '-',
+    waktu: new Date().toISOString(),
+  });
+  writeJSON(SYNC_KEYS.CHANGELOG, all);
+}
+
+
+// Batal penolakan
+function batalPenolakan(reportId) {
+  const session = getSession();
+
+  if (
+    !session ||
+    String(session.role || '').toLowerCase() !== 'verifikator'
+  ) {
+    showToast('Akses hanya untuk verifikator.', 'error');
+    return;
+  }
+
+  const reason = prompt('Masukkan alasan pembatalan penolakan:');
+
+  if (reason === null) return;
+
+  if (!reason.trim()) {
+    showToast('Alasan pembatalan wajib diisi.', 'error');
+    return;
+  }
+
+  const reports = getStoredReports();
+
+  const target = reports.find(
+    (report) => String(report.id) === String(reportId)
+  );
+
+  if (!target || target.status !== 'Ditolak') {
+    showToast('Laporan tidak ditemukan atau bukan berstatus Ditolak.', 'error');
+    return;
+  }
+
+  const statusSebelum = target.status;
+  target.status = 'Menunggu Verifikasi';
+
+  // simpan status laporan
+  saveStoredReports(reports);
+
+  // catat perubahan menggunakan fungsi change log yang sudah ada
+  addChangeLog({
+    reportId: target.id,
+    aksi: 'Batal Penolakan',
+    oleh: session.nama || 'Verifikator',
+    dari: statusSebelum,
+    ke: target.status,
+    alasan: reason.trim()
+  });
+
+  showToast('Penolakan dibatalkan. Laporan kembali ke antrean verifikasi.', 'success');
+
+  // muat ulang dashboard
+  loadVerifikatorData().then((data) => {
+    if (data) renderDashboard(data);
+  });
+}
+
+
+/* ---- Status yang dilihat pelapor ---- */
+function toPelaporStatus(status) {
+  if (status === 'Menunggu Verifikasi' || status === 'Selesai') return status;
+  if (status === 'Ditolak') return 'Dikembalikan ke Pelapor';
+  return 'Diproses'; // Disetujui, Dalam Perbaikan, Menunggu Review Hasil, Diteruskan ke Pusat
+}
+
+/* ---- SATU-SATUNYA pintu untuk mengubah status laporan ---- */
+function updateReportStatus(id, newStatus, opts = {}) {
+  const { oleh = VERIFIKATOR_NAME, aksi, alasan, extra = {}, notePelapor = '' } = opts;
+  const reports = getStoredReports();
+  const target = reports.find((r) => r.id === id || r.roomCode === id);
+  if (!target) return null;
+
+  const dari = target.status;
+  target.status = newStatus;
+  Object.assign(target, extra);
+  saveStoredReports(reports);
+
+  addChangeLog({ reportId: target.id, aksi, oleh, dari, ke: newStatus, alasan });
+
+  const sync = readJSON(SYNC_KEYS.STATUS_SYNC, {});
+  sync[target.id] = {
+    status: toPelaporStatus(newStatus),
+    note: notePelapor,
+    updatedAt: new Date().toISOString(),
+  };
+  writeJSON(SYNC_KEYS.STATUS_SYNC, sync);
+  return target;
+}
+
+/* ---- #6: Teknisi menandai selesai -> masuk antrean review Kajur ---- */
+function consumeVerifikatorQueue() {
+  const queue = readJSON(SYNC_KEYS.Q_VERIFIKATOR, []);
+  if (!queue.length) return;
+  queue.forEach((ev) => {
+    if (ev.type !== 'HASIL_SELESAI') return;
+    updateReportStatus(ev.reportId, STATUS_REVIEW, {
+      oleh: `${ev.teknisi || 'Teknisi'} (Teknisi)`,
+      aksi: 'TEKNISI_SELESAI',
+      alasan: ev.catatan,
+      extra: { hasilCatatan: ev.catatan, hasilFotoSesudah: ev.fotoSesudah || '' },
+      notePelapor: 'Perbaikan selesai dikerjakan, menunggu pemeriksaan hasil oleh Kajur.',
+    });
+  });
+  writeJSON(SYNC_KEYS.Q_VERIFIKATOR, []);
+}
+
+/* ---- #6: Kajur menerima / menolak hasil ---- */
+window.terimaHasilPerbaikan = function (id) {
+  if (!confirm('Terima hasil perbaikan? Status laporan menjadi Selesai (final).')) return;
+  updateReportStatus(id, 'Selesai', {
+    aksi: 'TERIMA_HASIL',
+    alasan: 'Hasil perbaikan diterima.',
+    notePelapor: 'Perbaikan selesai dan sudah diverifikasi Kajur.',
+  });
+  pushQueue(SYNC_KEYS.Q_TEKNISI, { type: 'DITERIMA', reportId: id, waktu: new Date().toISOString() });
+  showToast('Hasil perbaikan diterima. Laporan Selesai.', 'success');
+  refreshRiwayat();
+};
+
+window.tolakHasilPerbaikan = function (id, alasan) {
+  const cur = getStoredReports().find((r) => r.id === id);
+  if (!cur) return;
+  const revisiKe = (cur.revisi_ke || 0) + 1;
+  updateReportStatus(id, 'Dalam Perbaikan', {
+    aksi: 'TOLAK_HASIL',
+    alasan,
+    extra: { revisi_ke: revisiKe, catatan_revisi: alasan },
+    notePelapor: 'Hasil perbaikan belum memenuhi standar, teknisi mengerjakan ulang.',
+  });
+  pushQueue(SYNC_KEYS.Q_TEKNISI, {
+    type: 'REVISI', reportId: id, alasan,
+    oleh: VERIFIKATOR_NAME, waktu: new Date().toISOString(),
+  });
+  showToast('Hasil ditolak. Laporan kembali ke teknisi.', 'info');
+};
+
+/* ---- #8: Batal penolakan ---- */
+window.batalkanPenolakan = function (id, alasan) {
+  updateReportStatus(id, 'Menunggu Verifikasi', {
+    aksi: 'BATAL_TOLAK',
+    alasan,
+    extra: { rejectionReason: '' },
+    notePelapor: 'Penolakan dibatalkan, laporan ditinjau ulang oleh Kajur.',
+  });
+  showToast('Penolakan dibatalkan. Laporan kembali ke antrean verifikasi.', 'success');
+};
+
+/* ---- Modal aksi (dipakai riwayat.html) ---- */
+let aksiAktif = null;
+const AKSI_CONFIG = {
+  'tolak-hasil': {
+    title: 'Tolak Hasil Perbaikan',
+    desc: 'Laporan kembali ke "Dalam Perbaikan" dan muncul lagi di tab "Sedang Dikerjakan" milik teknisi.',
+    label: 'Alasan penolakan (jadi catatan revisi teknisi)',
+    placeholder: 'Contoh: AC masih bocor, foto sesudah tidak jelas.',
+    btn: 'Tolak Hasil Perbaikan', cls: 'btn btn-danger',
+  },
+  'batal-tolak': {
+    title: 'Batalkan Penolakan',
+    desc: 'Status laporan kembali ke "Menunggu Verifikasi" sehingga bisa diputuskan ulang. Pembatalan dicatat di change log.',
+    label: 'Alasan pembatalan',
+    placeholder: 'Contoh: Salah menekan tombol tolak.',
+    btn: 'Kembalikan ke Antrean', cls: 'btn btn-success',
+  },
+};
+
+window.bukaModalAksi = function (jenis, item) {
+  const cfg = AKSI_CONFIG[jenis];
+  const modal = document.getElementById('modalAksiStatus');
+  if (!cfg || !modal) return;
+  aksiAktif = { jenis, id: item.id };
+  document.getElementById('aksiTitle').textContent = cfg.title;
+  document.getElementById('aksiTarget').textContent = `#${item.id} - ${item.judul}`;
+  document.getElementById('aksiDesc').textContent = cfg.desc;
+  document.getElementById('aksiLabel').textContent = cfg.label;
+  const ta = document.getElementById('aksiAlasan');
+  ta.value = ''; ta.placeholder = cfg.placeholder;
+  const btn = document.getElementById('btnAksiKonfirmasi');
+  btn.textContent = cfg.btn; btn.className = cfg.cls;
+  modal.classList.remove('hidden');
+};
+window.tutupModalAksi = function () {
+  document.getElementById('modalAksiStatus')?.classList.add('hidden');
+  aksiAktif = null;
+};
+window.konfirmasiAksi = function () {
+  if (!aksiAktif) return;
+  const alasan = document.getElementById('aksiAlasan').value.trim();
+  if (!alasan) { showToast('Alasan wajib diisi.', 'error'); return; }
+  if (aksiAktif.jenis === 'tolak-hasil') window.tolakHasilPerbaikan(aksiAktif.id, alasan);
+  else window.batalkanPenolakan(aksiAktif.id, alasan);
+  window.tutupModalAksi();
+  refreshRiwayat();
+};
+
+function refreshRiwayat() {
+  renderRiwayat({ laporan_masuk: getStoredReports() });
+  document.querySelector('.filter-pill.active')?.click(); // pertahankan filter aktif
+}
+
+/* ---- Tampilan change log di modal detail ---- */
+function renderChangeLogHTML(reportId) {
+  const logs = getChangeLog(reportId);
+  if (!logs.length) return '<p class="text-muted" style="font-size:12px;">Belum ada perubahan status.</p>';
+  return logs.map((l) => {
+    const waktu = new Date(l.waktu).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' });
+    return `
+      <div style="border-left:3px solid #cbd5e1; padding:4px 0 4px 10px; margin-bottom:10px; font-size:12px;">
+        <strong>${escapeHtml(AKSI_LABEL[l.aksi] || l.aksi)}</strong>
+        <span style="color:#94a3b8;"> · ${waktu} WIB</span><br>
+        <span>Oleh: ${escapeHtml(l.oleh)}</span><br>
+        <span>${escapeHtml(l.dari)} → <strong>${escapeHtml(l.ke)}</strong></span><br>
+        <span style="color:#475569;">Alasan: ${escapeHtml(l.alasan)}</span>
+      </div>`;
+  }).join('');
+}
+
+/* ==========================================================================
+   9. HALAMAN VERIFIKATOR (dashboard, riwayat, statistik)
+   ========================================================================== */
+
+const DEV_MODE = false; // ubah ke false saat demo/presentasi
+
+const REPORT_MONTHS = {
+  jan: 0, januari: 0, feb: 1, februari: 1, mar: 2, maret: 2,
+  apr: 3, april: 3, mei: 4, jun: 5, juni: 5, jul: 6, juli: 6,
+  agu: 7, agustus: 7, sep: 8, september: 8, okt: 9, oktober: 9,
+  nov: 10, november: 10, des: 11, desember: 11
+};
+
+function parseReportDate(value) {
+  if (!value) return null;
+  const isoMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) return new Date(Date.UTC(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3])));
+
+  const match = String(value).trim().match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (!match) return null;
+  const month = REPORT_MONTHS[match[2].toLowerCase()];
+  if (month === undefined) return null;
+  return new Date(Date.UTC(Number(match[3]), month, Number(match[1])));
+}
+
+function dateToInputValue(date) {
+  if (!date) return '';
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+}
+
+function getReportLocationKey(report) {
+  return report.lokasi?.kode || report.lokasi?.nama || report.roomCode || report.roomLabel || '';
+}
+
+function getReportLocationLabel(report) {
+  const key = getReportLocationKey(report);
+  const name = report.lokasi?.nama || report.roomLabel || '';
+  return name && key !== name ? `${key} - ${name}` : key;
+}
+
+function populateReportFilter(select, reports, kind) {
+  if (!select) return;
+  const firstOption = select.options[0];
+  const options = new Map();
+  reports.forEach((report) => {
+    let value;
+    let label;
+    if (kind === 'category') {
+      value = report.kategori || report.category || '';
+      label = value;
+    } else if (kind === 'room') {
+      value = getReportLocationKey(report);
+      label = getReportLocationLabel(report);
+    } else {
+      value = report.status || '';
+      label = value;
+    }
+    if (value && !options.has(value)) options.set(value, label);
+  });
+
+  select.replaceChildren(firstOption);
+  [...options.entries()]
+    .sort((a, b) => a[1].localeCompare(b[1], 'id'))
+    .forEach(([value, label]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      select.appendChild(option);
+    });
+}
+
+function readReportFilters(prefix) {
+  return {
+    category: document.getElementById(`${prefix}FilterCategory`)?.value || '',
+    from: document.getElementById(`${prefix}FilterFrom`)?.value || '',
+    to: document.getElementById(`${prefix}FilterTo`)?.value || '',
+    room: document.getElementById(`${prefix}FilterRoom`)?.value || '',
+    status: document.getElementById(`${prefix}FilterStatus`)?.value || ''
+  };
+}
+
+function reportMatchesFilters(report, filters) {
+  if (filters.category && (report.kategori || report.category || '') !== filters.category) return false;
+  if (filters.room && getReportLocationKey(report) !== filters.room) return false;
+  if (filters.status && report.status !== filters.status) return false;
+  const reportDate = parseReportDate(report.tanggal || report.date);
+  if (filters.from && (!reportDate || dateToInputValue(reportDate) < filters.from)) return false;
+  if (filters.to && (!reportDate || dateToInputValue(reportDate) > filters.to)) return false;
+  return true;
+}
+
+function bindReportFilters(prefix, onChange) {
+  const filterIds = [
+    `${prefix}FilterCategory`,
+    `${prefix}FilterFrom`,
+    `${prefix}FilterTo`,
+    `${prefix}FilterRoom`,
+    `${prefix}FilterStatus`
+  ];
+  filterIds.forEach((id) => {
+    const control = document.getElementById(id);
+    if (control) control.addEventListener('change', onChange);
+  });
+  const reset = document.getElementById(`${prefix}FilterReset`);
+  if (reset) {
+    reset.addEventListener('click', () => {
+      filterIds.forEach((id) => {
+        const control = document.getElementById(id);
+        if (control) control.value = '';
+      });
+      onChange();
+    });
+  }
+}
+
+async function loadVerifikatorData() {
+  try {
+    const res = await fetch('data.json');
+    if (!res.ok) throw new Error('Gagal memuat data.json');
+
+    const data = await res.json();
+    const storedReports = getStoredReports();
+
+    // Gabungkan status terbaru dari localStorage ke data laporan
+    data.laporan_masuk = (data.laporan_masuk || []).map((item) => {
+      const saved = storedReports.find(
+        (r) => String(r.id) === String(item.id) ||
+          String(r.roomCode) === String(item.id)
+      );
+
+      if (!saved) return item;
+
+      return {
+        ...item,
+        status: saved.status || item.status,
+        technician: saved.technician || item.technician,
+        disposition: saved.disposition || item.disposition,
+        rejectionReason: saved.rejectionReason || item.rejectionReason,
+        catatan: saved.catatan || item.catatan,
+        fotoSebelum: saved.fotoSebelum || item.fotoSebelum,
+        fotoSesudah: saved.fotoSesudah || item.fotoSesudah
+      };
+    });
+
+    return data;
+  } catch (err) {
+    console.warn('loadVerifikatorData gagal:', err);
+    return null;
+  }
+}
+
+
+function renderDashboard(data) {
+  if (!data) return;
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('metricMenunggu', data.summary_dashboard?.menunggu_verifikasi ?? '–');
+  setText('metricDiproses', data.summary_dashboard?.diproses ?? '–');
+  setText('metricSelesai', data.summary_dashboard?.selesai ?? '–');
+  setText('metricDitolak', data.summary_dashboard?.ditolak ?? '–');
+
+  const tbody = document.getElementById('verifikatorTableBody');
+  if (!tbody) return;
+  const reports = getStoredReports();
+  const reportItems = Array.isArray(reports) && reports.length ? reports : (data.laporan_masuk || []);
+  populateReportFilter(document.getElementById('dashboardFilterCategory'), reportItems, 'category');
+  populateReportFilter(document.getElementById('dashboardFilterRoom'), reportItems, 'room');
+  populateReportFilter(document.getElementById('dashboardFilterStatus'), reportItems, 'status');
+  tbody.innerHTML = '';
+
+  reportItems.forEach((item) => {
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-row-id', item.id);
+    tr.dataset.status = item.status || '';
+    const fotoCell = item.thumb_url
+      ? `<button type="button" class="thumb-btn" onclick="openImageModal('${item.foto_url}')"><img src="${item.thumb_url}" alt="Bukti" class="thumb-img"></button>`
+      : `<span class="text-muted">Tanpa foto</span>`;
+    const aksiCell = item.status === 'Menunggu Verifikasi'
+      ? `<div class="action-group">
+       <button type="button" class="btn-icon btn-icon-success"
+         onclick="openApproveModal('${item.id}', '${item.judul}')"
+         title="Approve">✓</button>
+       <button type="button" class="btn-icon btn-icon-danger"
+         onclick="openRejectModal('${item.id}', '${item.judul}')"
+         title="Reject">✕</button>
+     </div>`
+      : item.status === 'Ditolak'
+        ? `<div class="action-group">
+         <span class="status-pill status-pill-danger">Ditolak</span>
+         <button type="button" class="btn-icon"
+           onclick="batalPenolakan('${item.id}')"
+           title="Batal Penolakan">↩</button>
+       </div>`
+        : `<span class="status-pill">${item.status}</span>`;
+
+
+    tr.innerHTML = `
+      <td>
+        <div class="cell-reporter">
+          <div class="cell-avatar">${item.pelapor?.inisial || '?'}</div>
+          <div>
+            <span class="cell-name" style="display: block;">${item.pelapor?.nama || '-'}</span>
+            <span class="cell-meta" style="display: block; margin-top: 3px;">NIM: ${item.pelapor?.nim || '-'}</span>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div>
+          <span class="cell-name" style="display: block;">${item.lokasi?.kode || '-'}</span>
+          <span class="cell-meta" style="display: block; margin-top: 3px;">${item.lokasi?.nama || '-'}</span>
+        </div>
+      </td>
+      <td>
+        <div>
+          <span class="status-pill">${item.kategori || '-'}</span>
+          <span class="cell-meta" style="display: block; margin-top: 6px;">${item.judul || '-'}</span>
+        </div>
+      </td>
+      <td class="text-center">${fotoCell}</td>
+      <td class="text-right">${aksiCell}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const searchInput = document.getElementById('tableSearchInput');
+  const result = document.getElementById('dashboardFilterResult');
+  const applyFilters = () => {
+    const filters = readReportFilters('dashboard');
+    const query = searchInput?.value.toLowerCase().trim() || '';
+    let visibleCount = 0;
+    tbody.querySelectorAll('tr').forEach((row, index) => {
+      const report = { ...reportItems[index], status: row.dataset.status || reportItems[index].status };
+      const visible = reportMatchesFilters(report, filters) &&
+        row.textContent.toLowerCase().includes(query);
+      row.style.display = visible ? '' : 'none';
+      if (visible) visibleCount += 1;
+    });
+    if (result) result.textContent = `Menampilkan ${visibleCount} dari ${reportItems.length} laporan.`;
+  };
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  bindReportFilters('dashboard', applyFilters);
+  applyFilters();
+}
+
+function renderRiwayat(data) {
+  const list = document.getElementById('riwayatList');
+  if (!list || !data) return;
+
+  // Ambil data dari localStorage (biar statusnya up-to-date)
+  let laporan = data.laporan_masuk || [];
+  try {
+    const stored = localStorage.getItem('aduin_reports');
+    if (stored) laporan = JSON.parse(stored);
+  } catch (e) { }
+
+  list.innerHTML = '';
+  laporan.forEach((item) => list.appendChild(buildRiwayatCard(item)));
+
+  // Logika Filter Pills
+  document.querySelectorAll('.filter-pill').forEach((pill) => {
+    // Hapus event lama biar gak dobel
+    const newPill = pill.cloneNode(true);
+    pill.parentNode.replaceChild(newPill, pill);
+
+    newPill.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach((p) => p.classList.remove('active'));
+      newPill.classList.add('active');
+      const f = newPill.getAttribute('data-filter');
+
+      document.querySelectorAll('.riwayat-card').forEach((card) => {
+        const s = card.getAttribute('data-status');
+        card.style.display = (f === 'Semua' || s === f) ? '' : 'none';
+      });
+    });
+  });
+}
+
+function buildRiwayatCard(item) {
+  const card = document.createElement('div');
+  card.className = 'glass-card riwayat-card';
+  card.setAttribute('data-status', item.status);
+  card.style.cursor = 'pointer';
+
+  const isRejected = item.status === 'Ditolak';
+  const isReview = item.status === STATUS_REVIEW;
+  const isPusat = item.status === 'Diteruskan ke Pusat' || item.disposition === 'UPA PP Pusat';
+
+  const stepMap = {
+    'Menunggu Verifikasi': 0, 'Disetujui': 1, 'Dalam Perbaikan': 2,
+    'Diteruskan ke Pusat': 2, [STATUS_REVIEW]: 3, 'Selesai': 4,
+  };
+  const currentIndex = stepMap[item.status] ?? 0;
+  console.log('Status laporan:', item.status);
+  console.log('Index progress:', currentIndex);
+
+  const pillMap = {
+    'Menunggu Verifikasi': 'status-pill-warning',
+    'Disetujui': 'status-pill-info',
+    'Dalam Perbaikan': 'status-pill-info',
+    [STATUS_REVIEW]: 'status-pill-warning',
+    'Diteruskan ke Pusat': 'status-pill-purple',
+    'Selesai': 'status-pill-success',
+    'Ditolak': 'status-pill-danger'
+  };
+  const pillClass = pillMap[item.status] || 'status-pill-neutral';
+
+  const subProses = isPusat ? 'Diserahkan ke Pusat'
+    : isReview ? 'Menunggu review Kajur'
+      : item.revisi_ke ? `Revisi ke-${item.revisi_ke} · ${item.teknisi || 'Teknisi'}`
+        : (item.teknisi || 'Teknisi');
+
+  const nodes = [
+    { label: 'Menunggu Verifikasi', sub: item.tanggal || '-' },
+    { label: 'Disetujui', sub: 'Validasi Kajur' },
+    { label: 'Dalam Perbaikan', sub: item.teknisi || 'Teknisi' },
+    { label: 'Menunggu Review Hasil', sub: 'Menunggu verifikasi hasil' },
+    { label: 'Selesai', sub: 'Fasilitas Normal' }
+  ];
+
+  const timelineHTML = nodes.map((n, i) => {
+    let cls = 'timeline-node';
+    let dot = i + 1;
+    if (!isRejected) {
+      if (i < currentIndex) { cls += ' done'; dot = '✓'; }
+      else if (i === currentIndex) {
+        if (item.status === 'Selesai') { cls += ' success'; dot = '✓'; }
+        else { cls += ' active'; dot = i === 0 ? '✓' : i === 2 ? '⚙' : i + 1; }
+      }
+    } else if (i === 0) { cls += ' done'; dot = '✓'; }
+    return `<div class="${cls}"><div class="timeline-dot">${dot}</div><span class="timeline-caption">${n.label}</span><span class="timeline-sub">${n.sub}</span></div>`;
+  }).join('');
+
+  // Tombol aksi
+  let actionHTML = '';
+  if (isReview) {
+    actionHTML = `
+      <button type="button" class="btn btn-success" data-act="terima-hasil">✓ Terima Hasil</button>
+      <button type="button" class="btn btn-danger" data-act="tolak-hasil">Tolak Hasil Perbaikan</button>`;
+  } else if (isRejected) {
+    actionHTML = `<button type="button" class="btn btn-ghost" data-act="batal-tolak" style="border:1px solid #cbd5e1;">↺ Batal Penolakan</button>`;
+  }
+
+  // Catatan kontekstual
+  let noteHTML = '';
+  if (isRejected && item.rejectionReason) {
+    noteHTML = `<p style="font-size:12px;color:#b91c1c;margin-top:10px;">Alasan penolakan: ${escapeHtml(item.rejectionReason)}</p>`;
+  } else if (item.status === 'Dalam Perbaikan' && item.catatan_revisi) {
+    noteHTML = `<p style="font-size:12px;color:#b45309;margin-top:10px;">Catatan revisi dikirim ke teknisi: ${escapeHtml(item.catatan_revisi)}</p>`;
+  }
+
+  card.innerHTML = `
+    <div class="riwayat-head">
+      <div>
+        <h3 class="riwayat-title">${item.judul}<span class="riwayat-code">#${item.id}</span></h3>
+        <p class="riwayat-meta">${item.lokasi?.nama || '-'} · Pelapor: ${item.pelapor?.nama || '-'} · ${item.tanggal || '-'} · ${item.waktu || '-'}</p>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+        <span class="status-pill ${pillClass}">${item.status}</span>
+      </div>
+    </div>
+    ${noteHTML}
+    <div class="timeline-wrap">
+      <div class="timeline-label">Progress Tracker Timeline</div>
+      <div class="timeline">${timelineHTML}</div>
+    </div>
+    ${actionHTML ? `<div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">${actionHTML}</div>` : ''}
+  `;
+
+  card.querySelectorAll('[data-act]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // jangan buka modal detail
+      if (btn.dataset.act === 'terima-hasil') window.terimaHasilPerbaikan(item.id);
+      else window.bukaModalAksi(btn.dataset.act, item);
+    });
+  });
+
+  card.addEventListener('click', () => window.bukaModalDetail(item));
+  return card;
+}
+
+
+window.bukaModalDetail = function (item) {
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('detailJudul', item.judul || '-');
+  setText('detailId', '#' + (item.id || '-'));
+  setText('detailPelapor', item.pelapor?.nama || '-');
+  setText('detailLokasi', item.lokasi?.nama || '-');
+  setText('detailKategori', item.kategori || '-');
+  setText('detailStatus', item.status || '-');
+  setText('detailTanggal', `${item.tanggal || '-'} · ${item.waktu || '-'}`);
+  setText('detailDeskripsi', item.deskripsi || '-');
+
+  const logEl = document.getElementById('detailChangeLog');
+  if (logEl) logEl.innerHTML = renderChangeLogHTML(item.id);
+
+  const hasilEl = document.getElementById('detailHasil');
+  if (hasilEl) {
+    if (item.hasilCatatan) {
+      hasilEl.style.display = 'block';
+      hasilEl.innerHTML = `<strong>Hasil kerja teknisi:</strong><br>${escapeHtml(item.hasilCatatan)}` +
+        (item.hasilFotoSesudah ? `<img src="${item.hasilFotoSesudah}" alt="Foto sesudah" style="max-width:100%;border-radius:8px;margin-top:8px;">` : '');
+    } else {
+      hasilEl.style.display = 'none';
+    }
+  }
+  const footer = document.getElementById('detailFooter');
+  const btn = document.getElementById('btnSelesaiPusat');
+  if (footer && btn) {
+    const isPusat = item.status === 'Diteruskan ke Pusat';
+    footer.style.display = isPusat ? 'block' : 'none';
+    btn.onclick = isPusat ? () => window.tandaiSelesaiPusat(item.id) : null;
+  }
+
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+};
+
+
+window.tandaiSelesaiPusat = function (id) {
+  if (!confirm('Penanganan di UPA PP Pusat sudah selesai? Status akan diubah menjadi Selesai.')) return;
+
+  const reports = getStoredReports();
+  const target = reports.find(r => r.id === id);
+  if (!target) { showToast('Laporan tidak ditemukan.', 'error'); return; }
+
+  target.status = 'Selesai';
+  saveStoredReports(reports);
+  showToast('Status laporan diubah menjadi Selesai!', 'success');
+
+  // Tutup modal
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+  // Render ulang
+  loadVerifikatorData().then(data => {
+    if (data) renderRiwayat({ ...data, laporan_masuk: getStoredReports() });
+  });
+};
+
+function renderStatistik(data) {
+  if (!data || !data.statistik) return;
+  const s = data.statistik;
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('statTotal', s.total_laporan + ' Tiket');
+  setText('statResolusi', s.tingkat_resolusi);
+  setText('statRata', s.rata_rata_penanganan);
+  setText('statRespon', s.respon_verifikasi);
+
+  const tbody = document.getElementById('rankingTableBody');
+  const renderRanking = (ranking) => {
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    ranking.forEach((r, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>#${r.peringkat || index + 1}</strong></td>
+        <td>${r.lokasi}</td>
+        <td style="text-align: right; padding-right: 24px;">${r.jumlah} Laporan</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  };
+  renderRanking(s.ranking_lokasi || []);
+
+  const reports = getStoredReports();
+  const reportItems = Array.isArray(reports) && reports.length ? reports : (data.laporan_masuk || []);
+  populateReportFilter(document.getElementById('statFilterCategory'), reportItems, 'category');
+  populateReportFilter(document.getElementById('statFilterRoom'), reportItems, 'room');
+  populateReportFilter(document.getElementById('statFilterStatus'), reportItems, 'status');
+  const filterResult = document.getElementById('statFilterResult');
+  const statTotalNote = document.querySelector('#statTotal')?.parentElement.querySelector('.metric-note');
+  const statResolutionNote = document.querySelector('#statResolusi')?.parentElement.querySelector('.metric-note');
+  const statAverageNote = document.querySelector('#statRata')?.parentElement.querySelector('.metric-note');
+  const statResponseNote = document.querySelector('#statRespon')?.parentElement.querySelector('.metric-note');
+
+  const renderCharts = (trendLabels, trendData, categoryLabels, categoryData) => {
+    if (typeof Chart === 'undefined') return;
+    const trenEl = document.getElementById('trenChart');
+    const katEl = document.getElementById('kategoriChart');
+    if (trenEl) {
+      const existing = Chart.getChart(trenEl);
+      if (existing) existing.destroy();
+      new Chart(trenEl, {
+        type: 'line',
+        data: { labels: trendLabels, datasets: [{ label: 'Jumlah Laporan', data: trendData, borderColor: '#226cc6', backgroundColor: 'rgba(48, 175, 254, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#fff', pointBorderColor: '#30affe', pointBorderWidth: 3, pointRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
+      });
+    }
+
+    if (katEl) {
+      const existing = Chart.getChart(katEl);
+      if (existing) existing.destroy();
+      new Chart(katEl, {
+        type: 'doughnut',
+        data: { labels: categoryLabels, datasets: [{ data: categoryData, backgroundColor: ['#30affe', '#226cc6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, cutout: '65%' },
+      });
+    }
+  };
+
+  const applyFilters = () => {
+    const filters = readReportFilters('stat');
+    const hasFilters = Object.values(filters).some(Boolean);
+    const filteredReports = reportItems.filter((report) => reportMatchesFilters(report, filters));
+    if (filterResult) filterResult.textContent = hasFilters
+      ? `Statistik menampilkan ${filteredReports.length} dari ${reportItems.length} laporan.`
+      : `Menampilkan ringkasan seluruh ${s.total_laporan} laporan.`;
+
+    if (!hasFilters) {
+      setText('statTotal', `${s.total_laporan} Tiket`);
+      setText('statResolusi', s.tingkat_resolusi);
+      setText('statRata', s.rata_rata_penanganan);
+      setText('statRespon', s.respon_verifikasi);
+      if (statTotalNote) statTotalNote.textContent = '↑ +14.2% dari bulan lalu';
+      if (statResolutionNote) statResolutionNote.textContent = 'Target Sarpras tercapai';
+      if (statAverageNote) statAverageNote.textContent = 'Per perbaikan';
+      if (statResponseNote) statResponseNote.textContent = 'Disposisi cepat Kajur';
+      renderRanking(s.ranking_lokasi || []);
+      renderCharts(
+        s.tren_mingguan?.labels || [],
+        s.tren_mingguan?.data || [],
+        s.kategori_distribusi?.labels || [],
+        s.kategori_distribusi?.data || []
+      );
+      return;
+    }
+
+    const resolved = filteredReports.filter((report) => report.status === 'Selesai').length;
+    const resolution = filteredReports.length ? (resolved / filteredReports.length) * 100 : 0;
+    setText('statTotal', `${filteredReports.length} Tiket`);
+    setText('statResolusi', `${resolution.toFixed(1)}%`);
+    setText('statRata', '—');
+    setText('statRespon', '—');
+    if (statTotalNote) statTotalNote.textContent = 'Sesuai filter yang dipilih';
+    if (statResolutionNote) statResolutionNote.textContent = 'Laporan selesai dari hasil filter';
+    if (statAverageNote) statAverageNote.textContent = 'Data durasi tidak tersedia';
+    if (statResponseNote) statResponseNote.textContent = 'Data waktu respon tidak tersedia';
+
+    const categoryCounts = new Map();
+    const roomCounts = new Map();
+    const datedReports = [];
+    filteredReports.forEach((report) => {
+      const category = report.kategori || report.category || 'Tidak berkategori';
+      categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1);
+      const roomLabel = getReportLocationLabel(report) || 'Tidak diketahui';
+      roomCounts.set(roomLabel, (roomCounts.get(roomLabel) || 0) + 1);
+      const date = parseReportDate(report.tanggal || report.date);
+      if (date) datedReports.push(date);
+    });
+
+    const ranking = [...roomCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([lokasi, jumlah], index) => ({ peringkat: index + 1, lokasi, jumlah }));
+    renderRanking(ranking);
+
+    let endDate = datedReports.length
+      ? new Date(datedReports.reduce((latest, date) => Math.max(latest, date.getTime()), 0))
+      : null;
+    if (!endDate && filters.to) endDate = parseReportDate(filters.to);
+    if (!endDate) endDate = new Date();
+    const trendDates = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(endDate);
+      date.setUTCDate(date.getUTCDate() - (6 - index));
+      return date;
+    });
+    const trendCounts = trendDates.map((date) => filteredReports.filter((report) => {
+      const reportDate = parseReportDate(report.tanggal || report.date);
+      return reportDate && dateToInputValue(reportDate) === dateToInputValue(date);
+    }).length);
+
+    renderCharts(
+      trendDates.map((date) => date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
+      trendCounts,
+      [...categoryCounts.keys()],
+      [...categoryCounts.values()]
+    );
+  };
+
+  bindReportFilters('stat', applyFilters);
+  applyFilters();
+}
+
+/* ==========================================================================
+   10. HALAMAN PELAPOR
+>>>>>>> c5fdc4e12cde6aeaa16248d6735d52c71b007111
    ========================================================================== */
 async function loadPelaporData() {
   const res = await fetch('data.json');
@@ -647,15 +1503,17 @@ function bindVerifikatorEvents() {
       const tech = document.getElementById('assignedTechnician')?.value || 'Pak Joko';
       const code = activeReportForAction?.code;
       if (code) {
-        const reports = getStoredReports();
-        const target = reports.find((r) => r.id === code || r.roomCode === code);
-        if (target) {
-          target.disposition = disposition;
-          target.verified_at = new Date().toISOString();
-          if (disposition === 'UPA PP Pusat') { target.status = 'Diteruskan ke Pusat'; target.technician = 'UPA PP Pusat'; }
-          else { target.status = 'Dalam Perbaikan'; target.technician = tech; }
-          saveStoredReports(reports);
-        }
+        const isPusat = disposition === 'UPA PP Pusat';
+        updateReportStatus(code, isPusat ? 'Diteruskan ke Pusat' : 'Dalam Perbaikan', {
+          aksi: 'SETUJUI_LAPORAN',
+          alasan: `Disposisi: ${disposition}${isPusat ? '' : ' - ' + tech}`,
+          extra: {
+            disposition,
+            verified_at: new Date().toISOString(),
+            technician: isPusat ? 'UPA PP Pusat' : tech,
+          },
+          notePelapor: 'Laporan sudah diverifikasi dan diteruskan.',
+        });
         const row = document.querySelector(`tr[data-row-id="${code}"]`);
         if (row) {
           row.dataset.status = disposition === 'UPA PP Pusat' ? 'Diteruskan ke Pusat' : 'Dalam Perbaikan';
