@@ -320,6 +320,28 @@ window.bukaModalDetail = function (item) {
   setText('detailTanggal', `${item.tanggal || '-'} · ${item.waktu || '-'}`);
   setText('detailDeskripsi', item.deskripsi || '-');
 
+  // LOGIKA MENAMPILKAN FOTO
+  const fotoContainer = document.getElementById('detailFotoContainer');
+  const imgElement = document.getElementById('detailFoto');
+
+  if (item.foto_url && item.foto_url.trim() !== "") {
+    // Jika ada URL foto, pasang gambar dan tampilkan container
+    imgElement.src = item.foto_url;
+    fotoContainer.style.display = 'block';
+  } else {
+    // Jika tidak ada foto (seperti laporan "Kursi Rusak"), sembunyikan container
+    imgElement.src = '';
+    foto
+
+    // 4. Tampilkan Modal
+    const modal = document.getElementById('modalDetailPengaduan');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      modal.classList.add('active');
+    }
+  };
+
   const footer = document.getElementById('detailFooter');
   const btn = document.getElementById('btnSelesaiPusat');
   if (footer && btn) {
@@ -329,9 +351,9 @@ window.bukaModalDetail = function (item) {
   }
 
   const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) { 
-    modal.classList.remove('hidden'); 
-    modal.classList.add('flex'); 
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
     modal.classList.add('active'); // Tambahin active
   }
 };
@@ -348,9 +370,9 @@ window.tandaiSelesaiPusat = function (id) {
   showToast('Status laporan diubah menjadi Selesai!', 'success');
 
   const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) { 
-    modal.classList.add('hidden'); 
-    modal.classList.remove('flex'); 
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
     modal.classList.remove('active'); // Tambahin active
   }
 
@@ -530,7 +552,7 @@ let daftarTeknisi = [];
 
 async function loadDataTeknisi() {
   try {
-    const res = await fetch('../data.json'); 
+    const res = await fetch('../data.json');
     if (!res.ok) throw new Error('Gagal fetch data.json');
     const json = await res.json();
     daftarTeknisi = json.teknisi || [];
