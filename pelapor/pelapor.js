@@ -222,16 +222,79 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
       description.textContent = report.description;
       card.append(description);
     }
-    if (report.photoName) {
-      const photo = document.createElement("p");
-      photo.className = "text-muted";
-      photo.textContent = `Foto dipilih: ${report.photoName} (belum diunggah ke server)`;
-      card.append(photo);
+
+    if (Array.isArray(report.images) && report.images.length > 0) {
+      const photoGrid = document.createElement("div");
+      photoGrid.className = "report-photo-grid";
+      
+    // Tampilkan maksimal 3 foto di preview kartu
+      report.images.slice(0, 3).forEach((imgSrc) => {
+      const img = document.createElement("img");
+      img.src = imgSrc;
+      img.className = "thumb-preview";
+      photoGrid.append(img);
+    });
+
+    // Jika foto lebih dari 3, beri indikator angka tambahan (+2, dsb)
+    if (report.images.length > 3) {
+      const badgeMore = document.createElement("span");
+      badgeMore.className = "more-photos-badge";
+      badgeMore.textContent = `+${report.images.length - 3}`;
+      photoGrid.append(badgeMore);
     }
+
+    // Buka modal detail saat area foto diklik
+      photoGrid.addEventListener("click", () => openDetailModal(report));
+      card.append(photoGrid);
+  }
+    card.append(progressCard(report.status));
     card.append(progressCard(report));
     card.dataset.status = report.status;
     return card;
   }
+
+  function openDetailModal(report) {
+  // Ambil elemen modal dari daftar_laporan.html (atau buat elemen modal secara otomatis)
+  let modal = document.getElementById("detail-modal");
+  
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "detail-modal";
+    modal.className = "modal-overlay";
+    document.body.append(modal);
+  }
+
+  // Render isi modal detail dengan Grid Foto
+  modal.innerHTML = `
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">${report.title}</h3>
+          <span class="modal-subtitle">${report.roomLabel}</span>
+        </div>
+        <button type="button" class="modal-close" id="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Deskripsi:</strong> ${report.description}</p>
+        <p><strong>Dokumentasi Foto (${report.images ? report.images.length : 0} foto):</strong></p>
+        
+        <!-- GRID FOTO UTAMA DI MODAL DETAIL -->
+        <div class="modal-photo-grid">
+          ${(report.images || []).map((img, idx) => `
+            <div class="grid-photo-item">
+              <img src="${img}" alt="Dokumentasi ${idx + 1}" onclick="window.open('${img}', '_blank')" />
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+    modal.classList.remove("hidden");
+
+    // Tombol tutup modal
+    document.getElementById("close-modal").onclick = () => modal.classList.add("hidden");
+}
 
   function renderReports() {
     const reports = getReports();
@@ -310,6 +373,9 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
     const form = document.getElementById("report-form");
     if (!form) return;
 
+    let selectedFiles = [];//Menyimpan file gambar yang dipilih
+    
+    //Set Tanggal otomatis
     const dateInput = document.getElementById("report-date");
     if (dateInput) {
       dateInput.value = `${new Intl.DateTimeFormat("id-ID", {
@@ -319,47 +385,137 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
       }).format(new Date())} WIB`;
     }
 
+    // GANTI BAGIAN PENANGANAN FOTO DI pelapor.js DENGAN INI:
     const photoInput = document.getElementById("report-photo");
     const photoFeedback = document.getElementById("photo-feedback");
     const dropzone = document.getElementById("photo-dropzone");
+    const previewContainer = document.getElementById("photo-preview-list");
     const maxPhotoSize = 10 * 1024 * 1024;
-    let selectedPhoto = null;
 
-    function setPhoto(file) {
-      if (!file) return;
-      if (!["image/png", "image/jpeg"].includes(file.type)) {
-        selectedPhoto = null;
-        photoInput.value = "";
-        photoFeedback.textContent = "Pilih foto dalam format PNG atau JPG.";
-        photoFeedback.className = "status-pill status-pill-danger";
-        return;
+    // Fungsi untuk memproses file baru yang dipilih
+    function setPhotos(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      const files = Array.from(fileList);
+      const validFiles = [];
+
+      for (let file of files) {
+        if (!["image/png", "image/jpeg"].includes(file.type)) {
+          photoFeedback.textContent = `File "${file.name}" bukan PNG/JPG.`;
+          photoFeedback.className = "status-pill status-pill-danger";
+          return;
+        }
+        if (file.size > maxPhotoSize) {
+          photoFeedback.textContent = `File "${file.name}" melebihi 10MB.`;
+          photoFeedback.className = "status-pill status-pill-danger";
+          return;
+        }
+        validFiles.push(file);
       }
-      if (file.size > maxPhotoSize) {
-        selectedPhoto = null;
-        photoInput.value = "";
-        photoFeedback.textContent = "Ukuran foto melebihi batas 10MB.";
+
+      // Gabungkan foto baru dengan foto yang sudah dipilih sebelumnya
+      const totalFiles = [...selectedFiles, ...validFiles];
+
+      if (totalFiles.length > 5) {
+        photoFeedback.textContent = "Maksimal hanya 5 foto yang diperbolehkan.";
         photoFeedback.className = "status-pill status-pill-danger";
-        return;
+        selectedFiles = totalFiles.slice(0, 5); // Ambil 5 pertama
+      } else {
+        selectedFiles = totalFiles;
+        photoFeedback.textContent = `${selectedFiles.length} foto berhasil dipilih.`;
+        photoFeedback.className = "status-pill status-pill-success";
       }
-      selectedPhoto = file;
-      photoFeedback.textContent = `Foto dipilih: ${file.name}`;
-      photoFeedback.className = "status-pill status-pill-success";
+
+      renderPreview();
     }
 
-    document.getElementById("choose-report-photo").addEventListener("click", () => photoInput.click());
-    photoInput.addEventListener("change", () => setPhoto(photoInput.files[0]));
-    dropzone.addEventListener("dragover", (event) => {
-      event.preventDefault();
-      dropzone.classList.add("status-badge-success");
-    });
-    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("status-badge-success"));
-    dropzone.addEventListener("drop", (event) => {
-      event.preventDefault();
-      dropzone.classList.remove("status-badge-success");
-      setPhoto(event.dataTransfer.files[0]);
-    });
+    // Fungsi untuk menampilkan preview gambar
+    function renderPreview() {
+      if (!previewContainer) return;
+      previewContainer.innerHTML = "";
 
-    form.addEventListener("submit", (event) => {
+      if (selectedFiles.length === 0) {
+        photoFeedback.textContent = "";
+        return;
+      }
+
+      selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const wrapper = document.createElement("div");
+          wrapper.style.position = "relative";
+          wrapper.style.display = "inline-block";
+          wrapper.style.margin = "5px";
+
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.style.width = "65px";
+          img.style.height = "65px";
+          img.style.objectFit = "cover";
+          img.style.borderRadius = "8px";
+          img.style.border = "1px solid var(--line)";
+
+          // Tombol silang (x) hapus per foto
+          const removeBtn = document.createElement("button");
+          removeBtn.type = "button";
+          removeBtn.innerHTML = "x";
+          removeBtn.style.position = "absolute";
+          removeBtn.style.top = "-6px";
+          removeBtn.style.right = "-6px";
+          removeBtn.style.background = "var(--red)";
+          removeBtn.style.color = "#fff";
+          removeBtn.style.border = "none";
+          removeBtn.style.borderRadius = "50%";
+          removeBtn.style.width = "20px";
+          removeBtn.style.height = "20px";
+          removeBtn.style.fontSize = "13px";
+          removeBtn.style.fontWeight = "bold";
+          removeBtn.style.cursor = "pointer";
+
+          removeBtn.onclick = () => {
+            selectedFiles.splice(index, 1);
+            if (selectedFiles.length > 0) {
+              photoFeedback.textContent = `${selectedFiles.length} foto berhasil dipilih.`;
+              photoFeedback.className = "status-pill status-pill-success";
+            }
+            renderPreview();
+          };
+
+          wrapper.append(img, removeBtn);
+          previewContainer.appendChild(wrapper);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Event listener tombol Pilih Foto
+    const chooseBtn = document.getElementById("choose-report-photo");
+    if (chooseBtn && photoInput) {
+      chooseBtn.addEventListener("click", () => {
+        photoInput.value = ""; // Reset agar bisa pilih file baru
+        photoInput.click();
+      });
+
+      photoInput.addEventListener("change", () => {
+        setPhotos(photoInput.files);
+      });
+    }
+
+    // Event listener Dropzone (Drag & Drop)
+    if (dropzone) {
+      dropzone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropzone.classList.add("status-badge-success");
+      });
+      dropzone.addEventListener("dragleave", () => dropzone.classList.remove("status-badge-success"));
+      dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("status-badge-success");
+        setPhotos(event.dataTransfer.files);
+      });
+    }
+      const description = String(data.get("description")).trim();
+
+    form.addEventListener("submit",async (event) => {
       event.preventDefault();
       const feedback = document.getElementById("report-feedback");
       if (!form.reportValidity()) return;
@@ -369,6 +525,44 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
       const roomOption = form.elements.room.selectedOptions[0];
       const category = data.get("category");
       const description = String(data.get("description")).trim();
+
+    // Kompres gambar ke Base64 agar ringan disimpan di localStorage
+      const readAndCompressAsBase64 = (file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            resolve(canvas.toDataURL("image/jpeg", 0.7));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      let imagesArray = [];
+      if (selectedFiles.length > 0) {
+        try {
+          imagesArray = await Promise.all(selectedFiles.map(readAndCompressAsBase64));
+        } catch (err) {
+          showFormMessage(feedback, "Gagal memproses file gambar. Coba lagi.", true);
+          return;
+        }
+      }
       
       // ============================================================
       // SIMULASI SERVER TIMESTAMP
@@ -397,7 +591,9 @@ window.initPelaporPage = function initPelaporPage(initialReports) {
         date: displayDate,             // Tampilan untuk user
         created_at: serverTimestamp,   // Simulasi Timestamp Database (NOW())
         status: "Menunggu Verifikasi",
+        images: imagesArray // Simpan array foto di properti 'images' (bukan 'imsages')
       };
+
       
       if (selectedPhoto) report.photoName = selectedPhoto.name;
       const reports = getReports();

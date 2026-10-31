@@ -358,6 +358,15 @@ window.bukaModalDetail = function (item) {
   }
 };
 
+window.tutupDetail = function() {
+  const modal = document.getElementById('modalDetailPengaduan');
+  if (modal) { 
+    modal.classList.add('hidden'); 
+    modal.classList.remove('flex'); 
+    modal.classList.remove('active'); 
+  }
+};
+
 window.tandaiSelesaiPusat = function (id) {
   if (!confirm('Penanganan di UPA PP Pusat sudah selesai? Status akan diubah menjadi Selesai.')) return;
 
@@ -375,26 +384,6 @@ window.tandaiSelesaiPusat = function (id) {
     modal.classList.remove('flex');
     modal.classList.remove('active'); // Tambahin active
   }
-
-  loadVerifikatorData().then(data => {
-    if (data) renderRiwayat({ ...data, laporan_masuk: getStoredReports() });
-  });
-};
-
-
-window.tandaiSelesaiPusat = function (id) {
-  if (!confirm('Penanganan di UPA PP Pusat sudah selesai? Status akan diubah menjadi Selesai.')) return;
-
-  const reports = getStoredReports();
-  const target = reports.find(r => r.id === id);
-  if (!target) { showToast('Laporan tidak ditemukan.', 'error'); return; }
-
-  target.status = 'Selesai';
-  saveStoredReports(reports);
-  showToast('Status laporan diubah menjadi Selesai!', 'success');
-
-  const modal = document.getElementById('modalDetailPengaduan');
-  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
   loadVerifikatorData().then(data => {
     if (data) renderRiwayat({ ...data, laporan_masuk: getStoredReports() });

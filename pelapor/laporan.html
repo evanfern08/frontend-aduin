@@ -91,10 +91,11 @@
             <div class="form-group-item">
               <span class="form-label">Foto kerusakan (opsional)</span>
               <div id="photo-dropzone" class="glass-card">
-                <p>Seret dan letakkan foto di sini, atau <label for="report-photo">telusuri berkas</label>.</p>
+                <p>Seret dan letakkan foto di sini.</p>
                 <p class="text-muted">Format PNG atau JPG, maksimal 10 MB. Maksimal 5 foto.</p>
-                <input id="report-photo" type="file" accept="image/png,image/jpeg" class="hidden">
+                <input id="report-photo" type="file" accept="image/png,image/jpeg" multiple class="hidden">
                 <button id="choose-report-photo" type="button" class="btn btn-ghost">Pilih foto</button>
+                <div id="photo-preview-list" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;"></div>
                 <p id="photo-feedback" class="text-muted" aria-live="polite"></p>
               </div>
             </div>
