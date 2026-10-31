@@ -1472,3 +1472,142 @@ select.glass-input { cursor: pointer; }
 .grid-photo-item img:hover {
   transform: scale(1.04);
 }
+/* ===== HEADER ACTIONS (KANAN ATAS) ===== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Jarak antara ikon kotak masuk dan badge sesi aktif */
+}
+
+/* ===== 1. TOMBOL INBOX / REMINDER ===== */
+.btn-inbox-reminder {
+  position: relative;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: #64748b; /* Warna abu-abu ikon amplop */
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-inbox-reminder:hover {
+  background: #f1f5f9;
+  color: var(--navy);
+}
+
+/* Angka Notifikasi (Badge Merah/Oranye) */
+.inbox-badge {
+  position: absolute;
+  top: 0px;
+  right: 2px;
+  background-color: #f59e0b; /* Warna oranye peringatan */
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #fff; /* Memberi jarak putih dengan ikon */
+}
+
+/* ===== 2. BADGE SESI AKTIF ===== */
+.session-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #ecfdf5; 
+  color: #047857; 
+  border: 1px solid #a7f3d0; 
+  border-radius: 9999px; 
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.session-badge .dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981; 
+  border-radius: 50%;
+  display: inline-block;
+}
+/* ===== DROPDOWN INBOX REMINDER ===== */
+.inbox-wrapper {
+  position: relative; /* Agar dropdown bisa menempel pada tombol */
+}
+
+.inbox-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.inbox-header {
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  border-bottom: 1px solid var(--line);
+  background: #f8fafc;
+}
+
+.inbox-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.inbox-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.inbox-item:hover {
+  background: #f1f5f9;
+}
+
+.inbox-item:last-child {
+  border-bottom: none;
+}
+
+.inbox-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px 0;
+}
+
+.inbox-item-loc {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 8px 0;
+}
+
+.badge-mengendap {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #ffedd5; /* Warna oranye muda */
+  color: #c2410c; /* Warna oranye tua */
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 9999px;
+}
+
+/* Sembunyikan dropdown dengan class hidden */
+.hidden { display: none !important; }
